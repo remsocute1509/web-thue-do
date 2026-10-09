@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mochimoon - Tiệm Thuê Đồ Cosplay & Lịch Hẹn</title>
+  <meta name="description"
+    content="Aesthetic pastel dashboard for daily tracking, to-do lists, calendar, and habit management.">
+
+  <!-- Google Fonts: Quicksand & Nunito -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Quicksand:wght@500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <!-- Floating sakura & sparkles background elements -->
+  <div class="sakura-container" id="sakuraContainer"></div>
+
+  <!-- Main App Wrapper -->
+  <main class="app-window" id="appWindow">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <button class="icon-btn menu-btn" id="sidebarToggle" aria-label="Toggle Menu" title="Mở/Đóng thanh bên">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="18" x2="20" y2="18"></line>
+          </svg>
+        </button>
+
+        <!-- Brand / Profile Pill -->
+        <div class="brand-pill" id="brandPill">
+          <span class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+            </svg>
+          </span>
+          <span class="brand-title">mochimoon</span>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="tracker" id="navTracker">
+          <span class="nav-icon tracker-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </span>
+          <span class="nav-label">Welcome to mochimoon</span>
+        </button>
+
+        <button class="nav-item" data-tab="health" id="navHealth">
+          <span class="nav-icon health-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
+          </span>
+          <span class="nav-label">Health</span>
+        </button>
+
+        <button class="nav-item" data-tab="hobbies" id="navHobbies">
+          <span class="nav-icon hobbies-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
+          </span>
+          <span class="nav-label">Hobbies</span>
+        </button>
+
+        <button class="nav-item" data-tab="wardrobe" id="navWardrobe">
+          <span class="nav-icon wardrobe-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 3a2.5 2.5 0 0 0-2.5 2.5c0 .77.35 1.45.9 1.9L4 10v2l2 .5v8.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V12.5l2-.5V10l-6.4-2.6c.55-.45.9-1.13.9-1.9A2.5 2.5 0 0 0 12 3z" />
+            </svg>
+          </span>
+          <span class="nav-label">Wardrobe</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Bottom Action -->
+      <div class="sidebar-bottom">
+        <button class="icon-btn flower-settings-btn" id="settingsBtn" aria-label="Settings" title="Cài đặt">
+          <span class="flower-icon">🌸</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- RIGHT / MAIN DASHBOARD AREA -->
+    <div class="main-content">
+
+      <!-- TOP HEADER BAR -->
+      <header class="top-header">
+        <div class="search-bar">
+          <span class="search-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input type="text" id="searchInput" placeholder="Search..." aria-label="Search" autocomplete="off">
+        </div>
+
+        <div class="header-actions">
+          <!-- Notification Button -->
+          <div class="notification-wrapper">
+            <button class="icon-btn notif-btn" id="notifBtn" aria-label="Notifications" title="Bật/Tắt xem thông báo">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span class="badge-dot" id="notifBadge"></span>
+            </button>
+            <div class="notif-dropdown hidden" id="notifDropdown">
+              <div class="notif-header">
+                <span>Thông báo mới</span>
+                <div class="notif-header-right">
+                  <span class="notif-clear" id="clearNotifs">Đã đọc</span>
+                  <button class="notif-close-btn" id="closeNotifBtn" title="Đóng thông báo"
+                    aria-label="Close">&times;</button>
+                </div>
+              </div>
+              <ul class="notif-list">
+                <li class="notif-item unread">
+                  <span class="notif-badge-icon">🌸</span>
+                  <div class="notif-text">
+                    <p>Đừng quên uống đủ 2L nước hôm nay nhé!</p>
+                    <small>10 phút trước</small>
+                  </div>
+                </li>
+                <li class="notif-item">
+                  <span class="notif-badge-icon">✨</span>
+                  <div class="notif-text">
+                    <p>Bạn đã hoàn thành 80% nhiệm vụ hôm nay.</p>
+                    <small>1 giờ trước</small>
+                  </div>
+                </li>
+              </ul>
+              <!-- Bật / Tắt nhận thông báo -->
+              <div class="notif-footer-toggle">
+                <span>Bật thông báo</span>
+                <label class="switch-toggle" title="Bật/Tắt nhận thông báo">
+                  <input type="checkbox" id="notifSwitchToggle" checked>
+                  <span class="slider-toggle"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Background Music Player Widget (Thêm và chọn nhạc nền) -->
+          <div class="music-player-wrapper">
+            <button class="icon-btn music-btn" id="musicPlayerBtn" aria-label="Background Music" title="Phát & chọn nhạc nền">
+              <span id="musicBtnIcon">🎵</span>
+              <span class="music-note-badge hidden" id="musicNoteBadge">🎶</span>
+            </button>
+
+            <div class="music-dropdown hidden" id="musicDropdown">
+              <div class="music-header">
+                <div class="music-title-wrap">
+                  <span class="music-title-icon">🎵</span>
+                  <span class="music-title-text">Nhạc Nền mochimoon</span>
+                </div>
+                <button class="music-close-btn" id="closeMusicBtn" title="Đóng bảng nhạc" aria-label="Close">&times;</button>
+              </div>
+
+              <!-- Now Playing Card -->
+              <div class="now-playing-card">
+                <div class="np-info-row">
+                  <div class="np-track-details">
+                    <span class="np-label">Đang phát:</span>
+                    <h4 class="np-title" id="nowPlayingTitle">🌸 Sakura Chill Lofi</h4>
+                  </div>
+                  <div class="eq-bars paused" id="musicEqBars">
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                  </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="np-controls-row">
+                  <button class="music-play-toggle-btn" id="bgmPlayToggleBtn" title="Phát / Dừng">
+                    <span id="bgmPlayIcon">▶</span> <span id="bgmPlayText">Phát nhạc</span>
+                  </button>
+                  <div class="volume-control-wrap">
+                    <span class="vol-icon" id="volIcon">🔊</span>
+                    <input type="range" class="volume-slider" id="bgmVolumeSlider" min="0" max="100" value="70" title="Âm lượng">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Preset Playlist -->
+              <div class="music-section-title">
+                <span>🎼 Chọn bản nhạc yêu thích:</span>
+              </div>
+              <div class="music-playlist" id="musicPlaylist">
+                <div class="music-track-item active" data-track-id="sakura">
+                  <span class="track-icon">🌸</span>
+                  <div class="track-meta">
+                    <span class="track-name">Sakura Chill Lofi</span>
+                    <small>Giai điệu piano & acoustic êm dịu</small>
+                  </div>
+                  <span class="track-check">✓</span>
+                </div>
+                <div class="music-track-item" data-track-id="moonlight">
+                  <span class="track-icon">🌙</span>
+                  <div class="track-meta">
+                    <span class="track-name">Moonlit Serenade</span>
+                    <small>Anime night piano ngọt ngào</small>
+                  </div>
+                  <span class="track-check">✓</span>
+                </div>
+                <div class="music-track-item" data-track-id="kawaii">
+                  <span class="track-icon">🎀</span>
+                  <div class="track-meta">
+                    <span class="track-name">Kawaii Cafe Theme</span>
+                    <small>Trong trẻo, tươi vui phong cách pastel</small>
+                  </div>
+                  <span class="track-check">✓</span>
+                </div>
+                <div class="music-track-item" data-track-id="zen">
+                  <span class="track-icon">🍵</span>
+                  <div class="track-meta">
+                    <span class="track-name">Zen Garden Melodies</span>
+                    <small>Thư giãn sâu, hòa tấu sáo & đàn Koto</small>
+                  </div>
+                  <span class="track-check">✓</span>
+                </div>
+              </div>
+
+              <!-- Custom Upload Audio Section -->
+              <div class="music-upload-box">
+                <input type="file" id="bgmCustomFileInput" accept="audio/*" style="display:none">
+                <button type="button" class="upload-music-btn" id="uploadMusicBtn">
+                  <span>📂 Thêm nhạc từ máy tính (.mp3, .wav)</span>
+                </button>
+                <p class="upload-hint">Tải bài hát bạn thích từ máy tính để phát nhạc nền ✨</p>
+              </div>
+            </div>
+          </div>
+          <audio id="bgmAudioPlayer" loop style="display:none"></audio>
+
+          <!-- Sound / Melody Toggle -->
+          <button class="icon-btn audio-toggle-btn" id="audioToggleBtn" aria-label="Toggle Sound"
+            title="Bật/Tắt hiệu ứng âm thanh">
+            <span id="audioIcon">✨</span>
+          </button>
+
+          <!-- User Avatar (Bấm vào để tải ảnh từ máy tính lên) -->
+          <div class="user-avatar-btn" id="userProfileBtn" title="Nhấp vào đây để đổi ảnh đại diện từ máy tính của bạn">
+            <img src="assets/avatar.jpg" alt="User Avatar" class="avatar-img" id="userAvatar">
+            <div class="avatar-camera-overlay" title="Thay đổi ảnh đại diện">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </div>
+            <input type="file" id="avatarFileInput" accept="image/*" style="display:none">
+          </div>
+        </div>
+      </header>
+
+      <!-- TAB CONTAINER 1: DAILY TRACKER (Main Dashboard) -->
+      <section class="tab-pane active" id="tabDailyTracker">
+        <!-- GREETING -->
+        <div class="greeting-row">
+          <h1 class="greeting-text" id="greetingText">Welcome to mochimoon <span class="sakura-badge">🌸</span></h1>
+          <p class="greeting-subtitle">Tiệm đồ Cosplay & phụ kiện anime pastel ngọt ngào ✨</p>
+        </div>
+
+        <!-- DASHBOARD GRID -->
+        <div class="dashboard-grid">
+
+          <!-- 1. CLOCK CARD -->
+          <div class="card clock-card" id="clockCard">
+            <span class="card-deco-flower flower-tl">🌸</span>
+            <span class="card-deco-flower flower-br">🌸</span>
+
+            <div class="clock-display" id="clockDisplay">--:--</div>
+            <div class="clock-label">
+              <span class="sakura-tiny">🌸</span>
+              <span class="clock-label-text">Time</span>
+            </div>
+            <div class="clock-date-badge" id="clockDateBadge">--</div>
+          </div>
+
+          <!-- 2. CALENDAR CARD -->
+          <div class="card calendar-card" id="calendarCard">
+            <span class="card-deco-flower flower-calendar">🌸</span>
+
+            <div class="calendar-header">
+              <div class="calendar-title-wrap">
+                <h2 class="calendar-month-year" id="calendarMonthYear">March 2026</h2>
+              </div>
+              <div class="calendar-nav-buttons">
+                <button class="cal-nav-btn" id="prevMonthBtn" aria-label="Tháng trước">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                </button>
+                <button class="cal-nav-btn" id="nextMonthBtn" aria-label="Tháng sau">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Days of week -->
+            <div class="calendar-weekdays">
+              <span>Su</span>
+              <span>Mo</span>
+              <span>Tu</span>
+              <span>We</span>
+              <span>Th</span>
+              <span>Fr</span>
+              <span>Sa</span>
+            </div>
+
+            <!-- Dates grid -->
+            <div class="calendar-days" id="calendarDays">
+              <!-- Injected via JavaScript -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB CONTAINER 2: HEALTH (Extra feature) -->
+      <section class="tab-pane" id="tabHealth">
+        <!-- 1. COSPLAY RENTAL BOOKING CARD -->
+        <div class="card booking-card" id="bookingCard">
+          <div class="booking-card-header">
+            <div class="booking-title-group">
+              <span class="booking-badge">👘 Dịch Vụ Thuê Đồ Cosplay</span>
+              <h2 class="booking-main-title">Đặt Lịch Thuê Đồ mochimoon</h2>
+              <p class="booking-subtitle">Chọn set đồ yêu thích, phụ kiện và ngày hẹn lấy đồ trực tiếp tại tiệm hoặc giao tận nơi</p>
+            </div>
+            <div class="booking-tag-pill">✨ Hỗ trợ thử đồ miễn phí</div>
+          </div>
+
+          <div class="booking-grid">
+            <!-- Left: Booking Form -->
+            <form class="booking-form" id="bookingForm">
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label class="booking-label" for="bookingCharacter">
+                    <span>Trang phục / Nhân vật:</span>
+                  </label>
+                  <select class="booking-select" id="bookingCharacter" required>
+                    <option value="Raiden Shogun (Genshin Impact)">⚡ Raiden Shogun (Genshin Impact) - Full Set + Vũ Khí</option>
+                    <option value="Hu Tao (Genshin Impact)">👻 Hu Tao (Genshin Impact) - Set Dạ Tiệc + Trượng Hộ Ma</option>
+                    <option value="Furina (Genshin Impact)">💧 Furina (Genshin Impact) - Bộ Quý Tộc + Nón & Gậy</option>
+                    <option value="Frieren (Sousou no Frieren)">🪄 Frieren (Pháp Sư Tiễn Biệt) - Trượng Phép + Tóc Giả</option>
+                    <option value="Marin Kitagawa (My Dress-Up Darling)">🎀 Marin Kitagawa (Đồng phục / Maid)</option>
+                    <option value="Nezuko Kamado (Kimetsu no Yaiba)">🎋 Nezuko Kamado - Kimono Hồng + Ống Tre</option>
+                    <option value="Hatsune Miku (Vocaloid Sakura)">🌸 Hatsune Miku - Phiên bản Hoa Anh Đào (Sakura Miku)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="booking-label" for="bookingSize">
+                    <span>Size trang phục:</span>
+                  </label>
+                  <select class="booking-select" id="bookingSize">
+                    <option value="S">Size S (40 - 47kg)</option>
+                    <option value="M" selected>Size M (48 - 54kg)</option>
+                    <option value="L">Size L (55 - 62kg)</option>
+                    <option value="Freesize">Freesize (Co giãn)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label class="booking-label" for="bookingDateInput">
+                    <span>Ngày thuê (Bắt đầu):</span>
+                  </label>
+                  <input type="date" class="booking-input" id="bookingDateInput" required>
+                </div>
+
+                <div class="form-group flex-1">
+                  <label class="booking-label" for="bookingDuration">
+                    <span>Thời gian thuê:</span>
+                  </label>
+                  <select class="booking-select" id="bookingDuration">
+                    <option value="1 ngày">1 ngày (24 giờ)</option>
+                    <option value="2 ngày" selected>2 ngày (48 giờ)</option>
+                    <option value="3 ngày">3 ngày (Festival / Event)</option>
+                    <option value="1 tuần">1 tuần (Chụp concept / Du lịch)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="booking-label">
+                  <span>Phụ kiện kèm theo (Chọn thêm):</span>
+                </label>
+                <div class="accessories-checkboxes">
+                  <label class="acc-checkbox-label">
+                    <input type="checkbox" id="accWig" checked>
+                    <span class="custom-check-box"></span>
+                    <span>Tóc giả (Wig tạo kiểu)</span>
+                  </label>
+                  <label class="acc-checkbox-label">
+                    <input type="checkbox" id="accProp" checked>
+                    <span class="custom-check-box"></span>
+                    <span>Vũ khí / Prop nhân vật</span>
+                  </label>
+                  <label class="acc-checkbox-label">
+                    <input type="checkbox" id="accShoes">
+                    <span class="custom-check-box"></span>
+                    <span>Giày / Guốc cosplay</span>
+                  </label>
+                  <label class="acc-checkbox-label">
+                    <input type="checkbox" id="accLenses">
+                    <span class="custom-check-box"></span>
+                    <span>Lens mắt hóa trang</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label class="booking-label" for="customerName">
+                    <span>Họ & Tên khách hàng:</span>
+                  </label>
+                  <input type="text" class="booking-input" id="customerName" placeholder="Nhập tên của bạn..." required>
+                </div>
+
+                <div class="form-group flex-1">
+                  <label class="booking-label" for="customerPhone">
+                    <span>Số điện thoại / Zalo:</span>
+                  </label>
+                  <input type="tel" class="booking-input" id="customerPhone" placeholder="09xx xxx xxx" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="booking-label" for="bookingNote">
+                  <span>Ghi chú thêm:</span>
+                </label>
+                <input type="text" class="booking-input" id="bookingNote" placeholder="Ví dụ: Giữ đồ lấy vào sáng sớm, cần chỉnh eo...">
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="booking-submit-btn" id="submitBookingBtn">
+                  <span>🌸 Xác Nhận Đặt Lịch Thuê</span>
+                </button>
+              </div>
+            </form>
+
+            <!-- Right: Preview & Live Booked List -->
+            <div class="booking-preview-panel">
+              <div class="costume-preview-card">
+                <img src="assets/costume_thumb.jpg" alt="Cosplay Costume" class="costume-preview-img" id="costumePreviewImg">
+                <div class="costume-preview-info">
+                  <div class="costume-badge">🌸 Bộ sưu tập hot nhất tháng</div>
+                  <h4 id="previewCostumeName">Raiden Shogun (Genshin Impact)</h4>
+                  <p class="costume-price">Giá thuê: <span class="price-highlight">180.000đ - 250.000đ / ngày</span></p>
+                  <p class="costume-desc" id="previewCostumeDesc">Bao gồm trang phục chi tiết cao cấp, giáp vai kim loại, hoa cài đầu và tóc giả đã dập xù vào nếp chuẩn nhân vật.</p>
+                </div>
+              </div>
+
+              <!-- Scheduled Bookings List -->
+              <div class="booked-list-box">
+                <div class="booked-header">
+                  <h4>📋 Lịch Thuê Gần Đây</h4>
+                  <span class="booked-count" id="bookedCount">2 lịch hẹn</span>
+                </div>
+                <div class="booked-cards-container" id="bookedContainer">
+                  <!-- Dynamic render from app.js -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB CONTAINER 3: HOBBIES (Extra feature) -->
+      <section class="tab-pane" id="tabHobbies">
+        <div class="subpage-header">
+          <h2>Hobbies & Cozy Moments 🎨✨</h2>
+          <p>Nuôi dưỡng tâm hồn qua những sở thích nhỏ đáng yêu</p>
+        </div>
+        <div class="hobbies-grid">
+          <div class="card sub-card">
+            <h3>📖 Sách đang đọc</h3>
+            <p class="hobby-desc">"Khu Vườn Mùa Hạ" - Trang 142/260</p>
+            <div class="progress-bar-track small-track">
+              <div class="progress-bar-fill" style="width: 55%;"></div>
+            </div>
+          </div>
+          <div class="card sub-card">
+            <h3>🎧 Cozy Playlist</h3>
+            <p class="hobby-desc">Lofi Sakura Chill & Gentle Piano</p>
+            <button class="cozy-play-btn" id="playLofiDemo">🎵 Nghe giai điệu</button>
+          </div>
+          <div class="card sub-card">
+            <h3>🎨 Sketchbook</h3>
+            <p class="hobby-desc">Vẽ hoa anh đào & bầu trời chiều pastel</p>
+            <span class="badge-tag">Đã hoàn thành 3 tranh tuần này</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB CONTAINER 4: WARDROBE (Extra feature) -->
+      <section class="tab-pane" id="tabWardrobe">
+        <div class="subpage-header">
+          <h2>Cozy Wardrobe & Outfit 👗✨</h2>
+          <p>Gợi ý trang phục pastel nhẹ nhàng cho ngày hôm nay</p>
+        </div>
+        <div class="wardrobe-grid">
+          <div class="card wardrobe-item-card">
+            <div class="wardrobe-icon-box">👚</div>
+            <h4>Áo Len Pastel Hồng</h4>
+            <span>Cozy oversized knitwear</span>
+          </div>
+          <div class="card wardrobe-item-card">
+            <div class="wardrobe-icon-box">👗</div>
+            <h4>Váy Xòe Lavender</h4>
+            <span>Chất liệu voan hoa nhí</span>
+          </div>
+          <div class="card wardrobe-item-card">
+            <div class="wardrobe-icon-box">👜</div>
+            <h4>Túi Đeo Chéo Canvas</h4>
+            <span>Kèm móc khóa hoa anh đào</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Modal Cài Đặt (Settings Modal) -->
+  <div class="modal-overlay hidden" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Cài Đặt mochimoon 🌸</h3>
+        <button class="modal-close" id="closeSettingsBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-row">
+          <label for="themeSelect">Giao diện (Theme):</label>
+          <select id="themeSelect">
+            <option value="pastel-dream">Pastel Dream (Mặc định)</option>
+            <option value="sakura-pink">Sakura Pink</option>
+            <option value="lavender-night">Lavender Dream</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label for="timeFormatSelect">Định dạng giờ:</label>
+          <select id="timeFormatSelect">
+            <option value="24">24 Giờ (14:53)</option>
+            <option value="12">12 Giờ (02:53 PM)</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label for="clockSyncSelect">Đồng hồ:</label>
+          <select id="clockSyncSelect">
+            <option value="live">Giờ thực tế (Real-time)</option>
+            <option value="mock">Giờ ảnh mẫu (14:53)</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label>Hiệu ứng âm thanh ngọt ngào:</label>
+          <input type="checkbox" id="soundToggleCheck" checked>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="primary-btn" id="saveSettingsBtn">Lưu thay đổi</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
