@@ -22,31 +22,28 @@ const appState = {
   bookings: [
     {
       id: 1,
-      character: '⚡ Raiden Shogun (Genshin Impact)',
-      customerName: 'Nguyễn Lan Anh',
-      phone: '0912***456',
+      character: 'Himmel',
       date: '10/10/2026',
-      duration: '2 ngày',
-      status: 'Sẵn sàng lấy đồ 🌸'
+      duration: '3 ngày (fes/shoot)',
+      returnDate: '13/10/2026',
+      status: 'Đang có người thuê 🌸'
     },
     {
       id: 2,
-      character: '🪄 Frieren (Sousou no Frieren)',
-      customerName: 'Trần Minh Quân',
-      phone: '0988***789',
+      character: 'Frieren',
       date: '12/10/2026',
-      duration: '1 ngày',
-      status: 'Đã xác nhận ✨'
+      duration: '3 ngày (test)',
+      returnDate: '15/10/2026',
+      status: 'Đã đặt lịch ✨'
     }
   ],
   bgm: {
     isPlaying: false,
-    currentTrackId: 'sakura',
-    currentTrackName: '🌸 Sakura Chill Lofi',
+    currentTrackId: 'point_star',
+    currentTrackName: '✨ Point the star ~ Chiều Gió Chill Mix',
     volume: 0.7,
-    isCustomAudio: false,
-    customAudioUrl: null,
-    customAudioName: ''
+    favorites: ['point_star', 'sakura', 'kawaii', 'daydream'],
+    activeTab: 'all'
   }
 };
 
@@ -62,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initEventListeners();
   initHealthTab();
   initCosplayBooking();
+  initCostumeCatalog();
   initBackgroundMusicPlayer();
 });
 
@@ -84,11 +82,39 @@ function loadSavedState() {
     }
   }
 
+  const savedFavorites = localStorage.getItem('mochimoon_bgm_favorites');
+  if (savedFavorites) {
+    try {
+      const parsedFavs = JSON.parse(savedFavorites);
+      if (Array.isArray(parsedFavs)) {
+        appState.bgm.favorites = parsedFavs;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  if (!appState.bgm.favorites.includes('point_star')) {
+    appState.bgm.favorites.unshift('point_star');
+  }
+
+  const savedCurrentTrack = localStorage.getItem('mochimoon_bgm_current_track');
+  if (savedCurrentTrack && typeof bgmThemes !== 'undefined' && bgmThemes[savedCurrentTrack]) {
+    appState.bgm.currentTrackId = savedCurrentTrack;
+    appState.bgm.currentTrackName = bgmThemes[savedCurrentTrack].name;
+  }
+
   const savedTheme = localStorage.getItem('jiu_theme');
   if (savedTheme) {
     document.body.className = savedTheme === 'pastel-dream' ? '' : `theme-${savedTheme}`;
     const themeSelect = document.getElementById('themeSelect');
     if (themeSelect) themeSelect.value = savedTheme;
+  }
+
+  // Áp dụng logo mochimoon mới làm avatar chính
+  if (localStorage.getItem('mochimoon_avatar_version') !== 'v_logo_mochi') {
+    localStorage.removeItem('jiu_custom_avatar');
+    localStorage.setItem('mochimoon_avatar_version', 'v_logo_mochi');
   }
 
   const savedAvatar = localStorage.getItem('jiu_custom_avatar');
@@ -824,42 +850,224 @@ function escapeHtml(str) {
 // 9. COSPLAY RENTAL BOOKING (MOCHIMOON)
 // ========================================================
 const costumeCatalog = {
-  'Raiden Shogun (Genshin Impact)': {
-    title: 'Raiden Shogun (Genshin Impact)',
-    price: '180.000đ - 250.000đ / ngày',
-    desc: 'Bao gồm trang phục chi tiết cao cấp, giáp vai kim loại, hoa cài đầu và tóc giả đã dập xù vào nếp chuẩn nhân vật.'
+  'Himmel': {
+    title: 'Himmel (Sousou no Frieren)',
+    price: '150.000đ (Fes/Shoot) • 80.000đ (Test)',
+    desc: 'Cost size XL kèm Wig tạo kiểu chuẩn nhân vật hiệp sĩ Himmel.',
+    image: 'assets/costumes/costume_himmel.jpg',
+    sizes: [
+      { value: 'XL', label: 'Size XL' }
+    ]
   },
-  'Hu Tao (Genshin Impact)': {
-    title: 'Hu Tao (Genshin Impact)',
-    price: '170.000đ - 240.000đ / ngày',
-    desc: 'Set áo khoác đen thêu chỉ hoa mai, nón đính cành hoa đào, nhẫn ngón tay và Trượng Hộ Ma sắc nét.'
+  'Frieren': {
+    title: 'Frieren (Sousou no Frieren)',
+    price: '150.000đ (Fes/Shoot) • 80.000đ (Test)',
+    desc: 'Cost size M kèm Wig chuẩn pháp sư Frieren.',
+    image: 'assets/costumes/costume_frieren.jpg',
+    sizes: [
+      { value: 'M', label: 'Size M' }
+    ]
   },
-  'Furina (Genshin Impact)': {
-    title: 'Furina (Genshin Impact)',
-    price: '190.000đ - 260.000đ / ngày',
-    desc: 'Bộ dạ phục quý tộc Fontaine cao cấp, nón đính lông vũ, gậy chỉ huy và wig hai màu ombre cực chuẩn.'
+  'Kaito Kid': {
+    title: 'Kaito Kid',
+    price: '200.000đ (Fes/Shoot) • 80.000đ (Test)',
+    desc: 'Cost size 2XL kèm Wig siêu đạo chích Kaito Kid (không kèm giày và vũ khí).',
+    image: 'assets/costumes/costume_kaito_kid.jpg',
+    sizes: [
+      { value: '2XL', label: 'Size 2XL' }
+    ]
   },
-  'Frieren (Sousou no Frieren)': {
-    title: 'Frieren (Pháp Sư Tiễn Biệt)',
-    price: '160.000đ - 220.000đ / ngày',
-    desc: 'Áo choàng trắng viền vàng, váy xếp ly, tai yêu tinh silicon mềm và trượng phép thuật phát sáng.'
+  'Flins': {
+    title: 'Flins',
+    price: '250.000đ (Fes/Shoot) • 100.000đ (Test)',
+    desc: 'Cost size XL kèm Wig chuẩn Flins (không đèn và giày).',
+    image: 'assets/costumes/costume_flins.jpg',
+    sizes: [
+      { value: 'XL', label: 'Size XL' }
+    ]
   },
-  'Marin Kitagawa (My Dress-Up Darling)': {
-    title: 'Marin Kitagawa (My Dress-Up Darling)',
-    price: '150.000đ - 210.000đ / ngày',
-    desc: 'Set đồng phục nữ sinh phong cách Gyaru / Shizuku-tan maid ren bồng bềnh, vòng cổ choker cá tính.'
+  'Kinosaki Mei': {
+    title: 'Kinosaki Mei',
+    price: '150.000đ (Fes/Shoot out) • 80.000đ (Test)',
+    desc: 'Cost size M kèm Wig Kinosaki Mei. Có thể chọn kèm giày size 40.',
+    image: 'assets/costumes/costume_kinosaki_mei.jpg',
+    sizes: [
+      { value: 'M', label: 'Size M' },
+      { value: 'M + Giày 40', label: 'Size M + Giày size 40 (+30k)' }
+    ]
   },
-  'Nezuko Kamado (Kimetsu no Yaiba)': {
-    title: 'Nezuko Kamado (Kimetsu no Yaiba)',
-    price: '140.000đ - 190.000đ / ngày',
-    desc: 'Kimono hoa văn asanoha hồng phấn, áo haori đen tuyền, ống tre ngậm miệng và nơ cài tóc đáng yêu.'
-  },
-  'Hatsune Miku (Vocaloid Sakura)': {
-    title: 'Hatsune Miku (Sakura Miku)',
-    price: '160.000đ - 230.000đ / ngày',
-    desc: 'Phiên bản hoa anh đào hồng phấn, tai nghe đính hoa sakura, wig twin-tail bồng bềnh cực kỳ tôn dáng.'
+  'Kitagawa Marin Ver Shizuku': {
+    title: 'Kitagawa Marin Ver Shizuku',
+    price: '200.000đ (Fes/Shoot) • 100.000đ (Test)',
+    desc: 'Cost size M kèm Wig Shizuku-tan. Có thể chọn kèm giày size 40.',
+    image: 'assets/costumes/costume_marin_shizuku.jpg',
+    sizes: [
+      { value: 'M', label: 'Size M' },
+      { value: 'M + Giày 40', label: 'Size M + Giày size 40 (+30k)' }
+    ]
   }
 };
+
+// Aliases hỗ trợ tìm kiếm linh hoạt
+costumeCatalog['Himmel (Sousou no Frieren)'] = costumeCatalog['Himmel'];
+costumeCatalog['Frieren (Sousou no Frieren)'] = costumeCatalog['Frieren'];
+costumeCatalog['Kitagawa Marin Ver Shizuku (My Dress-Up Darling)'] = costumeCatalog['Kitagawa Marin Ver Shizuku'];
+costumeCatalog['himmel'] = costumeCatalog['Himmel'];
+costumeCatalog['frieren'] = costumeCatalog['Frieren'];
+costumeCatalog['kaito kid'] = costumeCatalog['Kaito Kid'];
+costumeCatalog['flins'] = costumeCatalog['Flins'];
+
+function findCostumeData(name) {
+  if (!name) return null;
+  if (costumeCatalog[name]) return costumeCatalog[name];
+  const lower = name.toLowerCase().split('(')[0].trim();
+  for (const key of Object.keys(costumeCatalog)) {
+    const kLower = key.toLowerCase().split('(')[0].trim();
+    if (kLower === lower || key.toLowerCase().includes(lower) || lower.includes(kLower)) {
+      return costumeCatalog[key];
+    }
+  }
+  return null;
+}
+
+function syncCostumeSize(characterName) {
+  const sizeSelect = document.getElementById('bookingSize');
+  if (!sizeSelect) return;
+
+  const costume = findCostumeData(characterName);
+  if (costume && costume.sizes && costume.sizes.length > 0) {
+    sizeSelect.innerHTML = '';
+    costume.sizes.forEach((sz, idx) => {
+      const opt = document.createElement('option');
+      opt.value = sz.value;
+      opt.textContent = sz.label;
+      if (idx === 0) opt.selected = true;
+      sizeSelect.appendChild(opt);
+    });
+  } else {
+    sizeSelect.innerHTML = `
+      <option value="S">Size S (40 - 47kg)</option>
+      <option value="M" selected>Size M (48 - 54kg)</option>
+      <option value="L">Size L (55 - 62kg)</option>
+      <option value="XL">Size XL (63 - 72kg)</option>
+      <option value="2XL">Size 2XL (73 - 85kg)</option>
+      <option value="Freesize">Freesize (Co giãn)</option>
+    `;
+  }
+}
+
+function isCostumeBooked(characterName) {
+  if (!characterName) return false;
+  const targetClean = characterName.toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
+  if (!targetClean || targetClean.length < 2) return false;
+  return appState.bookings.some(b => {
+    if (!b.character) return false;
+    if (b.status && (b.status.includes('Đã trả') || b.status.includes('Đã huỷ') || b.status.includes('Hủy'))) {
+      return false;
+    }
+    const bookedClean = b.character.toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
+    return bookedClean.includes(targetClean) || targetClean.includes(bookedClean);
+  });
+}
+
+function refreshAvailabilityUI() {
+  const charSelect = document.getElementById('bookingCharacter');
+  if (charSelect) {
+    for (let i = 0; i < charSelect.options.length; i++) {
+      const opt = charSelect.options[i];
+      const baseName = opt.value;
+      const booked = isCostumeBooked(baseName);
+      if (booked) {
+        opt.textContent = `${baseName} (❌ Hết đồ)`;
+      } else {
+        opt.textContent = baseName;
+      }
+    }
+    updateCostumePreview(charSelect.value);
+  }
+
+  // Cập nhật nhãn hết đồ trên từng thẻ trong mục Mẫu Đồ
+  const cards = document.querySelectorAll('.costume-catalog-card');
+  cards.forEach(card => {
+    const charName = card.getAttribute('data-character') || '';
+    const booked = isCostumeBooked(charName);
+    const rentBtn = card.querySelector('.catalog-rent-btn');
+    const imgWrap = card.querySelector('.catalog-img-wrap');
+    let badge = card.querySelector('.catalog-stock-tag');
+
+    if (booked) {
+      if (!badge && imgWrap) {
+        badge = document.createElement('span');
+        badge.className = 'catalog-stock-tag out-of-stock';
+        badge.textContent = '❌ Hết đồ';
+        imgWrap.appendChild(badge);
+      }
+      if (rentBtn) {
+        rentBtn.innerHTML = '<span>❌ Đã Hết Slot</span>';
+        rentBtn.classList.add('btn-rent-disabled');
+      }
+    } else {
+      badge?.remove();
+      if (rentBtn) {
+        rentBtn.innerHTML = '<span>👘 Đặt Thuê Ngay</span>';
+        rentBtn.classList.remove('btn-rent-disabled');
+      }
+    }
+  });
+}
+
+function updateCostumePreview(characterName) {
+  const costume = findCostumeData(characterName);
+  if (!costume) return;
+
+  const previewName = document.getElementById('previewCostumeName');
+  const previewPrice = document.querySelector('.costume-price .price-highlight');
+  const previewDesc = document.getElementById('previewCostumeDesc');
+  const previewImg = document.getElementById('costumePreviewImg');
+  const stockBadge = document.getElementById('costumeStockBadge');
+  const stockWarning = document.getElementById('bookingStockWarning');
+  const submitBtn = document.getElementById('submitBookingBtn');
+
+  if (previewName) previewName.textContent = costume.title;
+  if (previewPrice) previewPrice.textContent = costume.price;
+  if (previewDesc) previewDesc.textContent = costume.desc;
+  if (previewImg && costume.image) previewImg.src = costume.image;
+
+  const isBooked = isCostumeBooked(characterName);
+
+  if (stockBadge) {
+    if (isBooked) {
+      stockBadge.className = 'costume-badge out-of-stock';
+      stockBadge.innerHTML = '❌ HẾT ĐỒ (Đã có người đặt thuê)';
+    } else {
+      stockBadge.className = 'costume-badge in-stock';
+      stockBadge.innerHTML = '✨ Còn đồ (Sẵn sàng cho thuê)';
+    }
+  }
+
+  if (stockWarning) {
+    if (isBooked) {
+      stockWarning.classList.remove('hidden');
+      stockWarning.innerHTML = `⚠️ Bộ trang phục <strong>${escapeHtml(characterName)}</strong> hiện đã có khách đặt thuê (Hết slot). Vui lòng chọn mẫu khác hoặc liên hệ shop nhé! 🌸`;
+    } else {
+      stockWarning.classList.add('hidden');
+    }
+  }
+
+  if (submitBtn) {
+    if (isBooked) {
+      submitBtn.disabled = true;
+      submitBtn.classList.add('disabled');
+      submitBtn.innerHTML = '<span>❌ Hết Đồ - Không Thể Cho Thuê (Hết Slot)</span>';
+      submitBtn.title = 'Trang phục này hiện đã có người thuê, không thể đặt lúc này';
+    } else {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('disabled');
+      submitBtn.innerHTML = '<span>🌸 Xác Nhận Đặt Lịch Thuê</span>';
+      submitBtn.title = 'Bấm để xác nhận đặt lịch thuê';
+    }
+  }
+}
 
 function syncBookingDateInput(year, month, day) {
   const dateInput = document.getElementById('bookingDateInput');
@@ -883,21 +1091,17 @@ function initCosplayBooking() {
 
   // Character Select Change Handler
   const charSelect = document.getElementById('bookingCharacter');
-  const previewName = document.getElementById('previewCostumeName');
-  const previewPrice = document.querySelector('.costume-price .price-highlight');
-  const previewDesc = document.getElementById('previewCostumeDesc');
-
   if (charSelect) {
     charSelect.addEventListener('change', (e) => {
       const selected = e.target.value;
-      const costume = costumeCatalog[selected];
-      if (costume) {
-        if (previewName) previewName.textContent = costume.title;
-        if (previewPrice) previewPrice.textContent = costume.price;
-        if (previewDesc) previewDesc.textContent = costume.desc;
-        playChime(540);
-      }
+      updateCostumePreview(selected);
+      syncCostumeSize(selected);
+      playChime(540);
     });
+
+    // Đồng bộ ngay khi khởi động trang
+    syncCostumeSize(charSelect.value);
+    refreshAvailabilityUI();
   }
 
   // Render initial booking list
@@ -910,9 +1114,15 @@ function initCosplayBooking() {
       e.preventDefault();
 
       const character = document.getElementById('bookingCharacter')?.value || 'Trang phục Cosplay';
+
+      if (isCostumeBooked(character)) {
+        alert(`⚠️ Rất tiếc! Bộ trang phục "${character}" hiện đã có khách đặt thuê (Hết slot) nên không thể cho thuê thêm. Bạn vui lòng chọn mẫu khác nhé! 🌸`);
+        return;
+      }
+
       const size = document.getElementById('bookingSize')?.value || 'M';
       const dateVal = document.getElementById('bookingDateInput')?.value || '';
-      const duration = document.getElementById('bookingDuration')?.value || '2 ngày';
+      const duration = document.getElementById('bookingDuration')?.value || '3 ngày (fes/shoot)';
       const customerName = document.getElementById('customerName')?.value.trim() || '';
       const customerPhone = document.getElementById('customerPhone')?.value.trim() || '';
       const note = document.getElementById('bookingNote')?.value.trim() || '';
@@ -926,19 +1136,27 @@ function initCosplayBooking() {
         }
       }
 
+      const returnDate = calculateReturnDate(displayDate, duration);
+      const pricing = getRentalPricing(character, duration, size);
+      const orderId = '#MC-' + (Math.floor(10000 + Math.random() * 90000));
+
       const newBooking = {
         id: Date.now(),
+        orderId,
         character,
         size,
         date: displayDate,
+        returnDate,
         duration,
         customerName,
         phone: customerPhone,
         note,
-        status: 'Chờ nhận đồ 🌸'
+        pricing,
+        status: 'Chờ thanh toán cọc ⏳'
       };
 
       appState.bookings.unshift(newBooking);
+      appState.currentPaymentBooking = newBooking;
       try {
         localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings));
       } catch (err) {
@@ -946,18 +1164,461 @@ function initCosplayBooking() {
       }
 
       renderBookedList();
+      refreshAvailabilityUI();
       playSuccessChime();
 
-      alert(`🌸 Cảm ơn bạn ${customerName}! Lịch hẹn thuê "${character}" vào ngày ${displayDate} tại mochimoon đã được ghi nhận thành công! ✨`);
+      // Chuyển qua bước thanh toán nhưng vẫn ở trang đặt thuê đồ!
+      showPaymentStep(newBooking);
+    });
+  }
 
-      // Reset customer fields
-      document.getElementById('customerName').value = '';
-      document.getElementById('customerPhone').value = '';
-      if (document.getElementById('bookingNote')) {
-        document.getElementById('bookingNote').value = '';
+  // Setup Payment Panel Action Buttons & Copy Functions
+  initPaymentActions();
+}
+
+function getRentalPricing(characterName, duration, size) {
+  const isTest = String(duration).toLowerCase().includes('test');
+  let rentPrice = 150000;
+  const nameLower = (characterName || '').toLowerCase();
+
+  if (nameLower.includes('himmel') || nameLower.includes('frieren')) {
+    rentPrice = isTest ? 80000 : 150000;
+  } else if (nameLower.includes('kaito')) {
+    rentPrice = isTest ? 80000 : 200000;
+  } else if (nameLower.includes('flins')) {
+    rentPrice = isTest ? 100000 : 250000;
+  } else if (nameLower.includes('kinosaki')) {
+    rentPrice = isTest ? 80000 : 150000;
+    if (String(size).includes('Giày')) rentPrice += 30000;
+  } else if (nameLower.includes('marin') || nameLower.includes('shizuku')) {
+    rentPrice = isTest ? 100000 : 200000;
+    if (String(size).includes('Giày')) rentPrice += 30000;
+  }
+
+  return {
+    rentPrice,
+    rentPriceFormatted: rentPrice.toLocaleString('vi-VN') + 'đ',
+    depositDesc: 'Cọc Thẻ học sinh / Khai sinh (hoặc cọc 200.000đ)',
+    totalToPay: rentPrice,
+    totalToPayFormatted: rentPrice.toLocaleString('vi-VN') + 'đ'
+  };
+}
+
+let bankPollingTimer = null;
+
+function showPaymentStep(booking) {
+  const form = document.getElementById('bookingForm');
+  const paymentPanel = document.getElementById('bookingPaymentPanel');
+  const stepPill1 = document.getElementById('stepPill1');
+  const stepPill2 = document.getElementById('stepPill2');
+  const stepConnector = document.getElementById('stepConnector');
+
+  if (!paymentPanel || !booking) return;
+
+  // Clean Order Code for Transfer
+  const cleanCode = (booking.orderId || ('MC' + booking.id)).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  const transferContent = `THUEDO ${cleanCode}`;
+
+  // Fill in order details
+  const orderIdEl = document.getElementById('payOrderId');
+  if (orderIdEl) orderIdEl.textContent = booking.orderId || '#' + cleanCode;
+
+  const costumeNameEl = document.getElementById('payCostumeName');
+  if (costumeNameEl) costumeNameEl.textContent = booking.character;
+
+  const costumeSizeEl = document.getElementById('payCostumeSize');
+  if (costumeSizeEl) costumeSizeEl.textContent = `Size ${booking.size}`;
+
+  const dateRangeEl = document.getElementById('payDateRange');
+  if (dateRangeEl) dateRangeEl.textContent = `${booking.date} ➔ ${booking.returnDate}`;
+
+  const durationTagEl = document.getElementById('payCostumeDurationTag');
+  if (durationTagEl) durationTagEl.textContent = booking.duration;
+
+  const customerInfoEl = document.getElementById('payCustomerInfo');
+  if (customerInfoEl) customerInfoEl.textContent = `${booking.customerName} (${booking.phone})`;
+
+  const noteRow = document.getElementById('payNoteRow');
+  const noteText = document.getElementById('payNoteText');
+  if (booking.note) {
+    if (noteRow) noteRow.style.display = 'flex';
+    if (noteText) noteText.textContent = booking.note;
+  } else {
+    if (noteRow) noteRow.style.display = 'none';
+  }
+
+  const pricing = booking.pricing || getRentalPricing(booking.character, booking.duration, booking.size);
+  const payRentPriceEl = document.getElementById('payRentPrice');
+  if (payRentPriceEl) payRentPriceEl.textContent = pricing.rentPriceFormatted;
+
+  const payTotalAmountEl = document.getElementById('payTotalAmount');
+  if (payTotalAmountEl) payTotalAmountEl.textContent = pricing.totalToPayFormatted;
+
+  const bankTransferAmountEl = document.getElementById('bankTransferAmount');
+  if (bankTransferAmountEl) bankTransferAmountEl.textContent = pricing.totalToPayFormatted;
+
+  // Bank Info MB Bank 0377193835 - snowy shoppu
+  const bankAccEl = document.getElementById('bankAccNumber');
+  if (bankAccEl) bankAccEl.textContent = '0377193835';
+
+  const bankOwnerEl = document.getElementById('bankAccOwner');
+  if (bankOwnerEl) bankOwnerEl.textContent = 'snowy shoppu';
+
+  const bankContentEl = document.getElementById('bankTransferContent');
+  if (bankContentEl) bankContentEl.textContent = transferContent;
+
+  const noticeCodeEl = document.getElementById('noticeOrderCode');
+  if (noticeCodeEl) noticeCodeEl.textContent = transferContent;
+
+  // VietQR Dynamic Image
+  const vietQrImg = document.getElementById('vietQrImg');
+  if (vietQrImg) {
+    vietQrImg.src = `https://img.vietqr.io/image/MB-0377193835-compact2.png?amount=${pricing.totalToPay}&addInfo=${encodeURIComponent(transferContent)}&accountName=SNOWY%20SHOPPU`;
+  }
+
+  // Reset QR Tab to Custom Shop Card (snowy shoppu Cinnamoroll card)
+  const tabQrCustom = document.getElementById('tabQrCustom');
+  const tabQrVietqr = document.getElementById('tabQrVietqr');
+  const customQrImg = document.getElementById('customQrCardImg');
+  const qrScanHint = document.getElementById('qrScanHint');
+
+  if (tabQrCustom) tabQrCustom.classList.add('active');
+  if (tabQrVietqr) tabQrVietqr.classList.remove('active');
+  if (customQrImg) customQrImg.classList.remove('hidden');
+  if (vietQrImg) vietQrImg.classList.add('hidden');
+  if (qrScanHint) qrScanHint.textContent = '🐰 Quét mã thẻ QR chính chủ snowy shoppu (MB Bank)';
+
+  // Reset Confirmation Button State
+  const confirmBtn = document.getElementById('btnConfirmPaid');
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = '<span>✨ Tôi Đã Chuyển Khoản Thành Công</span>';
+  }
+  const statusBadge = document.getElementById('payStatusBadge');
+  if (statusBadge) {
+    statusBadge.className = 'pay-status-pill';
+    statusBadge.textContent = '⏳ Chờ thanh toán';
+  }
+
+  // Reset Live Listener Banner
+  const listenBanner = document.getElementById('bankAutoListenBanner');
+  const listenTitle = document.getElementById('listenTitle');
+  const listenSub = document.getElementById('listenSub');
+  if (listenBanner) listenBanner.classList.remove('approved');
+  if (listenTitle) listenTitle.textContent = '🔄 Hệ thống đang chờ ngân hàng MB Bank báo nhận tiền...';
+  if (listenSub) listenSub.innerHTML = `Khi tài khoản <strong>0377193835</strong> nhận được tiền đúng cú pháp, đơn hàng sẽ <strong>TỰ ĐỘNG DUYỆT</strong> ngay lập tức!`;
+
+  // Switch View: Hide Form, Show Payment Step
+  if (form) form.style.display = 'none';
+  paymentPanel.classList.remove('hidden');
+
+  // Steps Progress Bar Update
+  if (stepPill1) {
+    stepPill1.classList.remove('active');
+    stepPill1.classList.add('completed');
+  }
+  if (stepPill2) {
+    stepPill2.classList.add('active');
+  }
+  if (stepConnector) {
+    stepConnector.classList.add('active');
+  }
+
+  // Scroll smoothly into view
+  document.getElementById('bookingStepsBar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Start live bank payment listener
+  startBankPaymentPolling(booking, cleanCode);
+}
+
+function startBankPaymentPolling(booking, cleanCode) {
+  if (bankPollingTimer) {
+    clearInterval(bankPollingTimer);
+    bankPollingTimer = null;
+  }
+
+  const orderKey = cleanCode || (booking.orderId || '').replace(/[^a-zA-Z0-9]/g, '');
+
+  bankPollingTimer = setInterval(async () => {
+    try {
+      const res = await fetch(`/api/check-payment?orderId=${encodeURIComponent(orderKey)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.paid) {
+        clearInterval(bankPollingTimer);
+        bankPollingTimer = null;
+        onBankPaymentApproved(booking, data.transaction);
+      }
+    } catch (err) {
+      // Polling network retry silently
+    }
+  }, 2500);
+}
+
+function onBankPaymentApproved(booking, txData) {
+  const listenBanner = document.getElementById('bankAutoListenBanner');
+  const listenTitle = document.getElementById('listenTitle');
+  const listenSub = document.getElementById('listenSub');
+  const statusBadge = document.getElementById('payStatusBadge');
+  const confirmBtn = document.getElementById('btnConfirmPaid');
+
+  if (listenBanner) listenBanner.classList.add('approved');
+  if (listenTitle) listenTitle.innerHTML = '🎉 TÀI KHOẢN MB BANK ĐÃ NHẬN TIỀN THÀNH CÔNG!';
+  if (listenSub) {
+    const timeStr = txData?.time || 'Vừa xong';
+    listenSub.innerHTML = `Hệ thống đã khớp lệnh biến động số dư lúc ${timeStr}. Đơn hàng <strong>${escapeHtml(booking.orderId)}</strong> đã được <strong>TỰ ĐỘNG DUYỆT HOÀN TẤT</strong>! 💕`;
+  }
+
+  if (statusBadge) {
+    statusBadge.className = 'pay-status-pill paid';
+    statusBadge.textContent = '✅ Đã tự động duyệt qua MB Bank';
+  }
+
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span>✅ Đã Tự Động Duyệt Thành Công</span>';
+  }
+
+  // Update State & LocalStorage
+  booking.status = 'Đã thanh toán (Tự động duyệt qua MB Bank) 🌸';
+  const found = appState.bookings.find(b => b.id === booking.id || b.orderId === booking.orderId);
+  if (found) {
+    found.status = 'Đã thanh toán (Tự động duyệt qua MB Bank) 🌸';
+  }
+  try {
+    localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings));
+  } catch (e) {}
+
+  renderBookedList();
+  playSuccessChime();
+  playLofiMelody();
+
+  alert(`🎉 TING TING! Tài khoản MB Bank (0377193835) của snowy shoppu đã nhận được tiền!\n\nĐơn thuê: "${booking.character}" (${booking.orderId})\nTrạng thái: ĐÃ TỰ ĐỘNG DUYỆT HOÀN TẤT! ✨\nCảm ơn bạn đã ủng hộ shop nhé! 💕`);
+}
+
+function showBookingFormStep() {
+  if (bankPollingTimer) {
+    clearInterval(bankPollingTimer);
+    bankPollingTimer = null;
+  }
+
+  const form = document.getElementById('bookingForm');
+  const paymentPanel = document.getElementById('bookingPaymentPanel');
+  const stepPill1 = document.getElementById('stepPill1');
+  const stepPill2 = document.getElementById('stepPill2');
+  const stepConnector = document.getElementById('stepConnector');
+
+  if (paymentPanel) paymentPanel.classList.add('hidden');
+  if (form) form.style.display = 'flex';
+
+  if (stepPill1) {
+    stepPill1.classList.add('active');
+    stepPill1.classList.remove('completed');
+  }
+  if (stepPill2) {
+    stepPill2.classList.remove('active');
+  }
+  if (stepConnector) {
+    stepConnector.classList.remove('active');
+  }
+
+  document.getElementById('bookingStepsBar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function initPaymentActions() {
+  // 1. Nút "Tôi Đã Chuyển Khoản Thành Công"
+  const btnConfirmPaid = document.getElementById('btnConfirmPaid');
+  if (btnConfirmPaid) {
+    btnConfirmPaid.addEventListener('click', () => {
+      if (appState.currentPaymentBooking) {
+        onBankPaymentApproved(appState.currentPaymentBooking, { time: 'Khách xác nhận', gateway: 'MBBank' });
+      } else {
+        btnConfirmPaid.disabled = true;
+        btnConfirmPaid.innerHTML = '<span>✅ Đã Ghi Nhận Thanh Toán</span>';
+        playSuccessChime();
       }
     });
   }
+
+  // 2. Nút "Thử Nghiệm: Giả Lập Nhận Tiền Ngân Hàng"
+  const btnSimulate = document.getElementById('btnSimulatePayment');
+  if (btnSimulate) {
+    btnSimulate.addEventListener('click', async () => {
+      const current = appState.currentPaymentBooking;
+      if (!current) {
+        alert('Vui lòng tạo một đơn thuê trước để thử nghiệm tính năng tự duyệt nhé!');
+        return;
+      }
+      btnSimulate.disabled = true;
+      btnSimulate.textContent = '⏳ Đang giả lập ting ting...';
+
+      try {
+        const res = await fetch('/api/simulate-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: current.orderId,
+            amount: current.pricing?.totalToPay || 200000
+          })
+        });
+        const data = await res.json();
+        console.log('Simulate payment response:', data);
+      } catch (err) {
+        console.warn('Simulation error:', err);
+        // Fallback local trigger
+        onBankPaymentApproved(current, { time: 'Giả lập test', gateway: 'MBBank 0377193835' });
+      }
+
+      setTimeout(() => {
+        btnSimulate.disabled = false;
+        btnSimulate.textContent = '⚡ Thử Nghiệm: Giả Lập Nhận Tiền';
+      }, 1500);
+    });
+  }
+
+  // 3. QR Switcher Tabs (Cinnamoroll Shop QR vs Dynamic VietQR)
+  const tabQrCustom = document.getElementById('tabQrCustom');
+  const tabQrVietqr = document.getElementById('tabQrVietqr');
+  const customQrImg = document.getElementById('customQrCardImg');
+  const vietQrImg = document.getElementById('vietQrImg');
+  const qrScanHint = document.getElementById('qrScanHint');
+
+  if (tabQrCustom && tabQrVietqr) {
+    tabQrCustom.addEventListener('click', () => {
+      tabQrCustom.classList.add('active');
+      tabQrVietqr.classList.remove('active');
+      customQrImg?.classList.remove('hidden');
+      vietQrImg?.classList.add('hidden');
+      if (qrScanHint) qrScanHint.textContent = '🐰 Quét mã thẻ QR chính chủ snowy shoppu (MB Bank)';
+      playChime(520);
+    });
+
+    tabQrVietqr.addEventListener('click', () => {
+      tabQrVietqr.classList.add('active');
+      tabQrCustom.classList.remove('active');
+      vietQrImg?.classList.remove('hidden');
+      customQrImg?.classList.add('hidden');
+      if (qrScanHint) qrScanHint.textContent = '⚡ Quét mã VietQR tự động điền sẵn số tiền và nội dung đơn';
+      playChime(580);
+    });
+  }
+
+  // 4. Webhook Guide Modal
+  const guideModal = document.getElementById('webhookGuideModal');
+  const btnOpenGuide = document.getElementById('btnOpenWebhookGuide');
+  const closeGuideBtn = document.getElementById('closeWebhookGuideBtn');
+  const closeGuideBtn2 = document.getElementById('closeWebhookGuideBtn2');
+  const copyWebhookBtn = document.getElementById('btnCopyWebhookUrl');
+
+  if (btnOpenGuide && guideModal) {
+    btnOpenGuide.addEventListener('click', () => {
+      guideModal.classList.remove('hidden');
+      playChime(600);
+    });
+  }
+
+  [closeGuideBtn, closeGuideBtn2].forEach(btn => {
+    btn?.addEventListener('click', () => {
+      guideModal?.classList.add('hidden');
+    });
+  });
+
+  if (guideModal) {
+    guideModal.addEventListener('click', (e) => {
+      if (e.target === guideModal) guideModal.classList.add('hidden');
+    });
+  }
+
+  if (copyWebhookBtn) {
+    copyWebhookBtn.addEventListener('click', () => {
+      const urlText = `${window.location.origin}/api/webhook/bank`;
+      navigator.clipboard.writeText(urlText).then(() => {
+        copyWebhookBtn.textContent = '✓ Đã chép URL';
+        playChime(680);
+        setTimeout(() => { copyWebhookBtn.textContent = '📋 Copy URL'; }, 2000);
+      });
+    });
+  }
+
+  // 5. Nút "Đặt Thêm Lịch Mới / Chỉnh Sửa"
+  const btnBack = document.getElementById('btnBackToBooking');
+  if (btnBack) {
+    btnBack.addEventListener('click', () => {
+      showBookingFormStep();
+      const nameInput = document.getElementById('customerName');
+      const phoneInput = document.getElementById('customerPhone');
+      const noteInput = document.getElementById('bookingNote');
+      if (nameInput) nameInput.value = '';
+      if (phoneInput) phoneInput.value = '';
+      if (noteInput) noteInput.value = '';
+    });
+  }
+
+  // 6. Click chuyển qua lại giữa các bước tiến trình
+  document.getElementById('stepPill1')?.addEventListener('click', () => {
+    showBookingFormStep();
+  });
+  document.getElementById('stepPill2')?.addEventListener('click', () => {
+    if (appState.currentPaymentBooking) {
+      showPaymentStep(appState.currentPaymentBooking);
+    }
+  });
+
+  // 7. Copy Buttons
+  function setupCopyBtn(btnId, targetFn) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const text = targetFn();
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = '✓ Đã chép';
+        btn.classList.add('copied');
+        playChime(680);
+        setTimeout(() => {
+          btn.textContent = orig;
+          btn.classList.remove('copied');
+        }, 1800);
+      }).catch(() => {
+        prompt('Sao chép nội dung:', text);
+      });
+    });
+  }
+
+  setupCopyBtn('btnCopyAcc', () => document.getElementById('bankAccNumber')?.textContent.trim() || '0377193835');
+  setupCopyBtn('btnCopyAmount', () => {
+    const txt = document.getElementById('bankTransferAmount')?.textContent || '';
+    return txt.replace(/[^0-9]/g, '');
+  });
+  setupCopyBtn('btnCopyContent', () => document.getElementById('bankTransferContent')?.textContent.trim() || '');
+}
+
+function calculateReturnDate(startDateStr, durationStr) {
+  if (!startDateStr) return 'Đang cập nhật';
+  const parts = startDateStr.split('/');
+  if (parts.length !== 3) return startDateStr;
+  const d = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10) - 1;
+  const y = parseInt(parts[2], 10);
+  const startDate = new Date(y, m, d);
+  if (isNaN(startDate.getTime())) return startDateStr;
+
+  let days = 3;
+  const match = String(durationStr).match(/(\d+)\s*ngày/i);
+  if (match) {
+    days = parseInt(match[1], 10);
+  } else if (String(durationStr).toLowerCase().includes('tuần')) {
+    days = 7;
+  }
+
+  const retDate = new Date(startDate);
+  retDate.setDate(retDate.getDate() + days);
+
+  const retD = String(retDate.getDate()).padStart(2, '0');
+  const retM = String(retDate.getMonth() + 1).padStart(2, '0');
+  const retY = retDate.getFullYear();
+  return `${retD}/${retM}/${retY}`;
 }
 
 function renderBookedList() {
@@ -978,13 +1639,18 @@ function renderBookedList() {
   appState.bookings.forEach(b => {
     const item = document.createElement('div');
     item.className = 'booked-card-item';
+    const returnDate = b.returnDate || calculateReturnDate(b.date, b.duration);
+
     item.innerHTML = `
       <div class="booked-card-title-row">
-        <span class="booked-card-char">${escapeHtml(b.character.split('(')[0].trim())}</span>
-        <span class="booked-card-status">${escapeHtml(b.status || 'Đã xác nhận')}</span>
+        <span class="booked-card-char">👘 ${escapeHtml(b.character.split('(')[0].trim())}</span>
+        <span class="booked-card-status">${escapeHtml(b.status || 'Đang có người thuê 🌸')}</span>
       </div>
       <div class="booked-card-meta">
-        Khách: <strong>${escapeHtml(b.customerName)}</strong> • Ngày hẹn: <strong>${escapeHtml(b.date)}</strong> (${escapeHtml(b.duration)})
+        <span class="booked-meta-tag">🗓️ Thuê: <strong>${escapeHtml(b.date)}</strong></span>
+        <span class="booked-meta-tag">➔</span>
+        <span class="booked-meta-tag booked-return-highlight">🔄 Ngày trả: <strong>${escapeHtml(returnDate)}</strong></span>
+        <span class="booked-meta-tag"><em>(${escapeHtml(b.duration)})</em></span>
       </div>
     `;
     container.appendChild(item);
@@ -992,167 +1658,379 @@ function renderBookedList() {
 }
 
 // ========================================================
+// 9. COSTUME CATALOG & LIGHTBOX
+// ========================================================
+function initCostumeCatalog() {
+  const costumeInfoModal = document.getElementById('costumeInfoModal');
+  const closeCostumeInfoBtn = document.getElementById('closeCostumeInfoBtn');
+  const modalCostumeImg = document.getElementById('modalCostumeImg');
+  const modalCostumeTitle = document.getElementById('modalCostumeTitle');
+  const modalCostumeInfoList = document.getElementById('modalCostumeInfoList');
+  const modalCostumePriceList = document.getElementById('modalCostumePriceList');
+  const modalRentNowBtn = document.getElementById('modalRentNowBtn');
+
+  let currentActiveCharName = '';
+
+  // Xử lý nút "Thông tin" trên từng thẻ trang phục
+  const infoBtns = document.querySelectorAll('.catalog-info-btn');
+  infoBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const charName = btn.getAttribute('data-char') || '';
+      const fullName = btn.getAttribute('data-fullname') || charName;
+      const imgSrc = btn.getAttribute('data-img') || '';
+      const rawInfo = btn.getAttribute('data-info') || '';
+      const rawPrices = btn.getAttribute('data-prices') || '';
+
+      currentActiveCharName = fullName;
+
+      if (modalCostumeImg) modalCostumeImg.src = imgSrc;
+      if (modalCostumeTitle) modalCostumeTitle.textContent = charName;
+
+      // Render danh sách Thông Tin (size cho vào thông tin, không cần mô tả)
+      if (modalCostumeInfoList) {
+        modalCostumeInfoList.innerHTML = '';
+        const items = rawInfo.split('|').filter(s => s.trim());
+        items.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item.trim();
+          modalCostumeInfoList.appendChild(li);
+        });
+      }
+
+      // Render danh sách Giá Thuê
+      if (modalCostumePriceList) {
+        modalCostumePriceList.innerHTML = '';
+        const prices = rawPrices.split('|').filter(s => s.trim());
+        prices.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item.trim();
+          modalCostumePriceList.appendChild(li);
+        });
+      }
+
+      // Kiểm tra tình trạng slot của bộ đồ trong modal
+      if (modalRentNowBtn) {
+        if (isCostumeBooked(fullName)) {
+          modalRentNowBtn.innerHTML = '<span>❌ Đã Hết Slot (Đang có người thuê)</span>';
+          modalRentNowBtn.classList.add('btn-rent-disabled');
+        } else {
+          modalRentNowBtn.innerHTML = '<span>👘 Đặt Thuê Ngay Bộ Này</span>';
+          modalRentNowBtn.classList.remove('btn-rent-disabled');
+        }
+      }
+
+      if (costumeInfoModal) {
+        costumeInfoModal.classList.remove('hidden');
+      }
+      playChime(640);
+    });
+  });
+
+  // Đóng modal thông tin chi tiết
+  if (closeCostumeInfoBtn && costumeInfoModal) {
+    closeCostumeInfoBtn.addEventListener('click', () => {
+      costumeInfoModal.classList.add('hidden');
+    });
+
+    costumeInfoModal.addEventListener('click', (e) => {
+      if (e.target === costumeInfoModal) {
+        costumeInfoModal.classList.add('hidden');
+      }
+    });
+  }
+
+  // Nút "Đặt Thuê Ngay Bộ Này" trong modal thông tin
+  if (modalRentNowBtn) {
+    modalRentNowBtn.addEventListener('click', () => {
+      if (costumeInfoModal) {
+        costumeInfoModal.classList.add('hidden');
+      }
+      triggerRentCharacter(currentActiveCharName);
+    });
+  }
+
+  // Hàm chuyển sang tab đặt lịch và chọn sẵn nhân vật
+  function triggerRentCharacter(charName) {
+    const navHealth = document.getElementById('navHealth');
+    if (navHealth) {
+      navHealth.click();
+    }
+
+    const selectChar = document.getElementById('bookingCharacter');
+    if (selectChar && charName) {
+      const targetClean = charName.toLowerCase().split('(')[0].trim();
+      let matchedIndex = -1;
+      for (let i = 0; i < selectChar.options.length; i++) {
+        const optVal = selectChar.options[i].value.toLowerCase().split('(')[0].trim();
+        const optTxt = selectChar.options[i].textContent.toLowerCase().split('(')[0].trim();
+        if (optVal === targetClean || optTxt === targetClean || optVal.includes(targetClean) || targetClean.includes(optVal)) {
+          matchedIndex = i;
+          break;
+        }
+      }
+      if (matchedIndex !== -1) {
+        selectChar.selectedIndex = matchedIndex;
+      }
+      // Kích hoạt sự kiện change để đồng bộ size và cập nhật xem trước thẻ đặt lịch
+      selectChar.dispatchEvent(new Event('change'));
+    }
+
+    const bookingCard = document.getElementById('bookingCard');
+    if (bookingCard) {
+      bookingCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    if (isCostumeBooked(charName)) {
+      alert(`⚠️ Bộ trang phục "${charName}" hiện đã có khách đặt thuê (Hết slot). Bạn vui lòng chọn mẫu khác nhé! 🌸`);
+    } else {
+      playSuccessChime();
+    }
+  }
+
+  // Nút "Đặt Thuê Ngay" trực tiếp trên thẻ
+  const rentBtns = document.querySelectorAll('.catalog-rent-btn');
+  rentBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const charName = btn.getAttribute('data-char');
+      triggerRentCharacter(charName);
+    });
+  });
+
+  refreshAvailabilityUI();
+
+  // Hỗ trợ kéo trượt chuột lên xuống trong khung mẫu đồ (Drag to scroll)
+  const scrollWrapper = document.getElementById('costumesScrollWrapper');
+  if (scrollWrapper) {
+    let isDown = false;
+    let startY = 0;
+    let scrollStart = 0;
+
+    scrollWrapper.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.catalog-rent-btn') || e.target.closest('.catalog-img-wrap')) return;
+      isDown = true;
+      startY = e.pageY - scrollWrapper.offsetTop;
+      scrollStart = scrollWrapper.scrollTop;
+      scrollWrapper.style.cursor = 'grabbing';
+      scrollWrapper.style.userSelect = 'none';
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDown) {
+        isDown = false;
+        if (scrollWrapper) {
+          scrollWrapper.style.cursor = '';
+          scrollWrapper.style.removeProperty('user-select');
+        }
+      }
+    });
+
+    scrollWrapper.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const y = e.pageY - scrollWrapper.offsetTop;
+      const walk = (y - startY) * 1.4;
+      scrollWrapper.scrollTop = scrollStart - walk;
+    });
+  }
+}
+
+// ========================================================
 // 10. BACKGROUND MUSIC PLAYER (MOCHIMOON BGM)
 // ========================================================
-let bgmSynthInterval = null;
-let bgmMasterGain = null;
-
 const bgmThemes = {
+  point_star: {
+    id: 'point_star',
+    name: '✨ Point the star ~ Chiều Gió Chill Mix',
+    src: 'assets/audio/point-the-star.mp3',
+    desc: 'Nhạc chính • 24:42 thong thả ngồi chill gió',
+    icon: '🎶'
+  },
   sakura: {
+    id: 'sakura',
     name: '🌸 Sakura Chill Lofi',
-    speed: 2600,
-    chords: [
-      [261.63, 329.63, 392.00, 493.88], // Cmaj7
-      [220.00, 261.63, 329.63, 392.00], // Am7
-      [293.66, 349.23, 440.00, 523.25], // Dm7
-      [196.00, 246.94, 293.66, 349.23, 440.00]  // G9
-    ],
-    wave: 'sine'
+    src: 'assets/audio/sakura-chill.mp3',
+    desc: 'Giai điệu piano & acoustic êm dịu',
+    icon: '🌸'
   },
   moonlight: {
+    id: 'moonlight',
     name: '🌙 Moonlit Serenade',
-    speed: 3000,
-    chords: [
-      [220.00, 261.63, 329.63, 493.88], // Am9
-      [174.61, 220.00, 261.63, 329.63], // Fmaj7
-      [146.83, 220.00, 261.63, 349.23], // Dm7
-      [164.81, 196.00, 246.94, 329.63]  // Em7
-    ],
-    wave: 'triangle'
+    src: 'assets/audio/moonlit-serenade.mp3',
+    desc: 'Anime night piano ngọt ngào',
+    icon: '🌙'
   },
   kawaii: {
+    id: 'kawaii',
     name: '🎀 Kawaii Cafe Theme',
-    speed: 2200,
-    chords: [
-      [349.23, 440.00, 523.25, 659.25], // Fmaj7
-      [392.00, 493.88, 587.33, 659.25], // G6
-      [329.63, 392.00, 493.88, 587.33], // Em7
-      [440.00, 523.25, 659.25, 783.99]  // Am7
-    ],
-    wave: 'sine'
+    src: 'assets/audio/kawaii-cafe.mp3',
+    desc: 'Trong trẻo, tươi vui phong cách pastel',
+    icon: '🎀'
   },
   zen: {
+    id: 'zen',
     name: '🍵 Zen Garden Melodies',
-    speed: 2800,
-    chords: [
-      [220.00, 293.66, 329.63, 440.00], // A sus
-      [196.00, 261.63, 293.66, 392.00], // G sus
-      [174.61, 261.63, 349.23, 440.00], // F lydian
-      [164.81, 220.00, 293.66, 329.63]  // E modal
-    ],
-    wave: 'sine'
+    src: 'assets/audio/zen-garden.mp3',
+    desc: 'Thư giãn sâu, hòa tấu sáo & đàn Koto',
+    icon: '🍵'
+  },
+  daydream: {
+    id: 'daydream',
+    name: '☁️ Window Seat Daydream',
+    src: 'assets/audio/daydream.mp3',
+    desc: 'Mộng mơ bên khung cửa sổ ngày nắng',
+    icon: '☁️'
+  },
+  coffee: {
+    id: 'coffee',
+    name: '☕ Morning Coffee Vibes',
+    src: 'assets/audio/coffee-vibes.mp3',
+    desc: 'Hương cà phê sáng & lofi chill ấm áp',
+    icon: '☕'
+  },
+  autumn: {
+    id: 'autumn',
+    name: '🍂 Autumn Window Rain',
+    src: 'assets/audio/autumn-rain.mp3',
+    desc: 'Tiếng mưa thu gõ nhẹ bên ô kính',
+    icon: '🍂'
+  },
+  starlight: {
+    id: 'starlight',
+    name: '⭐ Starlight Dreams',
+    src: 'assets/audio/starlight.mp3',
+    desc: 'Vũ điệu ánh sao đêm lung linh tĩnh lặng',
+    icon: '⭐'
   }
 };
 
-let currentBgmChordIndex = 0;
+const bgmTrackKeys = Object.keys(bgmThemes);
+let isSeekingBgm = false;
+let bgmPrevVolume = 0.7;
 
-function playBgmSynthChord() {
-  if (!appState.bgm.isPlaying || appState.bgm.isCustomAudio) return;
+function isBgmTrackFavorited(trackId) {
+  return appState.bgm.favorites && appState.bgm.favorites.includes(trackId);
+}
+
+function toggleBgmFavorite(trackId) {
+  if (!appState.bgm.favorites) appState.bgm.favorites = [];
+  const idx = appState.bgm.favorites.indexOf(trackId);
+  if (idx > -1) {
+    appState.bgm.favorites.splice(idx, 1);
+  } else {
+    appState.bgm.favorites.push(trackId);
+  }
 
   try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
+    localStorage.setItem('mochimoon_bgm_favorites', JSON.stringify(appState.bgm.favorites));
+  } catch (err) {
+    console.error(err);
+  }
 
-    if (!bgmMasterGain) {
-      bgmMasterGain = ctx.createGain();
-      bgmMasterGain.connect(ctx.destination);
-    }
-    bgmMasterGain.gain.setValueAtTime(appState.bgm.volume * 0.12, ctx.currentTime);
+  updateBgmUIState();
+  renderMusicPlaylist();
+  playChime(660);
+}
 
-    const theme = bgmThemes[appState.bgm.currentTrackId] || bgmThemes.sakura;
-    const chord = theme.chords[currentBgmChordIndex % theme.chords.length];
-    currentBgmChordIndex++;
+function getVisibleTrackKeys() {
+  if (appState.bgm.activeTab === 'fav') {
+    const favs = bgmTrackKeys.filter(k => isBgmTrackFavorited(k));
+    return favs.length > 0 ? favs : bgmTrackKeys;
+  }
+  return bgmTrackKeys;
+}
 
-    chord.forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const noteGain = ctx.createGain();
-
-      osc.type = theme.wave;
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.08);
-
-      // Low-pass filter for cozy lofi warmth
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(1400, ctx.currentTime);
-
-      noteGain.gain.setValueAtTime(0.001, ctx.currentTime + idx * 0.08);
-      noteGain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + idx * 0.08 + 0.3);
-      noteGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.08 + 2.2);
-
-      osc.connect(filter);
-      filter.connect(noteGain);
-      noteGain.connect(bgmMasterGain);
-
-      osc.start(ctx.currentTime + idx * 0.08);
-      osc.stop(ctx.currentTime + idx * 0.08 + 2.3);
-    });
-
-    // Gentle sparkle chime accent
-    if (Math.random() > 0.4) {
-      const chimeFreq = chord[Math.floor(Math.random() * chord.length)] * 2;
-      const chimeOsc = ctx.createOscillator();
-      const chimeGain = ctx.createGain();
-      chimeOsc.type = 'triangle';
-      chimeOsc.frequency.setValueAtTime(chimeFreq, ctx.currentTime + 0.6);
-      chimeGain.gain.setValueAtTime(0.03, ctx.currentTime + 0.6);
-      chimeGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.6);
-      chimeOsc.connect(chimeGain);
-      chimeGain.connect(bgmMasterGain);
-      chimeOsc.start(ctx.currentTime + 0.6);
-      chimeOsc.stop(ctx.currentTime + 1.6);
-    }
-  } catch (err) { }
+function formatBgmTime(seconds) {
+  if (isNaN(seconds) || seconds < 0) return '0:00';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
 function startBgmPlayback() {
-  appState.bgm.isPlaying = true;
-  updateBgmUIState();
-
   const audioElement = document.getElementById('bgmAudioPlayer');
+  if (!audioElement) return;
 
-  if (appState.bgm.isCustomAudio && audioElement && appState.bgm.customAudioUrl) {
-    if (bgmSynthInterval) {
-      clearInterval(bgmSynthInterval);
-      bgmSynthInterval = null;
-    }
-    audioElement.volume = appState.bgm.volume;
-    audioElement.play().catch(e => console.log('Audio autoplay prevented:', e));
-  } else {
-    if (audioElement) audioElement.pause();
-    const ctx = getAudioContext();
-    if (ctx && ctx.state === 'suspended') {
-      ctx.resume();
-    }
-    const theme = bgmThemes[appState.bgm.currentTrackId] || bgmThemes.sakura;
-    if (bgmSynthInterval) clearInterval(bgmSynthInterval);
-    playBgmSynthChord();
-    bgmSynthInterval = setInterval(playBgmSynthChord, theme.speed);
+  const theme = bgmThemes[appState.bgm.currentTrackId] || bgmThemes.point_star;
+  const currentSrc = audioElement.getAttribute('src');
+  if (!currentSrc || !currentSrc.includes(theme.src)) {
+    audioElement.src = theme.src;
+  }
+
+  audioElement.muted = false;
+  audioElement.volume = appState.bgm.volume;
+
+  const playPromise = audioElement.play();
+  if (playPromise !== undefined) {
+    playPromise.then(() => {
+      appState.bgm.isPlaying = true;
+      updateBgmUIState();
+    }).catch(err => {
+      console.log('Audio playback waiting for user gesture:', err);
+      appState.bgm.isPlaying = false;
+      updateBgmUIState();
+    });
   }
 }
 
 function stopBgmPlayback() {
-  appState.bgm.isPlaying = false;
-  updateBgmUIState();
-
-  if (bgmSynthInterval) {
-    clearInterval(bgmSynthInterval);
-    bgmSynthInterval = null;
-  }
-
   const audioElement = document.getElementById('bgmAudioPlayer');
   if (audioElement) {
     audioElement.pause();
   }
+  appState.bgm.isPlaying = false;
+  updateBgmUIState();
+}
+
+function switchBgmTrack(trackId) {
+  if (!bgmThemes[trackId]) return;
+
+  appState.bgm.currentTrackId = trackId;
+  appState.bgm.currentTrackName = bgmThemes[trackId].name;
+
+  try {
+    localStorage.setItem('mochimoon_bgm_current_track', trackId);
+  } catch (err) { }
+
+  const audioElement = document.getElementById('bgmAudioPlayer');
+  if (audioElement) {
+    audioElement.src = bgmThemes[trackId].src;
+    audioElement.currentTime = 0;
+  }
+
+  renderMusicPlaylist();
+  startBgmPlayback();
+  playSuccessChime();
+}
+
+function nextBgmTrack() {
+  const visible = getVisibleTrackKeys();
+  const currentIdx = visible.indexOf(appState.bgm.currentTrackId);
+  const nextIdx = currentIdx === -1 ? 0 : (currentIdx + 1) % visible.length;
+  switchBgmTrack(visible[nextIdx]);
+}
+
+function prevBgmTrack() {
+  const visible = getVisibleTrackKeys();
+  const currentIdx = visible.indexOf(appState.bgm.currentTrackId);
+  const prevIdx = currentIdx === -1 ? 0 : (currentIdx - 1 + visible.length) % visible.length;
+  switchBgmTrack(visible[prevIdx]);
 }
 
 function updateBgmUIState() {
-  const isPlaying = appState.bgm.isPlaying;
+  const audioElement = document.getElementById('bgmAudioPlayer');
+  const isPlaying = audioElement ? (!audioElement.paused && !audioElement.ended) : appState.bgm.isPlaying;
+  appState.bgm.isPlaying = isPlaying;
+
   const musicBtn = document.getElementById('musicPlayerBtn');
   const badge = document.getElementById('musicNoteBadge');
   const playIcon = document.getElementById('bgmPlayIcon');
   const playText = document.getElementById('bgmPlayText');
   const eqBars = document.getElementById('musicEqBars');
   const titleEl = document.getElementById('nowPlayingTitle');
+  const npFavIcon = document.getElementById('npFavIcon');
+  const npFavBtn = document.getElementById('npFavToggleBtn');
 
   if (musicBtn) {
     musicBtn.classList.toggle('playing', isPlaying);
@@ -1172,6 +2050,87 @@ function updateBgmUIState() {
   if (titleEl) {
     titleEl.textContent = appState.bgm.currentTrackName;
   }
+
+  const isCurrentFav = isBgmTrackFavorited(appState.bgm.currentTrackId);
+  if (npFavIcon) {
+    npFavIcon.textContent = isCurrentFav ? '❤️' : '🤍';
+  }
+  if (npFavBtn) {
+    npFavBtn.title = isCurrentFav ? 'Đã yêu thích (Bấm để bỏ)' : 'Thêm vào danh sách yêu thích';
+  }
+}
+
+function renderMusicPlaylist() {
+  const playlistContainer = document.getElementById('musicPlaylist');
+  if (!playlistContainer) return;
+
+  playlistContainer.innerHTML = '';
+
+  const activeTab = appState.bgm.activeTab || 'all';
+  let tracksToDisplay = bgmTrackKeys;
+  if (activeTab === 'fav') {
+    tracksToDisplay = bgmTrackKeys.filter(id => isBgmTrackFavorited(id));
+  }
+
+  // Update counter badges
+  const countAll = document.getElementById('countAllMusic');
+  const countFav = document.getElementById('countFavMusic');
+  if (countAll) countAll.textContent = `(${bgmTrackKeys.length})`;
+  if (countFav) countFav.textContent = `(${appState.bgm.favorites.length})`;
+
+  // Update Tab buttons active state
+  const tabAll = document.getElementById('tabAllMusic');
+  const tabFav = document.getElementById('tabFavMusic');
+  if (tabAll) tabAll.classList.toggle('active', activeTab === 'all');
+  if (tabFav) tabFav.classList.toggle('active', activeTab === 'fav');
+
+  // Handle empty favorites state
+  if (activeTab === 'fav' && tracksToDisplay.length === 0) {
+    const emptyEl = document.createElement('div');
+    emptyEl.className = 'empty-favorites-msg';
+    emptyEl.innerHTML = `
+      <span class="empty-favorites-icon">💖</span>
+      <span><strong>Chưa có bài hát yêu thích nào!</strong></span>
+      <small>Nhấp vào biểu tượng ❤️ ở bài hát bất kỳ để thêm vào danh sách này nhé ✨</small>
+    `;
+    playlistContainer.appendChild(emptyEl);
+  } else {
+    tracksToDisplay.forEach(trackId => {
+      const theme = bgmThemes[trackId];
+      if (!theme) return;
+      const isCurrent = appState.bgm.currentTrackId === trackId;
+      const isFav = isBgmTrackFavorited(trackId);
+
+      const item = document.createElement('div');
+      item.className = `music-track-item ${isCurrent ? 'active' : ''}`;
+      item.innerHTML = `
+        <span class="track-icon">${theme.icon}</span>
+        <div class="track-info">
+          <span class="track-name">${theme.name}</span>
+          <span class="track-desc">${theme.desc}</span>
+        </div>
+        <button class="track-fav-btn ${isFav ? 'is-fav' : ''}" title="${isFav ? 'Bỏ yêu thích' : 'Yêu thích'}" data-track="${trackId}">
+          ${isFav ? '❤️' : '🤍'}
+        </button>
+      `;
+
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.track-fav-btn')) return;
+        switchBgmTrack(trackId);
+        playChime(640);
+      });
+
+      const favBtn = item.querySelector('.track-fav-btn');
+      if (favBtn) {
+        favBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleBgmFavorite(trackId);
+        });
+      }
+
+      playlistContainer.appendChild(item);
+    });
+  }
 }
 
 function initBackgroundMusicPlayer() {
@@ -1179,12 +2138,86 @@ function initBackgroundMusicPlayer() {
   const musicDropdown = document.getElementById('musicDropdown');
   const closeBtn = document.getElementById('closeMusicBtn');
   const playToggleBtn = document.getElementById('bgmPlayToggleBtn');
+  const prevBtn = document.getElementById('bgmPrevBtn');
+  const nextBtn = document.getElementById('bgmNextBtn');
+  const progressBar = document.getElementById('bgmProgressBar');
+  const currTimeEl = document.getElementById('bgmCurrentTime');
+  const durationEl = document.getElementById('bgmDuration');
   const volumeSlider = document.getElementById('bgmVolumeSlider');
   const volIcon = document.getElementById('volIcon');
-  const uploadBtn = document.getElementById('uploadMusicBtn');
-  const fileInput = document.getElementById('bgmCustomFileInput');
+  const npFavBtn = document.getElementById('npFavToggleBtn');
+  const tabAll = document.getElementById('tabAllMusic');
+  const tabFav = document.getElementById('tabFavMusic');
   const audioElement = document.getElementById('bgmAudioPlayer');
-  const playlistContainer = document.getElementById('musicPlaylist');
+
+  // Pre-load default track into audio element
+  if (audioElement) {
+    const defaultTheme = bgmThemes[appState.bgm.currentTrackId] || bgmThemes.sakura;
+    const currentSrc = audioElement.getAttribute('src');
+    if (!currentSrc || !currentSrc.includes(defaultTheme.src)) {
+      audioElement.src = defaultTheme.src;
+    }
+    audioElement.volume = appState.bgm.volume;
+
+    audioElement.addEventListener('play', () => {
+      appState.bgm.isPlaying = true;
+      updateBgmUIState();
+    });
+
+    audioElement.addEventListener('pause', () => {
+      appState.bgm.isPlaying = false;
+      updateBgmUIState();
+    });
+
+    audioElement.addEventListener('error', () => {
+      console.warn('Audio playback error:', audioElement.error);
+      appState.bgm.isPlaying = false;
+      updateBgmUIState();
+    });
+
+    audioElement.addEventListener('loadedmetadata', () => {
+      if (durationEl && !isNaN(audioElement.duration)) {
+        durationEl.textContent = formatBgmTime(audioElement.duration);
+      }
+    });
+
+    audioElement.addEventListener('timeupdate', () => {
+      if (isSeekingBgm) return;
+      const curr = audioElement.currentTime;
+      const dur = audioElement.duration;
+      if (currTimeEl) {
+        currTimeEl.textContent = formatBgmTime(curr);
+      }
+      if (dur && !isNaN(dur) && durationEl) {
+        durationEl.textContent = formatBgmTime(dur);
+        if (progressBar) {
+          progressBar.value = (curr / dur) * 100;
+        }
+      }
+    });
+
+    audioElement.addEventListener('ended', () => {
+      nextBgmTrack();
+    });
+  }
+
+  // Progress Bar Seek
+  if (progressBar) {
+    progressBar.addEventListener('input', () => {
+      isSeekingBgm = true;
+      if (audioElement && !isNaN(audioElement.duration) && currTimeEl) {
+        const seekTime = (parseFloat(progressBar.value) / 100) * audioElement.duration;
+        currTimeEl.textContent = formatBgmTime(seekTime);
+      }
+    });
+
+    progressBar.addEventListener('change', () => {
+      if (audioElement && !isNaN(audioElement.duration)) {
+        audioElement.currentTime = (parseFloat(progressBar.value) / 100) * audioElement.duration;
+      }
+      isSeekingBgm = false;
+    });
+  }
 
   // Dropdown toggle
   if (musicBtn && musicDropdown) {
@@ -1194,6 +2227,10 @@ function initBackgroundMusicPlayer() {
       if (isHidden) {
         musicDropdown.classList.remove('hidden');
         playChime(580);
+        // Khi mở bảng điều khiển nhạc, nếu đang dừng thì chủ động phát
+        if (audioElement && audioElement.paused) {
+          startBgmPlayback();
+        }
       } else {
         musicDropdown.classList.add('hidden');
       }
@@ -1218,7 +2255,7 @@ function initBackgroundMusicPlayer() {
   // Play / Pause toggle
   if (playToggleBtn) {
     playToggleBtn.addEventListener('click', () => {
-      if (appState.bgm.isPlaying) {
+      if (audioElement && !audioElement.paused) {
         stopBgmPlayback();
         playChime(320);
       } else {
@@ -1228,100 +2265,123 @@ function initBackgroundMusicPlayer() {
     });
   }
 
-  // Volume slider
+  // Previous & Next Track
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      prevBgmTrack();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      nextBgmTrack();
+    });
+  }
+
+  // Favorite toggle on Now Playing card
+  if (npFavBtn) {
+    npFavBtn.addEventListener('click', () => {
+      toggleBgmFavorite(appState.bgm.currentTrackId);
+    });
+  }
+
+  // Tab switching: All vs Favorites
+  if (tabAll) {
+    tabAll.addEventListener('click', () => {
+      appState.bgm.activeTab = 'all';
+      renderMusicPlaylist();
+      playChime(500);
+    });
+  }
+
+  if (tabFav) {
+    tabFav.addEventListener('click', () => {
+      appState.bgm.activeTab = 'fav';
+      renderMusicPlaylist();
+      playChime(560);
+    });
+  }
+
+  // Volume slider & Mute toggle
+  function updateVolIcon(val) {
+    if (!volIcon) return;
+    volIcon.textContent = val === 0 ? '🔇' : val < 0.5 ? '🔉' : '🔊';
+  }
+
   if (volumeSlider) {
     volumeSlider.addEventListener('input', (e) => {
       const val = parseFloat(e.target.value) / 100;
       appState.bgm.volume = val;
       if (audioElement) audioElement.volume = val;
-      if (bgmMasterGain) {
-        const ctx = getAudioContext();
-        if (ctx) bgmMasterGain.gain.setValueAtTime(val * 0.12, ctx.currentTime);
-      }
-      if (volIcon) {
-        volIcon.textContent = val === 0 ? '🔇' : val < 0.5 ? '🔉' : '🔊';
-      }
+      updateVolIcon(val);
     });
   }
 
-  // Preset track selection
-  if (playlistContainer) {
-    const trackItems = playlistContainer.querySelectorAll('.music-track-item');
-    trackItems.forEach(item => {
-      item.addEventListener('click', () => {
-        const trackId = item.getAttribute('data-track-id');
-        trackItems.forEach(t => t.classList.remove('active'));
-        item.classList.add('active');
-
-        appState.bgm.isCustomAudio = false;
-        appState.bgm.currentTrackId = trackId;
-        appState.bgm.currentTrackName = bgmThemes[trackId]?.name || '🌸 Sakura Chill Lofi';
-
-        startBgmPlayback();
-        playSuccessChime();
-      });
-    });
-  }
-
-  // Upload Custom Music from computer
-  if (uploadBtn && fileInput) {
-    uploadBtn.addEventListener('click', () => {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (file) {
-        const fileName = file.name;
-        const objectUrl = URL.createObjectURL(file);
-
-        appState.bgm.isCustomAudio = true;
-        appState.bgm.customAudioUrl = objectUrl;
-        appState.bgm.customAudioName = `🎶 ${fileName}`;
-        appState.bgm.currentTrackName = `🎶 ${fileName}`;
-
-        if (audioElement) {
-          audioElement.src = objectUrl;
-          audioElement.loop = true;
-          audioElement.volume = appState.bgm.volume;
-        }
-
-        // Add or update custom track item in playlist
-        let customItem = document.getElementById('customTrackItem');
-        if (!customItem) {
-          customItem = document.createElement('div');
-          customItem.id = 'customTrackItem';
-          customItem.className = 'music-track-item active';
-          playlistContainer.appendChild(customItem);
-        }
-
-        // Deselect preset items
-        playlistContainer.querySelectorAll('.music-track-item').forEach(t => t.classList.remove('active'));
-        customItem.classList.add('active');
-
-        customItem.innerHTML = `
-          <span class="track-icon">📁</span>
-          <div class="track-meta">
-            <span class="track-name">${escapeHtml(fileName)}</span>
-            <small>Nhạc từ máy tính của bạn</small>
-          </div>
-          <span class="track-check">✓</span>
-        `;
-
-        customItem.addEventListener('click', () => {
-          playlistContainer.querySelectorAll('.music-track-item').forEach(t => t.classList.remove('active'));
-          customItem.classList.add('active');
-          appState.bgm.isCustomAudio = true;
-          appState.bgm.currentTrackName = `🎶 ${fileName}`;
-          startBgmPlayback();
-        });
-
-        startBgmPlayback();
-        playSuccessChime();
-        alert(`🌸 Đã nạp bài hát "${fileName}" làm nhạc nền thành công! Đang phát... ✨`);
+  if (volIcon) {
+    volIcon.addEventListener('click', () => {
+      if (appState.bgm.volume > 0) {
+        bgmPrevVolume = appState.bgm.volume;
+        appState.bgm.volume = 0;
+        if (volumeSlider) volumeSlider.value = 0;
+      } else {
+        appState.bgm.volume = bgmPrevVolume > 0 ? bgmPrevVolume : 0.7;
+        if (volumeSlider) volumeSlider.value = appState.bgm.volume * 100;
       }
+      if (audioElement) audioElement.volume = appState.bgm.volume;
+      updateVolIcon(appState.bgm.volume);
     });
   }
 
+  renderMusicPlaylist();
   updateBgmUIState();
+
+  // Bấm vào bất kỳ đâu trên trang web có thể phát nhạc
+  setupClickAnywhereToPlay();
+}
+
+function setupClickAnywhereToPlay() {
+  const audioElement = document.getElementById('bgmAudioPlayer');
+  if (!audioElement) return;
+
+  const targetTheme = bgmThemes[appState.bgm.currentTrackId] || bgmThemes.point_star;
+  const currentSrc = audioElement.getAttribute('src');
+  if (!currentSrc || !currentSrc.includes(targetTheme.src)) {
+    audioElement.src = targetTheme.src;
+  }
+  audioElement.muted = false;
+  audioElement.volume = appState.bgm.volume;
+
+  // Thử phát ngay nếu trình duyệt cho phép
+  const initialPlay = audioElement.play();
+  if (initialPlay !== undefined) {
+    initialPlay.then(() => {
+      appState.bgm.isPlaying = true;
+      updateBgmUIState();
+    }).catch(() => {
+      appState.bgm.isPlaying = false;
+      updateBgmUIState();
+      attachGlobalClickTrigger();
+    });
+  } else {
+    attachGlobalClickTrigger();
+  }
+
+  function attachGlobalClickTrigger() {
+    const triggerEvents = ['click', 'pointerdown', 'touchstart'];
+    const onFirstClickAnywhere = () => {
+      // Khi người dùng bấm vào bất kì đâu trên màn hình
+      if (audioElement && audioElement.paused) {
+        startBgmPlayback();
+      }
+      triggerEvents.forEach(evt => {
+        window.removeEventListener(evt, onFirstClickAnywhere, true);
+        document.removeEventListener(evt, onFirstClickAnywhere, true);
+      });
+    };
+
+    triggerEvents.forEach(evt => {
+      window.addEventListener(evt, onFirstClickAnywhere, { capture: true });
+      document.addEventListener(evt, onFirstClickAnywhere, { capture: true });
+    });
+  }
 }
