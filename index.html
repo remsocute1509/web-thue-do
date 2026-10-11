@@ -38,8 +38,8 @@
           </svg>
         </button>
 
-        <!-- Brand / Profile Pill -->
-        <div class="brand-pill" id="brandPill">
+        <!-- Brand / Profile Pill & Admin Access -->
+        <div class="brand-pill" id="brandPill" onclick="if(window.handleAdminLogoClick) window.handleAdminLogoClick(event); else if(window.openAdminLoginModal) window.openAdminLoginModal();" title="mochimoon - Nhấp để mở Quản trị viên (Admin)" style="cursor: pointer;">
           <span class="brand-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
@@ -62,6 +62,20 @@
             </svg>
           </span>
           <span class="nav-label">Welcome to mochimoon</span>
+        </button>
+
+        <button class="nav-item" data-tab="wardrobe" id="navWardrobe" title="Xem lưu ý & quy định thuê đồ">
+          <span class="nav-icon wardrobe-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </span>
+          <span class="nav-label">Lưu ý & Quy định</span>
         </button>
 
         <button class="nav-item" data-tab="hobbies" id="navHobbies" title="Xem danh sách mẫu đồ & bảng giá thuê">
@@ -88,20 +102,6 @@
             </svg>
           </span>
           <span class="nav-label">Đặt lịch thuê đồ</span>
-        </button>
-
-        <button class="nav-item" data-tab="wardrobe" id="navWardrobe" title="Xem lưu ý & quy định thuê đồ">
-          <span class="nav-icon wardrobe-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-          </span>
-          <span class="nav-label">Lưu ý & Quy định</span>
         </button>
       </nav>
 
@@ -268,10 +268,11 @@
             <span id="audioIcon">✨</span>
           </button>
 
-          <!-- Logo Tiệm mochimoon / Avatar -->
-          <div class="user-avatar-btn" id="userProfileBtn" title="Logo tiệm mochimoon - Nhấp vào để đổi ảnh nếu muốn">
-            <img src="assets/mochiimoon_logo.png" alt="mochimoon Logo" class="avatar-img" id="userAvatar">
-            <div class="avatar-camera-overlay" title="Thay đổi ảnh đại diện">
+          <!-- Logo Tiệm mochimoon / Avatar & Admin Access -->
+          <div class="user-avatar-btn" id="userProfileBtn" onclick="if(window.handleAdminLogoClick) window.handleAdminLogoClick(event); else if(window.openAdminLoginModal) window.openAdminLoginModal();" title="Logo tiệm mochimoon - Nhấp để Đăng nhập Quản trị viên (Admin)">
+            <img src="assets/mochiimoon_logo.png" alt="mochimoon Logo" class="avatar-img" id="userAvatar" style="pointer-events: none;">
+            <span class="admin-crown-badge-header hidden" id="adminHeaderBadge" title="Tài khoản Quản trị viên" style="pointer-events: none;">👑</span>
+            <div class="avatar-camera-overlay hidden" id="avatarOverlay">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
@@ -350,15 +351,44 @@
 
           <!-- 3. MOCHIMOON INTRO CARD (Bên dưới Thời gian & Lịch, căn ở giữa) -->
           <div class="card mochimoon-intro-card" id="mochimoonIntroCard">
-            <span class="card-deco-flower intro-deco-left">🌸</span>
-            <span class="card-deco-flower intro-deco-right">✨</span>
-            <div class="intro-card-content">
-              <h2 class="intro-title">Chào mừng bạn đến với Mochimoon – thế giới cosplay lung linh của riêng bạn! ✨</h2>
-              <p class="intro-desc">
-                Tại đây, chúng mình mang đến những bộ trang phục được chăm chút chỉn chu, phom dáng chuẩn đẹp cùng đầy
-                đủ phụ kiện đi kèm, giúp bạn dễ dàng hóa thân thành nhân vật yêu thích. Dù là đi fes, đu event hay chụp
-                ảnh kỷ niệm, Mochimoon luôn sẵn sàng đồng hành để bạn tỏa sáng rạng rỡ nhất! 🌸🌙
-              </p>
+            <!-- Nền ánh sáng pastel hào quang -->
+            <div class="intro-card-aura" aria-hidden="true"></div>
+
+            <!-- Khung viền trang trí bên trong (Inner decorative frame) -->
+            <div class="intro-card-inner-frame">
+              <!-- Cụm hoa & trăng sao trang trí 4 góc -->
+              <div class="intro-corner-deco corner-tl" aria-hidden="true">
+                <span class="corner-item-main">🌸</span>
+                <span class="corner-item-sparkle">✨</span>
+              </div>
+              <div class="intro-corner-deco corner-tr" aria-hidden="true">
+                <span class="corner-item-sparkle">✨</span>
+                <span class="corner-item-main">🌙</span>
+              </div>
+              <div class="intro-corner-deco corner-bl" aria-hidden="true">
+                <span class="corner-item-mini">🌸</span>
+              </div>
+              <div class="intro-corner-deco corner-br" aria-hidden="true">
+                <span class="corner-item-mini">✨</span>
+              </div>
+
+              <!-- Nội dung văn bản trong khung -->
+              <div class="intro-card-content">
+                <h2 class="intro-title">
+                  Chào mừng bạn đến với <span class="intro-brand-name">Mochimoon</span> – thế giới cosplay lung linh của riêng bạn! <span class="intro-title-sparkle">✨</span>
+                </h2>
+
+                <!-- Dải phân cách hoa văn pastel -->
+                <div class="intro-divider" aria-hidden="true">
+                  <span class="divider-line"></span>
+                  <span class="divider-icon">🌸 ✦ 🌸</span>
+                  <span class="divider-line"></span>
+                </div>
+
+                <p class="intro-desc">
+                  Tại đây, chúng mình mang đến những bộ trang phục được <span class="highlight-soft">chăm chút chỉn chu</span>, <span class="highlight-soft">phom dáng chuẩn đẹp</span> cùng <span class="highlight-soft">đầy đủ phụ kiện đi kèm</span>, giúp bạn dễ dàng hóa thân thành nhân vật yêu thích. Dù là đi <span class="highlight-pill">fes</span>, đu <span class="highlight-pill">event</span> hay chụp ảnh kỷ niệm, Mochimoon luôn sẵn sàng đồng hành để bạn <span class="highlight-glow">tỏa sáng rạng rỡ nhất!</span> <span class="intro-ending-icons">🌸🌙</span>
+                </p>
+              </div>
             </div>
           </div>
 
@@ -384,7 +414,8 @@
             <!-- 1. HIMMEL -->
             <div class="card costume-catalog-card" data-character="Himmel (Sousou no Frieren)">
               <div class="catalog-img-wrap">
-                <img src="assets/costumes/costume_himmel.jpg" alt="Cosplay Himmel - mochimoon" class="catalog-img" loading="lazy">
+                <img src="assets/costumes/costume_himmel.jpg" alt="Cosplay Himmel - mochimoon" class="catalog-img"
+                  loading="lazy">
               </div>
               <div class="catalog-info-box">
                 <div class="catalog-header-row">
@@ -401,12 +432,9 @@
                   </div>
                 </div>
                 <div class="catalog-btn-row">
-                  <button type="button" class="catalog-info-btn"
-                          data-char="himmel"
-                          data-fullname="Himmel (Sousou no Frieren)"
-                          data-img="assets/costumes/costume_himmel.jpg"
-                          data-info="* cost : sz xl|* wig"
-                          data-prices="* fes/shoot : 150K|* test : 80k">
+                  <button type="button" class="catalog-info-btn" data-char="himmel"
+                    data-fullname="Himmel (Sousou no Frieren)" data-img="assets/costumes/costume_himmel.jpg"
+                    data-info="* cost : sz xl|* wig" data-prices="* fes/shoot : 150K|* test : 80k">
                     <span>ℹ️ Thông tin</span>
                   </button>
                   <button type="button" class="catalog-rent-btn" data-char="Himmel (Sousou no Frieren)">
@@ -419,7 +447,8 @@
             <!-- 2. FRIEREN -->
             <div class="card costume-catalog-card" data-character="Frieren (Sousou no Frieren)">
               <div class="catalog-img-wrap">
-                <img src="assets/costumes/costume_frieren.jpg" alt="Cosplay Frieren - mochimoon" class="catalog-img" loading="lazy">
+                <img src="assets/costumes/costume_frieren.jpg" alt="Cosplay Frieren - mochimoon" class="catalog-img"
+                  loading="lazy">
               </div>
               <div class="catalog-info-box">
                 <div class="catalog-header-row">
@@ -436,12 +465,9 @@
                   </div>
                 </div>
                 <div class="catalog-btn-row">
-                  <button type="button" class="catalog-info-btn"
-                          data-char="frieren"
-                          data-fullname="Frieren (Sousou no Frieren)"
-                          data-img="assets/costumes/costume_frieren.jpg"
-                          data-info="* cost : sz M|* wig"
-                          data-prices="* fes/shoot : 150K|* test : 80k">
+                  <button type="button" class="catalog-info-btn" data-char="frieren"
+                    data-fullname="Frieren (Sousou no Frieren)" data-img="assets/costumes/costume_frieren.jpg"
+                    data-info="* cost : sz M|* wig" data-prices="* fes/shoot : 150K|* test : 80k">
                     <span>ℹ️ Thông tin</span>
                   </button>
                   <button type="button" class="catalog-rent-btn" data-char="Frieren (Sousou no Frieren)">
@@ -454,7 +480,8 @@
             <!-- 3. KAITO KID -->
             <div class="card costume-catalog-card" data-character="Kaito Kid">
               <div class="catalog-img-wrap">
-                <img src="assets/costumes/costume_kaito_kid.jpg" alt="Cosplay Kaito Kid - mochimoon" class="catalog-img" loading="lazy">
+                <img src="assets/costumes/costume_kaito_kid.jpg" alt="Cosplay Kaito Kid - mochimoon" class="catalog-img"
+                  loading="lazy">
               </div>
               <div class="catalog-info-box">
                 <div class="catalog-header-row">
@@ -471,12 +498,10 @@
                   </div>
                 </div>
                 <div class="catalog-btn-row">
-                  <button type="button" class="catalog-info-btn"
-                          data-char="kaito kid"
-                          data-fullname="Kaito Kid"
-                          data-img="assets/costumes/costume_kaito_kid.jpg"
-                          data-info="* cost : sz 2xl|* wig|* không giày và vũ khí"
-                          data-prices="* fes/shoot : 200k|* test : 80k">
+                  <button type="button" class="catalog-info-btn" data-char="kaito kid" data-fullname="Kaito Kid"
+                    data-img="assets/costumes/costume_kaito_kid.jpg"
+                    data-info="* cost : sz 2xl|* wig|* không giày và vũ khí"
+                    data-prices="* fes/shoot : 200k|* test : 80k">
                     <span>ℹ️ Thông tin</span>
                   </button>
                   <button type="button" class="catalog-rent-btn" data-char="Kaito Kid">
@@ -489,7 +514,8 @@
             <!-- 4. FLINS -->
             <div class="card costume-catalog-card" data-character="Flins">
               <div class="catalog-img-wrap">
-                <img src="assets/costumes/costume_flins.jpg" alt="Cosplay Flins - mochimoon" class="catalog-img" loading="lazy">
+                <img src="assets/costumes/costume_flins.jpg" alt="Cosplay Flins - mochimoon" class="catalog-img"
+                  loading="lazy">
               </div>
               <div class="catalog-info-box">
                 <div class="catalog-header-row">
@@ -506,12 +532,9 @@
                   </div>
                 </div>
                 <div class="catalog-btn-row">
-                  <button type="button" class="catalog-info-btn"
-                          data-char="flins"
-                          data-fullname="Flins"
-                          data-img="assets/costumes/costume_flins.jpg"
-                          data-info="* cost : sz xl|* wig|* không đèn,không giày"
-                          data-prices="* fes/shoot : 250k|* test : 100k">
+                  <button type="button" class="catalog-info-btn" data-char="flins" data-fullname="Flins"
+                    data-img="assets/costumes/costume_flins.jpg" data-info="* cost : sz xl|* wig|* không đèn,không giày"
+                    data-prices="* fes/shoot : 250k|* test : 100k">
                     <span>ℹ️ Thông tin</span>
                   </button>
                   <button type="button" class="catalog-rent-btn" data-char="Flins">
@@ -524,7 +547,8 @@
             <!-- 5. KINOSAKI MEI -->
             <div class="card costume-catalog-card" data-character="Kinosaki Mei">
               <div class="catalog-img-wrap">
-                <img src="assets/costumes/costume_kinosaki_mei.jpg" alt="Cosplay Kinosaki Mei - mochimoon" class="catalog-img" loading="lazy">
+                <img src="assets/costumes/costume_kinosaki_mei.jpg" alt="Cosplay Kinosaki Mei - mochimoon"
+                  class="catalog-img" loading="lazy">
               </div>
               <div class="catalog-info-box">
                 <div class="catalog-header-row">
@@ -541,12 +565,10 @@
                   </div>
                 </div>
                 <div class="catalog-btn-row">
-                  <button type="button" class="catalog-info-btn"
-                          data-char="Kinosaki Mei"
-                          data-fullname="Kinosaki Mei"
-                          data-img="assets/costumes/costume_kinosaki_mei.jpg"
-                          data-info="* Cost size M|* Wig|* Thêm giày size 40 + 30k"
-                          data-prices="* Fes/Shoot out : 150k|* Test : 80k">
+                  <button type="button" class="catalog-info-btn" data-char="Kinosaki Mei" data-fullname="Kinosaki Mei"
+                    data-img="assets/costumes/costume_kinosaki_mei.jpg"
+                    data-info="* Cost size M|* Wig|* Thêm giày size 40 + 30k"
+                    data-prices="* Fes/Shoot out : 150k|* Test : 80k">
                     <span>ℹ️ Thông tin</span>
                   </button>
                   <button type="button" class="catalog-rent-btn" data-char="Kinosaki Mei">
@@ -559,7 +581,8 @@
             <!-- 6. KITAGAWA MARIN VER SHIZUKU -->
             <div class="card costume-catalog-card" data-character="Kitagawa Marin Ver Shizuku (My Dress-Up Darling)">
               <div class="catalog-img-wrap">
-                <img src="assets/costumes/costume_marin_shizuku.jpg" alt="Cosplay Kitagawa Marin Ver Shizuku - mochimoon" class="catalog-img" loading="lazy">
+                <img src="assets/costumes/costume_marin_shizuku.jpg"
+                  alt="Cosplay Kitagawa Marin Ver Shizuku - mochimoon" class="catalog-img" loading="lazy">
               </div>
               <div class="catalog-info-box">
                 <div class="catalog-header-row">
@@ -576,23 +599,23 @@
                   </div>
                 </div>
                 <div class="catalog-btn-row">
-                  <button type="button" class="catalog-info-btn"
-                          data-char="Kitagawa Marin Ver Shizuku"
-                          data-fullname="Kitagawa Marin Ver Shizuku (My Dress-Up Darling)"
-                          data-img="assets/costumes/costume_marin_shizuku.jpg"
-                          data-info="* Cost size M|* Wig|* Thêm giày size 40 + 30k"
-                          data-prices="* Fes/Shoot : 200k|* Test : 100k">
+                  <button type="button" class="catalog-info-btn" data-char="Kitagawa Marin Ver Shizuku"
+                    data-fullname="Kitagawa Marin Ver Shizuku (My Dress-Up Darling)"
+                    data-img="assets/costumes/costume_marin_shizuku.jpg"
+                    data-info="* Cost size M|* Wig|* Thêm giày size 40 + 30k"
+                    data-prices="* Fes/Shoot : 200k|* Test : 100k">
                     <span>ℹ️ Thông tin</span>
                   </button>
-                  <button type="button" class="catalog-rent-btn" data-char="Kitagawa Marin Ver Shizuku (My Dress-Up Darling)">
+                  <button type="button" class="catalog-rent-btn"
+                    data-char="Kitagawa Marin Ver Shizuku (My Dress-Up Darling)">
                     <span>👘 Đặt Thuê Ngay</span>
                   </button>
                 </div>
               </div>
             </div>
           </div>
-      </div>
-    </section>
+        </div>
+      </section>
 
       <!-- TAB CONTAINER 3: ĐẶT LỊCH THUÊ ĐỒ COSPLAY -->
       <section class="tab-pane" id="tabHealth">
@@ -675,7 +698,8 @@
                     <label class="booking-label" for="customerName">
                       <span>Họ & Tên khách hàng:</span>
                     </label>
-                    <input type="text" class="booking-input" id="customerName" placeholder="Nhập tên của bạn..." required>
+                    <input type="text" class="booking-input" id="customerName" placeholder="Nhập tên của bạn..."
+                      required>
                   </div>
 
                   <div class="form-group flex-1">
@@ -708,7 +732,8 @@
                   <div class="success-icon-wrap">🎉</div>
                   <div class="success-banner-info">
                     <h4>Đặt lịch thuê thành công!</h4>
-                    <p>Mã đơn: <strong id="payOrderId">#MC-83921</strong> • Trạng thái: <span class="pay-status-pill" id="payStatusBadge">⏳ Chờ thanh toán</span></p>
+                    <p>Mã đơn: <strong id="payOrderId">#MC-83921</strong> • Trạng thái: <span class="pay-status-pill"
+                        id="payStatusBadge">⏳ Chờ thanh toán</span></p>
                   </div>
                 </div>
 
@@ -718,7 +743,7 @@
                     <h5>📋 Chi Tiết Đơn Thuê</h5>
                     <span class="bill-badge-tag" id="payCostumeDurationTag">3 ngày (fes/shoot)</span>
                   </div>
-                  
+
                   <div class="bill-details-grid">
                     <div class="bill-row">
                       <span class="bill-label">👘 Trang phục:</span>
@@ -749,7 +774,8 @@
                     </div>
                     <div class="pricing-row">
                       <span>Hình thức cọc giữ đồ:</span>
-                      <span class="deposit-desc" id="payDepositDesc">Cọc Thẻ học sinh / Giấy khai sinh (hoặc cọc 200.000đ)</span>
+                      <span class="deposit-desc" id="payDepositDesc">Cọc Thẻ học sinh / Giấy khai sinh (hoặc cọc
+                        200.000đ)</span>
                     </div>
                     <div class="pricing-total-row">
                       <span>Tổng tiền cần thanh toán:</span>
@@ -768,23 +794,11 @@
                     </div>
                   </div>
 
-                  <!-- QR Type Switcher Tabs -->
-                  <div class="qr-type-switcher">
-                    <button type="button" class="qr-tab-btn active" id="tabQrCustom">
-                      <span>🐰 Thẻ QR Shop (Snowy Shoppu)</span>
-                    </button>
-                    <button type="button" class="qr-tab-btn" id="tabQrVietqr">
-                      <span>⚡ QR Động Tự Điền Tiền</span>
-                    </button>
-                  </div>
-
                   <div class="qr-body">
                     <div class="qr-image-container">
-                      <!-- 1. Custom Cinnamoroll QR Card Image -->
-                      <img id="customQrCardImg" src="assets/qr_snowy_shoppu.jpg" alt="Mã QR Snowy Shoppu" class="vietqr-img shop-custom-qr-view">
-                      <!-- 2. Dynamic VietQR Image -->
-                      <img id="vietQrImg" src="" alt="Mã QR Chuyển Khoản Tự Động" class="vietqr-img hidden">
-                      <span class="qr-scan-hint" id="qrScanHint">📲 Mở app ngân hàng quét mã để chuyển khoản</span>
+                      <!-- Mã QR VietQR Tự Động Điền Sẵn Tiền & Nội Dung -->
+                      <img id="vietQrImg" src="" alt="Mã QR Chuyển Khoản Tự Động" class="vietqr-img">
+                      <span class="qr-scan-hint" id="qrScanHint">⚡ Quét mã VietQR tự động điền sẵn số tiền và nội dung</span>
                     </div>
 
                     <div class="bank-info-list">
@@ -796,7 +810,8 @@
                         <span class="info-lbl">Số tài khoản:</span>
                         <div class="copyable-val">
                           <strong class="info-val code-highlight" id="bankAccNumber">0377193835</strong>
-                          <button type="button" class="btn-copy-mini" id="btnCopyAcc" title="Sao chép số tài khoản">📋 Copy</button>
+                          <button type="button" class="btn-copy-mini" id="btnCopyAcc" title="Sao chép số tài khoản">📋
+                            Copy</button>
                         </div>
                       </div>
                       <div class="bank-info-item">
@@ -807,14 +822,16 @@
                         <span class="info-lbl">Số tiền thanh toán:</span>
                         <div class="copyable-val">
                           <strong class="info-val highlight-pink" id="bankTransferAmount">200.000đ</strong>
-                          <button type="button" class="btn-copy-mini" id="btnCopyAmount" title="Sao chép số tiền">📋 Copy</button>
+                          <button type="button" class="btn-copy-mini" id="btnCopyAmount" title="Sao chép số tiền">📋
+                            Copy</button>
                         </div>
                       </div>
                       <div class="bank-info-item">
                         <span class="info-lbl">Nội dung chuyển khoản:</span>
                         <div class="copyable-val">
                           <strong class="info-val code-highlight" id="bankTransferContent">THUEDO MC83921</strong>
-                          <button type="button" class="btn-copy-mini" id="btnCopyContent" title="Sao chép nội dung chuyển khoản">📋 Copy</button>
+                          <button type="button" class="btn-copy-mini" id="btnCopyContent"
+                            title="Sao chép nội dung chuyển khoản">📋 Copy</button>
                         </div>
                       </div>
                     </div>
@@ -827,12 +844,15 @@
                     </div>
                     <div class="listen-text">
                       <strong id="listenTitle">🔄 Hệ thống đang chờ ngân hàng MB Bank báo nhận tiền...</strong>
-                      <span id="listenSub">Khi tài khoản <strong>0377193835</strong> nhận được tiền đúng cú pháp, đơn hàng sẽ <strong>TỰ ĐỘNG DUYỆT</strong> ngay lập tức!</span>
+                      <span id="listenSub">Khi tài khoản <strong>0377193835</strong> nhận được tiền đúng cú pháp, đơn
+                        hàng sẽ <strong>TỰ ĐỘNG DUYỆT</strong> ngay lập tức!</span>
                     </div>
                   </div>
 
                   <div class="payment-notice-pill">
-                    ⚠️ <em>Vui lòng chuyển đúng nội dung <strong class="notice-highlight-code" id="noticeOrderCode">THUEDO MC83921</strong> để hệ thống tự động nhận diện và duyệt đơn ngay nhé! (No receipt = No processing)</em>
+                    ⚠️ <em>Vui lòng chuyển đúng nội dung <strong class="notice-highlight-code"
+                        id="noticeOrderCode">THUEDO MC83921</strong> để hệ thống tự động nhận diện và duyệt đơn ngay
+                      nhé! (No receipt = No processing)</em>
                   </div>
                 </div>
 
@@ -841,23 +861,6 @@
                   <button type="button" class="btn-confirm-paid" id="btnConfirmPaid">
                     <span>✨ Tôi Đã Chuyển Khoản Thành Công</span>
                   </button>
-                  <button type="button" class="btn-simulate-test" id="btnSimulatePayment" title="Chủ shop bấm để mô phỏng biến động số dư ngân hàng và tự động duyệt ngay">
-                    <span>⚡ Thử Nghiệm: Giả Lập Nhận Tiền</span>
-                  </button>
-                  <button type="button" class="btn-back-booking" id="btnBackToBooking">
-                    <span>👘 Đặt Thêm Lịch Mới / Chỉnh Sửa</span>
-                  </button>
-                </div>
-                
-                <!-- Webhook Connect Helper Banner -->
-                <div class="webhook-helper-box">
-                  <span class="webhook-helper-icon">🔗</span>
-                  <div class="webhook-helper-content">
-                    <strong>Tích hợp Webhook Ngân Hàng Tự Động Thật 100%:</strong>
-                    <span>Hệ thống đã có sẵn Webhook URL: <code>http://localhost:3000/api/webhook/bank</code> (Hỗ trợ SePay / Casso). 
-                      <button type="button" class="btn-link-guide" id="btnOpenWebhookGuide">Xem Hướng Dẫn Kết Nối ⚙️</button>
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -870,8 +873,10 @@
                 <div class="costume-preview-info">
                   <div class="costume-badge in-stock" id="costumeStockBadge">✨ Còn đồ (Sẵn sàng cho thuê)</div>
                   <h4 id="previewCostumeName">Himmel (Sousou no Frieren)</h4>
-                  <p class="costume-price">Giá thuê: <span class="price-highlight">150.000đ (Fes/Shoot) • 80.000đ (Test)</span></p>
-                  <p class="costume-desc" id="previewCostumeDesc">Cost size XL kèm Wig tạo kiểu chuẩn nhân vật hiệp sĩ Himmel.</p>
+                  <p class="costume-price">Giá thuê: <span class="price-highlight">150.000đ (Fes/Shoot) • 80.000đ
+                      (Test)</span></p>
+                  <p class="costume-desc" id="previewCostumeDesc">Cost size XL kèm Wig tạo kiểu chuẩn nhân vật hiệp sĩ
+                    Himmel.</p>
                   <div class="booking-stock-warning hidden" id="bookingStockWarning">
                     ⚠️ Bộ trang phục này hiện đã có người thuê (Hết slot). Vui lòng chọn bộ khác hoặc quay lại sau nhé!
                   </div>
@@ -924,31 +929,38 @@
                 <li class="rule-item">
                   <span class="rule-bullet">📏</span>
                   <div class="rule-item-content">
-                    <strong>Chủ động hỏi rõ số đo:</strong> Sợ đồ không vừa hãy chủ động hỏi rõ số đo với shop, tránh trường hợp shop đã báo size rồi vẫn thuê, tới lúc không vừa shop sẽ <em>không chịu trách nhiệm</em>.
+                    <strong>Chủ động hỏi rõ số đo:</strong> Sợ đồ không vừa hãy chủ động hỏi rõ số đo với shop, tránh
+                    trường hợp shop đã báo size rồi vẫn thuê, tới lúc không vừa shop sẽ <em>không chịu trách nhiệm</em>.
                   </div>
                 </li>
                 <li class="rule-item">
                   <span class="rule-bullet">👤</span>
                   <div class="rule-item-content">
-                    <strong>Sử dụng nick clone:</strong> Khách dùng nick clone thuê đồ hoặc đặt make <span class="rule-highlight warn">bắt buộc auto bank full</span> tiền thuê và tiền make thì shop mới lên slot.
+                    <strong>Sử dụng nick clone:</strong> Khách dùng nick clone thuê đồ hoặc đặt make <span
+                      class="rule-highlight warn">bắt buộc auto bank full</span> tiền thuê và tiền make thì shop mới lên
+                    slot.
                   </div>
                 </li>
                 <li class="rule-item">
                   <span class="rule-bullet">🪪</span>
                   <div class="rule-item-content">
-                    <strong>Giấy tờ đặt cọc:</strong> Shop <span class="rule-highlight danger">không nhận đơn</span> dùng CCCD của phụ huynh để cọc (chỉ nhận thẻ học sinh, giấy khai sinh chính chủ).
+                    <strong>Giấy tờ đặt cọc:</strong> Shop <span class="rule-highlight danger">không nhận đơn</span>
+                    dùng CCCD của phụ huynh để cọc (chỉ nhận thẻ học sinh, giấy khai sinh chính chủ).
                   </div>
                 </li>
                 <li class="rule-item">
                   <span class="rule-bullet">🔍</span>
                   <div class="rule-item-content">
-                    <strong>Không so sánh shop khác:</strong> Vui lòng không so sánh giá hoặc chất lượng giữa shop với bất kỳ shop nào khác. Bạn không ưng có thể qua shop đó thuê. Bạn luôn có quyền hỏi ảnh chụp tình trạng đồ và wig thực tế hiện tại.
+                    <strong>Không so sánh shop khác:</strong> Vui lòng không so sánh giá hoặc chất lượng giữa shop với
+                    bất kỳ shop nào khác. Bạn không ưng có thể qua shop đó thuê. Bạn luôn có quyền hỏi ảnh chụp tình
+                    trạng đồ và wig thực tế hiện tại.
                   </div>
                 </li>
                 <li class="rule-item">
                   <span class="rule-bullet">🚫</span>
                   <div class="rule-item-content">
-                    <strong>Cấm nhiều người mặc chung:</strong> <span class="rule-highlight danger">Cấm tuyệt đối</span> kiểu 1 người thuê vài người mặc, phát hiện shop sẽ thu mỗi người tính đủ giá bằng 1 slot.
+                    <strong>Cấm nhiều người mặc chung:</strong> <span class="rule-highlight danger">Cấm tuyệt đối</span>
+                    kiểu 1 người thuê vài người mặc, phát hiện shop sẽ thu mỗi người tính đủ giá bằng 1 slot.
                   </div>
                 </li>
               </ul>
@@ -967,25 +979,31 @@
                 <li class="rule-item">
                   <span class="rule-bullet">🔄</span>
                   <div class="rule-item-content">
-                    <strong>Không đổi slot fes/shoot qua test:</strong> Không hỗ trợ đổi từ slot Fes, Shoot sang slot Test. Fes huỷ có thể hỗ trợ dời ngày chứ <span class="rule-highlight warn">không thể hủy slot</span>.
+                    <strong>Không đổi slot fes/shoot qua test:</strong> Không hỗ trợ đổi từ slot Fes, Shoot sang slot
+                    Test. Fes huỷ có thể hỗ trợ dời ngày chứ <span class="rule-highlight warn">không thể hủy
+                      slot</span>.
                   </div>
                 </li>
                 <li class="rule-item">
                   <span class="rule-bullet">👟</span>
                   <div class="rule-item-content">
-                    <strong>Giày kèm combo:</strong> Giày có kèm hay không là tùy vào combo đồ shop đã set giá sẵn. Nên vui lòng đừng hỏi không thuê giày có giảm tiền không.
+                    <strong>Giày kèm combo:</strong> Giày có kèm hay không là tùy vào combo đồ shop đã set giá sẵn. Nên
+                    vui lòng đừng hỏi không thuê giày có giảm tiền không.
                   </div>
                 </li>
                 <li class="rule-item">
                   <span class="rule-bullet">💇</span>
                   <div class="rule-item-content">
-                    <strong>Tình trạng Wig khi ship xa:</strong> Mặc định wig ship xa nếp sẽ không thể nguyên vẹn được như ban đầu. Khách nhận đồ vui lòng hỗ trợ chỉnh nhẹ lại form nhé.
+                    <strong>Tình trạng Wig khi ship xa:</strong> Mặc định wig ship xa nếp sẽ không thể nguyên vẹn được
+                    như ban đầu. Khách nhận đồ vui lòng hỗ trợ chỉnh nhẹ lại form nhé.
                   </div>
                 </li>
                 <li class="rule-item">
                   <span class="rule-bullet">🧦</span>
                   <div class="rule-item-content">
-                    <strong>Phụ kiện tự chuẩn bị:</strong> Đồ thuê <span class="rule-highlight info">không kèm wigcap</span>, <span class="rule-highlight info">không kèm lens</span>, <span class="rule-highlight info">không kèm tất trơn cơ bản</span>. Khách vui lòng tự chuẩn bị trước.
+                    <strong>Phụ kiện tự chuẩn bị:</strong> Đồ thuê <span class="rule-highlight info">không kèm
+                      wigcap</span>, <span class="rule-highlight info">không kèm lens</span>, <span
+                      class="rule-highlight info">không kèm tất trơn cơ bản</span>. Khách vui lòng tự chuẩn bị trước.
                   </div>
                 </li>
               </ul>
@@ -1004,19 +1022,22 @@
                 <li class="rule-item">
                   <span class="rule-bullet">🧼</span>
                   <div class="rule-item-content">
-                    <strong>Mặc định phí giặt:</strong> Đồ nào thuê cũng mất phí giặt theo quy định để shop khử khuẩn và vệ sinh sạch sẽ sau mỗi lần mặc.
+                    <strong>Mặc định phí giặt:</strong> Đồ nào thuê cũng mất phí giặt theo quy định để shop khử khuẩn và
+                    vệ sinh sạch sẽ sau mỗi lần mặc.
                   </div>
                 </li>
                 <li class="rule-item">
                   <span class="rule-bullet">🖐️</span>
                   <div class="rule-item-content">
-                    <strong>Tự giặt đồ tiết kiệm phí:</strong> Muốn tiết kiệm chi phí giặt thì có thể tự giặt đồ bằng tay, <strong>nhưng phải hỏi ý kiến shop trước</strong>, tránh trường hợp đồ phai màu sẽ phải đền.
+                    <strong>Tự giặt đồ tiết kiệm phí:</strong> Muốn tiết kiệm chi phí giặt thì có thể tự giặt đồ bằng
+                    tay, <strong>nhưng phải hỏi ý kiến shop trước</strong>, tránh trường hợp đồ phai màu sẽ phải đền.
                   </div>
                 </li>
                 <li class="rule-item">
                   <span class="rule-bullet">✨</span>
                   <div class="rule-item-content">
-                    <strong>Đảm bảo độ sạch khi tự giặt:</strong> Bạn tự giặt thì không mất phí (nhưng phải đảm bảo đồ giao về sạch sẽ, nếu không sạch shop vẫn thu phí giặt như bình thường).
+                    <strong>Đảm bảo độ sạch khi tự giặt:</strong> Bạn tự giặt thì không mất phí (nhưng phải đảm bảo đồ
+                    giao về sạch sẽ, nếu không sạch shop vẫn thu phí giặt như bình thường).
                   </div>
                 </li>
               </ul>
@@ -1035,19 +1056,24 @@
                 <li class="rule-item">
                   <span class="rule-bullet">💬</span>
                   <div class="rule-item-content">
-                    <strong>Chủ động inbox trả đồ:</strong> Chủ động inbox trả đồ, không đợi shop giục mới giao tránh phạt tiền thêm ngày. Tuyệt đối không tự ý trả đồ khi không báo trước shop.
+                    <strong>Chủ động inbox trả đồ:</strong> Chủ động inbox trả đồ, không đợi shop giục mới giao tránh
+                    phạt tiền thêm ngày. Tuyệt đối không tự ý trả đồ khi không báo trước shop.
                   </div>
                 </li>
                 <li class="rule-item">
                   <span class="rule-bullet">🎥</span>
                   <div class="rule-item-content">
-                    <strong>Quay video trước khi gói đồ (Bắt buộc):</strong> Bắt buộc quay video gửi cho shop trước khi đóng gói đồ trả về. <span class="rule-highlight danger">Không quay video, nếu kiểm tra mất đồ bạn tự chịu!</span>
+                    <strong>Quay video trước khi gói đồ (Bắt buộc):</strong> Bắt buộc quay video gửi cho shop trước khi
+                    đóng gói đồ trả về. <span class="rule-highlight danger">Không quay video, nếu kiểm tra mất đồ bạn tự
+                      chịu!</span>
                   </div>
                 </li>
                 <li class="rule-item">
                   <span class="rule-bullet">🧳</span>
                   <div class="rule-item-content">
-                    <strong>Đóng gói đồ ngăn nắp:</strong> Đồ không để lộn xộn (đặc biệt: <em>giày không để chung với wig và đồ</em>). Phát hiện để chung lộn xộn <span class="rule-highlight penalty">phạt 30.000đ</span>.
+                    <strong>Đóng gói đồ ngăn nắp:</strong> Đồ không để lộn xộn (đặc biệt: <em>giày không để chung với
+                      wig và đồ</em>). Phát hiện để chung lộn xộn <span class="rule-highlight penalty">phạt
+                      30.000đ</span>.
                   </div>
                 </li>
                 <li class="rule-item">
@@ -1056,7 +1082,8 @@
                     <strong>Quy định phạt gửi trễ hạn:</strong>
                     <div class="penalty-breakdown">
                       <p>• Gửi trễ hạn: <span class="rule-highlight penalty">Thu 40.000đ / 1 ngày</span>.</p>
-                      <p>• Trả muộn làm trễ slot khách sau: <span class="rule-highlight penalty">Phạt full 100% tiền slot đó</span>.</p>
+                      <p>• Trả muộn làm trễ slot khách sau: <span class="rule-highlight penalty">Phạt full 100% tiền
+                          slot đó</span>.</p>
                     </div>
                   </div>
                 </li>
@@ -1069,7 +1096,8 @@
           <div class="rules-bottom-alert">
             <span class="rules-alert-icon">🌸</span>
             <div class="rules-alert-text">
-              <strong>Mochimoon Cảm Ơn Quý Khách!</strong> Chúc các bạn có những buổi Fes/Shoot thật vui vẻ và có những bức hình lung linh nhất. Nếu có bất kỳ thắc mắc nào, đừng ngại inbox ngay cho shop để được tư vấn nhé! 💕
+              <strong>Mochimoon Cảm Ơn Quý Khách!</strong> Chúc các bạn có những buổi Fes/Shoot thật vui vẻ và có những
+              bức hình lung linh nhất. Nếu có bất kỳ thắc mắc nào, đừng ngại inbox ngay cho shop để được tư vấn nhé! 💕
             </div>
           </div>
         </div>
@@ -1123,7 +1151,7 @@
   <div class="modal-overlay hidden" id="costumeInfoModal">
     <div class="costume-detail-card">
       <button class="detail-modal-close-btn" id="closeCostumeInfoBtn" title="Đóng">&times;</button>
-      
+
       <div class="detail-modal-body">
         <!-- Cột Ảnh trang phục -->
         <div class="detail-modal-img-col">
@@ -1162,44 +1190,197 @@
         </div>
       </div>
     </div>
-  <!-- Modal Hướng Dẫn Kết Nối Webhook Ngân Hàng Thật (SePay / Casso) -->
-  <div class="modal-overlay hidden" id="webhookGuideModal">
-    <div class="modal-card webhook-guide-card">
-      <div class="modal-header">
-        <h3>Kết Nối Ngân Hàng Tự Động Duyệt 🏦⚡</h3>
-        <button class="modal-close" id="closeWebhookGuideBtn">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="webhook-guide-intro">
-          Để website tự động phát hiện khi tài khoản <strong>MB Bank (0377193835)</strong> nhận được tiền và <strong>tự động duyệt đơn</strong>, bạn có thể kết nối qua cổng <strong>SePay.vn</strong> (hoàn toàn miễn phí cho shop nhỏ):
-        </div>
-
-        <ol class="webhook-steps-list">
-          <li>
-            <strong>Bước 1:</strong> Đăng ký tài khoản miễn phí tại <a href="https://my.sepay.vn" target="_blank" rel="noopener">my.sepay.vn</a>.
-          </li>
-          <li>
-            <strong>Bước 2:</strong> Vào mục <em>"Ngân hàng"</em> ➔ Chọn <strong>MB Bank</strong> ➔ Nhập số tài khoản <code>0377193835</code> để liên kết an toàn.
-          </li>
-          <li>
-            <strong>Bước 3:</strong> Vào mục <em>"Tích hợp Webhook"</em> ➔ Bấm <strong>Thêm Webhook</strong> ➔ Dán địa chỉ URL sau vào:
-            <div class="webhook-url-box">
-              <code id="webhookUrlSample">http://localhost:3000/api/webhook/bank</code>
-              <button type="button" class="btn-copy-mini" id="btnCopyWebhookUrl">📋 Copy URL</button>
-            </div>
-          </li>
-          <li>
-            <strong>Bước 4:</strong> Xong! Mỗi khi có khách chuyển khoản vào tài khoản MB Bank của bạn với nội dung có chứa mã đơn (như <code>THUEDO MC83921</code>), SePay sẽ tự động gửi thông báo về và website <strong>TỰ ĐỘNG DUYỆT ĐƠN NGAY LẬP TỨC</strong>! 🎉
-          </li>
-        </ol>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="primary-btn" id="closeWebhookGuideBtn2">Đã Hiểu 🌸</button>
-      </div>
-    </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- Modal Hướng Dẫn Kết Nối Webhook Ngân Hàng Thật (SePay / Casso) -->
+    <div class="modal-overlay hidden" id="webhookGuideModal">
+      <div class="modal-card webhook-guide-card">
+        <div class="modal-header">
+          <h3>Kết Nối Ngân Hàng Tự Động Duyệt 🏦⚡</h3>
+          <button class="modal-close" id="closeWebhookGuideBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="webhook-guide-intro">
+            Để website tự động phát hiện khi tài khoản <strong>MB Bank (0377193835)</strong> nhận được tiền và
+            <strong>tự động duyệt đơn</strong>, bạn có thể kết nối qua cổng <strong>SePay.vn</strong> (hoàn toàn miễn
+            phí cho shop nhỏ):
+          </div>
+
+          <ol class="webhook-steps-list">
+            <li>
+              <strong>Bước 1:</strong> Đăng ký tài khoản miễn phí tại <a href="https://my.sepay.vn" target="_blank"
+                rel="noopener">my.sepay.vn</a>.
+            </li>
+            <li>
+              <strong>Bước 2:</strong> Vào mục <em>"Ngân hàng"</em> ➔ Chọn <strong>MB Bank</strong> ➔ Nhập số tài khoản
+              <code>0377193835</code> để liên kết an toàn.
+            </li>
+            <li>
+              <strong>Bước 3:</strong> Vào mục <em>"Tích hợp Webhook"</em> ➔ Bấm <strong>Thêm Webhook</strong> ➔ Dán địa
+              chỉ URL sau vào:
+              <div class="webhook-url-box">
+                <code id="webhookUrlSample">http://localhost:3000/api/webhook/bank</code>
+                <button type="button" class="btn-copy-mini" id="btnCopyWebhookUrl">📋 Copy URL</button>
+              </div>
+            </li>
+            <li>
+              <strong>Bước 4:</strong> Xong! Mỗi khi có khách chuyển khoản vào tài khoản MB Bank của bạn với nội dung có
+              chứa mã đơn (như <code>THUEDO MC83921</code>), SePay sẽ tự động gửi thông báo về và website <strong>TỰ
+                ĐỘNG DUYỆT ĐƠN NGAY LẬP TỨC</strong>! 🎉
+            </li>
+          </ol>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="primary-btn" id="closeWebhookGuideBtn2">Đã Hiểu 🌸</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. MODAL ĐĂNG NHẬP QUẢN TRỊ VIÊN MOCHIMOON -->
+    <div class="modal-overlay hidden" id="adminLoginModal">
+      <div class="modal-card admin-login-card">
+        <div class="modal-header">
+          <div class="admin-login-header-title">
+            <span class="admin-crown-icon">👑</span>
+            <div>
+              <h3>Đăng Nhập Quản Trị Viên 🌸</h3>
+              <p class="admin-login-sub">Dành cho chủ shop quản lý đơn thuê & xem full thông tin khách hàng</p>
+            </div>
+          </div>
+          <button class="modal-close" id="closeAdminLoginBtn">&times;</button>
+        </div>
+
+        <form id="adminLoginForm" class="admin-login-form">
+          <div class="admin-input-group">
+            <label for="adminUsername">Tài khoản quản trị:</label>
+            <div class="admin-input-wrapper">
+              <span class="admin-input-icon">👤</span>
+              <input type="text" id="adminUsername" placeholder="Nhập tài khoản (vd: admin)..." autocomplete="username" required>
+            </div>
+          </div>
+
+          <div class="admin-input-group">
+            <label for="adminPassword">Mật khẩu:</label>
+            <div class="admin-input-wrapper">
+              <span class="admin-input-icon">🔒</span>
+              <input type="password" id="adminPassword" placeholder="Nhập mật khẩu..." autocomplete="current-password" required>
+              <button type="button" class="btn-pwd-eye" id="btnTogglePwd" title="Hiện/Ẩn mật khẩu">👁️</button>
+            </div>
+          </div>
+
+          <div class="admin-login-hint-box">
+            <span class="hint-bulb">💡</span>
+            <div class="hint-text">
+              Tài khoản mặc định: <strong>admin</strong> • Mật khẩu: <strong>admin123</strong>
+            </div>
+          </div>
+
+          <div class="admin-login-alert hidden" id="adminLoginAlert"></div>
+
+          <div class="admin-login-actions">
+            <button type="button" class="btn-admin-cancel" id="cancelAdminLoginBtn">Hủy</button>
+            <button type="submit" class="primary-btn admin-btn-login">
+              <span>✨ Đăng Nhập Quản Trị</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 2. MODAL BẢNG QUẢN TRỊ VIÊN XEM FULL THÔNG TIN KHÁCH HÀNG -->
+    <div class="modal-overlay hidden" id="adminDashboardModal">
+      <div class="modal-card admin-dashboard-card">
+        <!-- Header Dashboard -->
+        <div class="modal-header admin-dash-header">
+          <div class="admin-dash-brand">
+            <div class="admin-logo-avatar-wrap">
+              <img src="assets/mochiimoon_logo.png" alt="mochimoon" class="admin-logo-avatar">
+              <span class="admin-avatar-crown">👑</span>
+            </div>
+            <div>
+              <h3>Quản Trị Viên Mochimoon • Quản Lý Khách Hàng</h3>
+              <p class="admin-login-status-badge">
+                <span class="status-dot-online"></span>
+                <span>Đang đăng nhập: <strong id="adminCurrentName">Admin (Chủ tiệm)</strong> • Toàn quyền xem thông tin khách</span>
+              </p>
+            </div>
+          </div>
+          <div class="admin-dash-header-btns">
+            <button type="button" class="btn-admin-logout" id="btnAdminLogout" title="Đăng xuất khỏi tài khoản quản trị">
+              <span>🚪 Đăng Xuất</span>
+            </button>
+            <button class="modal-close" id="closeAdminDashBtn">&times;</button>
+          </div>
+        </div>
+
+        <!-- 4 KPI Summary Cards -->
+        <div class="admin-kpi-grid">
+          <div class="admin-kpi-card kpi-all">
+            <div class="kpi-icon-box">👥</div>
+            <div class="kpi-text-box">
+              <span class="kpi-label">Tổng khách / Đơn thuê</span>
+              <strong class="kpi-number" id="adminKpiTotalOrders">0 đơn</strong>
+            </div>
+          </div>
+          <div class="admin-kpi-card kpi-pending">
+            <div class="kpi-icon-box">⏳</div>
+            <div class="kpi-text-box">
+              <span class="kpi-label">Chờ cọc / Chờ duyệt</span>
+              <strong class="kpi-number" id="adminKpiPendingOrders">0 đơn</strong>
+            </div>
+          </div>
+          <div class="admin-kpi-card kpi-approved">
+            <div class="kpi-icon-box">✅</div>
+            <div class="kpi-text-box">
+              <span class="kpi-label">Đã cọc / Đang thuê</span>
+              <strong class="kpi-number" id="adminKpiApprovedOrders">0 đơn</strong>
+            </div>
+          </div>
+          <div class="admin-kpi-card kpi-money">
+            <div class="kpi-icon-box">💰</div>
+            <div class="kpi-text-box">
+              <span class="kpi-label">Tổng tiền đơn</span>
+              <strong class="kpi-number" id="adminKpiTotalRevenue">0đ</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toolbar: Search & Filter -->
+        <div class="admin-toolbar-row">
+          <div class="admin-search-box">
+            <span class="admin-search-icon">🔍</span>
+            <input type="text" id="adminSearchInput" placeholder="Tìm theo tên khách hàng, số điện thoại, mã đơn (#MC-)...">
+          </div>
+          <div class="admin-filter-box">
+            <select id="adminStatusFilter">
+              <option value="all">Tất cả trạng thái</option>
+              <option value="pending">⏳ Chờ thanh toán cọc</option>
+              <option value="approved">✅ Đã cọc thành công</option>
+              <option value="renting">👘 Đang thuê đồ</option>
+              <option value="completed">🌸 Đã hoàn tất / Đã trả</option>
+            </select>
+            <button type="button" class="btn-admin-refresh" id="btnAdminRefresh" title="Tải lại danh sách">
+              <span>🔄 Làm mới</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Danh sách khách hàng Full Thông Tin -->
+        <div class="admin-orders-container" id="adminOrdersContainer">
+          <!-- Render danh sách chi tiết khách hàng tại đây -->
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer admin-dash-footer">
+          <div class="admin-footer-security-note">
+            <span>🔒 Dữ liệu thông tin khách hàng được bảo mật nội bộ và lưu trữ tại tiệm Mochimoon.</span>
+          </div>
+          <button type="button" class="primary-btn" id="closeAdminDashBtn2">Đóng Bảng Quản Trị</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 
 </html>

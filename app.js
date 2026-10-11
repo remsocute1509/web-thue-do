@@ -19,22 +19,35 @@ const appState = {
     { id: 4, text: 'Méditer 10 minutes', completed: true },
     { id: 5, text: 'Arroser les plantes 🌸', completed: false }
   ],
+  isAdmin: false,
   bookings: [
     {
       id: 1,
-      character: 'Himmel',
+      orderId: '#MC-10291',
+      character: 'Himmel (Sousou no Frieren)',
+      size: 'XL',
       date: '10/10/2026',
       duration: '3 ngày (fes/shoot)',
       returnDate: '13/10/2026',
-      status: 'Đang có người thuê 🌸'
+      customerName: 'Nguyễn Thảo Linh',
+      phone: '0912345678',
+      note: 'Giao trước 9h sáng tại Nhà thi đấu, kèm kiếm đạo cụ',
+      pricing: { rentPrice: 150000, rentPriceFormatted: '150.000đ', deposit: 300000, depositFormatted: '300.000đ', totalToPay: 450000, totalToPayFormatted: '450.000đ' },
+      status: 'Đã cọc thành công ✅'
     },
     {
       id: 2,
-      character: 'Frieren',
+      orderId: '#MC-58204',
+      character: 'Frieren (Sousou no Frieren)',
+      size: 'M',
       date: '12/10/2026',
       duration: '3 ngày (test)',
       returnDate: '15/10/2026',
-      status: 'Đã đặt lịch ✨'
+      customerName: 'Trần Quỳnh Anh',
+      phone: '0988776655',
+      note: 'Kèm trượng pháp sư và wig đã chải nếp sẵn',
+      pricing: { rentPrice: 80000, rentPriceFormatted: '80.000đ', deposit: 200000, depositFormatted: '200.000đ', totalToPay: 280000, totalToPayFormatted: '280.000đ' },
+      status: 'Chờ thanh toán cọc ⏳'
     }
   ],
   bgm: {
@@ -61,9 +74,13 @@ document.addEventListener('DOMContentLoaded', () => {
   initCosplayBooking();
   initCostumeCatalog();
   initBackgroundMusicPlayer();
+  initAdminPortal();
 });
 
 function loadSavedState() {
+  const savedAdmin = localStorage.getItem('mochimoon_is_admin');
+  appState.isAdmin = (savedAdmin === 'true');
+
   const savedTasks = localStorage.getItem('jiu_tasks');
   if (savedTasks) {
     try {
@@ -77,6 +94,12 @@ function loadSavedState() {
   if (savedBookings) {
     try {
       appState.bookings = JSON.parse(savedBookings);
+      // Đảm bảo các đơn hàng đều có đủ tên và SĐT nếu tạo từ trước
+      appState.bookings.forEach((b, idx) => {
+        if (!b.customerName) b.customerName = idx === 0 ? 'Nguyễn Thảo Linh' : 'Trần Quỳnh Anh';
+        if (!b.phone) b.phone = idx === 0 ? '0912345678' : '0988776655';
+        if (!b.orderId) b.orderId = idx === 0 ? '#MC-10291' : '#MC-58204';
+      });
     } catch (e) {
       console.error(e);
     }
@@ -580,16 +603,11 @@ function initEventListeners() {
     }
   }
 
-  // Avatar Upload from Computer
-  const userProfileBtn = document.getElementById('userProfileBtn');
+  // Avatar Upload listener (nếu chọn tệp từ máy)
   const avatarFileInput = document.getElementById('avatarFileInput');
   const userAvatar = document.getElementById('userAvatar');
 
-  if (userProfileBtn && avatarFileInput) {
-    userProfileBtn.addEventListener('click', () => {
-      avatarFileInput.click();
-    });
-
+  if (avatarFileInput) {
     avatarFileInput.addEventListener('change', (e) => {
       const file = e.target.files && e.target.files[0];
       if (file) {
@@ -1276,17 +1294,14 @@ function showPaymentStep(booking) {
     vietQrImg.src = `https://img.vietqr.io/image/MB-0377193835-compact2.png?amount=${pricing.totalToPay}&addInfo=${encodeURIComponent(transferContent)}&accountName=SNOWY%20SHOPPU`;
   }
 
-  // Reset QR Tab to Custom Shop Card (snowy shoppu Cinnamoroll card)
-  const tabQrCustom = document.getElementById('tabQrCustom');
-  const tabQrVietqr = document.getElementById('tabQrVietqr');
-  const customQrImg = document.getElementById('customQrCardImg');
+  // Ensure VietQR is visible
+  if (vietQrImg) {
+    vietQrImg.classList.remove('hidden');
+  }
   const qrScanHint = document.getElementById('qrScanHint');
-
-  if (tabQrCustom) tabQrCustom.classList.add('active');
-  if (tabQrVietqr) tabQrVietqr.classList.remove('active');
-  if (customQrImg) customQrImg.classList.remove('hidden');
-  if (vietQrImg) vietQrImg.classList.add('hidden');
-  if (qrScanHint) qrScanHint.textContent = '🐰 Quét mã thẻ QR chính chủ snowy shoppu (MB Bank)';
+  if (qrScanHint) {
+    qrScanHint.textContent = '⚡ Quét mã VietQR tự động điền sẵn số tiền và nội dung đơn';
+  }
 
   // Reset Confirmation Button State
   const confirmBtn = document.getElementById('btnConfirmPaid');
@@ -1387,7 +1402,7 @@ function onBankPaymentApproved(booking, txData) {
   }
   try {
     localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings));
-  } catch (e) {}
+  } catch (e) { }
 
   renderBookedList();
   playSuccessChime();
@@ -1653,6 +1668,18 @@ function renderBookedList() {
         <span class="booked-meta-tag"><em>(${escapeHtml(b.duration)})</em></span>
       </div>
     `;
+
+    // Nếu Admin đang đăng nhập: Hiển thị thêm thông tin khách hàng bí mật ngay trên thẻ
+    if (appState.isAdmin) {
+      const adminSecretBar = document.createElement('div');
+      adminSecretBar.className = 'booked-admin-secret-bar';
+      adminSecretBar.innerHTML = `
+        <span>👑 [Admin] Khách: <strong>${escapeHtml(b.customerName || 'Khách đặt trước')}</strong> • 📞 <a href="tel:${escapeHtml(b.phone || '')}" style="color:#1d4ed8; text-decoration:none;">${escapeHtml(b.phone || 'Chưa có')}</a></span>
+        <span>Cọc: ${escapeHtml((b.pricing && b.pricing.depositFormatted) || '---')}</span>
+      `;
+      item.appendChild(adminSecretBar);
+    }
+
     container.appendChild(item);
   });
 }
@@ -2384,4 +2411,467 @@ function setupClickAnywhereToPlay() {
       document.addEventListener(evt, onFirstClickAnywhere, { capture: true });
     });
   }
+}
+
+// ========================================================
+// 11. ADMIN AUTHENTICATION & FULL CUSTOMER MANAGEMENT PORTAL
+// ========================================================
+function initAdminPortal() {
+  const userProfileBtn = document.getElementById('userProfileBtn');
+  const brandPill = document.getElementById('brandPill');
+  const adminHeaderBadge = document.getElementById('adminHeaderBadge');
+
+  const adminLoginModal = document.getElementById('adminLoginModal');
+  const closeAdminLoginBtn = document.getElementById('closeAdminLoginBtn');
+  const cancelAdminLoginBtn = document.getElementById('cancelAdminLoginBtn');
+  const adminLoginForm = document.getElementById('adminLoginForm');
+  const adminUsernameInput = document.getElementById('adminUsername');
+  const adminPasswordInput = document.getElementById('adminPassword');
+  const btnTogglePwd = document.getElementById('btnTogglePwd');
+  const adminLoginAlert = document.getElementById('adminLoginAlert');
+
+  const adminDashboardModal = document.getElementById('adminDashboardModal');
+  const closeAdminDashBtn = document.getElementById('closeAdminDashBtn');
+  const closeAdminDashBtn2 = document.getElementById('closeAdminDashBtn2');
+  const btnAdminLogout = document.getElementById('btnAdminLogout');
+  const btnAdminRefresh = document.getElementById('btnAdminRefresh');
+  const adminSearchInput = document.getElementById('adminSearchInput');
+  const adminStatusFilter = document.getElementById('adminStatusFilter');
+
+  // Khởi tạo trạng thái giao diện ban đầu
+  updateAdminUIState();
+
+  // Bấm vào Logo Mochimoon ở Header hoặc Sidebar
+  function handleLogoClick(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (appState.isAdmin) {
+      openAdminDashboard();
+    } else {
+      openAdminLoginModal();
+    }
+  }
+  window.handleAdminLogoClick = handleLogoClick;
+
+  if (userProfileBtn) {
+    userProfileBtn.addEventListener('click', handleLogoClick);
+  }
+  if (brandPill) {
+    brandPill.addEventListener('click', handleLogoClick);
+  }
+
+  // Toggle ẩn/hiện mật khẩu
+  if (btnTogglePwd && adminPasswordInput) {
+    btnTogglePwd.addEventListener('click', () => {
+      const isPwd = adminPasswordInput.getAttribute('type') === 'password';
+      adminPasswordInput.setAttribute('type', isPwd ? 'text' : 'password');
+      btnTogglePwd.textContent = isPwd ? '🙈' : '👁️';
+    });
+  }
+
+  // Đóng Modal Đăng Nhập
+  if (closeAdminLoginBtn) closeAdminLoginBtn.addEventListener('click', closeAdminLoginModal);
+  if (cancelAdminLoginBtn) cancelAdminLoginBtn.addEventListener('click', closeAdminLoginModal);
+  if (adminLoginModal) {
+    adminLoginModal.addEventListener('click', (e) => {
+      if (e.target === adminLoginModal) closeAdminLoginModal();
+    });
+  }
+
+  // Xử lý Form Đăng Nhập Admin
+  if (adminLoginForm) {
+    adminLoginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const u = (adminUsernameInput?.value || '').trim().toLowerCase();
+      const p = (adminPasswordInput?.value || '').trim();
+
+      // Cho phép đăng nhập với: admin / admin123 hoặc admin / mochimoon hoặc mochimoon / mochimoon2026
+      const isValid = (u === 'admin' && (p === 'admin123' || p === 'mochimoon' || p === 'admin')) ||
+                      (u === 'mochimoon' && (p === 'admin123' || p === 'mochimoon2026' || p === 'mochimoon'));
+
+      if (isValid) {
+        appState.isAdmin = true;
+        try {
+          localStorage.setItem('mochimoon_is_admin', 'true');
+        } catch (err) { }
+
+        if (adminLoginAlert) adminLoginAlert.classList.add('hidden');
+        closeAdminLoginModal();
+        updateAdminUIState();
+        renderBookedList();
+        playSuccessChime();
+
+        // Mở ngay Bảng Quản Trị Khách Hàng
+        setTimeout(() => {
+          openAdminDashboard();
+        }, 200);
+      } else {
+        if (adminLoginAlert) {
+          adminLoginAlert.textContent = '❌ Sai tài khoản hoặc mật khẩu! Gợi ý: admin / admin123';
+          adminLoginAlert.classList.remove('hidden');
+        }
+        playChime(320);
+      }
+    });
+  }
+
+  // Đóng Modal Bảng Quản Trị
+  if (closeAdminDashBtn) closeAdminDashBtn.addEventListener('click', closeAdminDashboard);
+  if (closeAdminDashBtn2) closeAdminDashBtn2.addEventListener('click', closeAdminDashboard);
+  if (adminDashboardModal) {
+    adminDashboardModal.addEventListener('click', (e) => {
+      if (e.target === adminDashboardModal) closeAdminDashboard();
+    });
+  }
+
+  // Nút Đăng Xuất Admin
+  if (btnAdminLogout) {
+    btnAdminLogout.addEventListener('click', () => {
+      if (confirm('Bạn có muốn đăng xuất khỏi tài khoản Quản trị viên không? 🌸')) {
+        appState.isAdmin = false;
+        try {
+          localStorage.removeItem('mochimoon_is_admin');
+        } catch (err) { }
+
+        closeAdminDashboard();
+        updateAdminUIState();
+        renderBookedList();
+        playChime(440);
+      }
+    });
+  }
+
+  // Tìm kiếm & Lọc trên Dashboard
+  if (adminSearchInput) {
+    adminSearchInput.addEventListener('input', () => {
+      renderAdminDashboard();
+    });
+  }
+  if (adminStatusFilter) {
+    adminStatusFilter.addEventListener('change', () => {
+      renderAdminDashboard();
+    });
+  }
+  if (btnAdminRefresh) {
+    btnAdminRefresh.addEventListener('click', () => {
+      renderAdminDashboard();
+      playChime(520);
+    });
+  }
+}
+
+// Cập nhật trạng thái Admin trên Header & Logo
+function updateAdminUIState() {
+  const userProfileBtn = document.getElementById('userProfileBtn');
+  const adminHeaderBadge = document.getElementById('adminHeaderBadge');
+
+  if (appState.isAdmin) {
+    if (adminHeaderBadge) adminHeaderBadge.classList.remove('hidden');
+    if (userProfileBtn) {
+      userProfileBtn.classList.add('is-admin');
+      userProfileBtn.setAttribute('title', '👑 Quản trị viên Mochimoon - Nhấp để xem Bảng Quản Trị & Khách Hàng');
+    }
+  } else {
+    if (adminHeaderBadge) adminHeaderBadge.classList.add('hidden');
+    if (userProfileBtn) {
+      userProfileBtn.classList.remove('is-admin');
+      userProfileBtn.setAttribute('title', 'Logo tiệm mochimoon - Nhấp để Đăng nhập Quản trị viên');
+    }
+  }
+}
+
+function openAdminLoginModal() {
+  const modal = document.getElementById('adminLoginModal');
+  const alertEl = document.getElementById('adminLoginAlert');
+  const uInput = document.getElementById('adminUsername');
+  const pInput = document.getElementById('adminPassword');
+
+  if (alertEl) alertEl.classList.add('hidden');
+  if (uInput) uInput.value = 'admin';
+  if (pInput) pInput.value = '';
+
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    playChime(500);
+    setTimeout(() => {
+      if (pInput) pInput.focus();
+    }, 150);
+  }
+}
+
+function closeAdminLoginModal() {
+  const modal = document.getElementById('adminLoginModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
+}
+
+function openAdminDashboard() {
+  const modal = document.getElementById('adminDashboardModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    renderAdminDashboard();
+    playChime(540);
+  }
+}
+
+function closeAdminDashboard() {
+  const modal = document.getElementById('adminDashboardModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
+}
+
+// Expose on window for direct access from HTML
+window.openAdminLoginModal = openAdminLoginModal;
+window.closeAdminLoginModal = closeAdminLoginModal;
+window.openAdminDashboard = openAdminDashboard;
+window.closeAdminDashboard = closeAdminDashboard;
+
+// Render dữ liệu Full Thông Tin Khách Hàng trên Admin Dashboard
+function renderAdminDashboard() {
+  const container = document.getElementById('adminOrdersContainer');
+  const kpiTotal = document.getElementById('adminKpiTotalOrders');
+  const kpiPending = document.getElementById('adminKpiPendingOrders');
+  const kpiApproved = document.getElementById('adminKpiApprovedOrders');
+  const kpiRevenue = document.getElementById('adminKpiTotalRevenue');
+
+  const searchVal = (document.getElementById('adminSearchInput')?.value || '').trim().toLowerCase();
+  const filterVal = document.getElementById('adminStatusFilter')?.value || 'all';
+
+  if (!container) return;
+
+  const bookings = appState.bookings || [];
+
+  // Tính toán KPI
+  let totalCount = bookings.length;
+  let pendingCount = 0;
+  let approvedCount = 0;
+  let totalMoney = 0;
+
+  bookings.forEach(b => {
+    const st = (b.status || '').toLowerCase();
+    if (st.includes('chờ') || st.includes('cọc ⏳')) {
+      pendingCount++;
+    } else {
+      approvedCount++;
+    }
+
+    if (b.pricing && b.pricing.totalToPay) {
+      totalMoney += Number(b.pricing.totalToPay) || 0;
+    } else {
+      totalMoney += 450000; // Giá ước tính nếu chưa có
+    }
+  });
+
+  if (kpiTotal) kpiTotal.textContent = `${totalCount} đơn`;
+  if (kpiPending) kpiPending.textContent = `${pendingCount} đơn`;
+  if (kpiApproved) kpiApproved.textContent = `${approvedCount} đơn`;
+  if (kpiRevenue) kpiRevenue.textContent = `${totalMoney.toLocaleString('vi-VN')}đ`;
+
+  // Lọc và Tìm kiếm
+  let filtered = bookings.filter(b => {
+    // Lọc theo trạng thái
+    const st = (b.status || '').toLowerCase();
+    if (filterVal === 'pending' && !st.includes('chờ')) return false;
+    if (filterVal === 'approved' && !st.includes('đã cọc')) return false;
+    if (filterVal === 'renting' && !st.includes('thuê đồ') && !st.includes('đang')) return false;
+    if (filterVal === 'completed' && !st.includes('hoàn tất') && !st.includes('đã trả')) return false;
+
+    // Tìm kiếm theo từ khóa
+    if (searchVal) {
+      const matchText = [
+        b.orderId || '',
+        b.customerName || '',
+        b.phone || '',
+        b.character || '',
+        b.note || ''
+      ].join(' ').toLowerCase();
+
+      if (!matchText.includes(searchVal)) return false;
+    }
+    return true;
+  });
+
+  container.innerHTML = '';
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:40px 20px; color:#888ca8;">
+        <span style="font-size:36px; display:block; margin-bottom:8px;">🌸</span>
+        <p style="font-size:15px; font-weight:600;">Không tìm thấy khách hàng nào phù hợp với bộ lọc!</p>
+      </div>
+    `;
+    return;
+  }
+
+  filtered.forEach(b => {
+    const card = document.createElement('div');
+    const st = b.status || 'Chờ thanh toán cọc ⏳';
+
+    // Xác định class trạng thái
+    let statusClass = 'status-pending';
+    let statusPillClass = 'status-pill-pending';
+    if (st.includes('Đã cọc')) {
+      statusClass = 'status-approved';
+      statusPillClass = 'status-pill-approved';
+    } else if (st.includes('thuê') || st.includes('Đang')) {
+      statusClass = 'status-renting';
+      statusPillClass = 'status-pill-renting';
+    } else if (st.includes('trả') || st.includes('hoàn tất')) {
+      statusClass = 'status-completed';
+      statusPillClass = 'status-pill-completed';
+    }
+
+    card.className = `admin-order-card ${statusClass}`;
+
+    const orderId = b.orderId || ('#MC-' + (b.id ? String(b.id).slice(-5) : '88888'));
+    const custName = b.customerName || 'Khách đặt trước (Hẹn tại shop)';
+    const custPhone = b.phone || '0377193835';
+    const rentDate = b.date || 'Chưa rõ';
+    const returnDate = b.returnDate || calculateReturnDate(b.date, b.duration);
+    const duration = b.duration || '3 ngày';
+    const character = b.character || 'Trang phục cosplay';
+    const size = b.size || 'M';
+
+    // Giá tiền
+    const rentPriceFmt = (b.pricing && b.pricing.rentPriceFormatted) || '150.000đ';
+    const depositFmt = (b.pricing && b.pricing.depositFormatted) || '300.000đ';
+    const totalToPayFmt = (b.pricing && b.pricing.totalToPayFormatted) || '450.000đ';
+
+    card.innerHTML = `
+      <!-- Dòng tiêu đề mã đơn & trạng thái -->
+      <div class="admin-order-top-row">
+        <div class="admin-order-id-badge">
+          <span>📦 Đơn: <strong>${escapeHtml(orderId)}</strong></span>
+          <span class="admin-size-badge">Size ${escapeHtml(size)}</span>
+        </div>
+        <div>
+          <span class="admin-status-pill ${statusPillClass}">${escapeHtml(st)}</span>
+        </div>
+      </div>
+
+      <!-- Lưới Full Thông Tin Khách Hàng -->
+      <div class="admin-order-details-grid">
+        <!-- Cột 1: Thông tin khách hàng -->
+        <div class="admin-detail-col">
+          <span class="admin-detail-label">👤 Khách Hàng:</span>
+          <span class="admin-cust-name">${escapeHtml(custName)}</span>
+          <div class="admin-cust-phone-row">
+            <span>📞</span>
+            <a href="tel:${escapeHtml(custPhone)}" class="admin-phone-link" title="Nhấp để gọi điện">${escapeHtml(custPhone)}</a>
+            <button type="button" class="btn-copy-mini-phone" data-phone="${escapeHtml(custPhone)}" title="Sao chép SĐT">📋 Chép</button>
+          </div>
+        </div>
+
+        <!-- Cột 2: Trang phục & Ngày thuê -->
+        <div class="admin-detail-col">
+          <span class="admin-detail-label">👘 Trang Phục Thuê:</span>
+          <span class="admin-costume-tag">${escapeHtml(character)}</span>
+          <div style="margin-top:3px;">
+            <span class="admin-date-range">🗓️ ${escapeHtml(rentDate)} ➔ ${escapeHtml(returnDate)}</span>
+            <div class="admin-duration-text">(${escapeHtml(duration)})</div>
+          </div>
+        </div>
+
+        <!-- Cột 3: Bảng Tiền Thuê & Cọc -->
+        <div class="admin-detail-col">
+          <span class="admin-detail-label">💰 Tiền Thuê & Cọc:</span>
+          <div class="admin-price-line">Tiền thuê: <strong>${escapeHtml(rentPriceFmt)}</strong></div>
+          <div class="admin-price-line">Tiền cọc: <strong class="admin-deposit-highlight">${escapeHtml(depositFmt)}</strong></div>
+          <div class="admin-price-line">Tổng đơn: <strong class="admin-total-highlight">${escapeHtml(totalToPayFmt)}</strong></div>
+        </div>
+      </div>
+
+      <!-- Ghi chú nếu có -->
+      ${b.note ? `
+        <div class="admin-cust-note-box">
+          <strong>📝 Ghi chú của khách:</strong> ${escapeHtml(b.note)}
+        </div>
+      ` : ''}
+
+      <!-- Thanh công cụ cập nhật trạng thái & Xóa -->
+      <div class="admin-order-bottom-bar">
+        <div class="admin-quick-actions">
+          <span style="font-size:12px; font-weight:700; color:#64748b; margin-right:4px;">Chuyển trạng thái:</span>
+          <button type="button" class="btn-status-change ${st.includes('Chờ') ? 'active' : ''}" data-id="${b.id}" data-status="Chờ thanh toán cọc ⏳">⏳ Chờ Cọc</button>
+          <button type="button" class="btn-status-change ${st.includes('Đã cọc') ? 'active' : ''}" data-id="${b.id}" data-status="Đã cọc thành công ✅">✅ Đã Cọc</button>
+          <button type="button" class="btn-status-change ${st.includes('thuê') && !st.includes('Chờ') ? 'active' : ''}" data-id="${b.id}" data-status="Đang thuê đồ 👘">👘 Đang Thuê</button>
+          <button type="button" class="btn-status-change ${st.includes('trả') ? 'active' : ''}" data-id="${b.id}" data-status="Đã hoàn tất / Đã trả 🌸">🌸 Đã Trả</button>
+        </div>
+        <div>
+          <button type="button" class="btn-delete-order" data-id="${b.id}" title="Xóa đơn hàng này">🗑️ Xóa đơn</button>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+
+  // Gắn sự kiện cho các nút trên từng Card
+  container.querySelectorAll('.btn-copy-mini-phone').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const phone = btn.getAttribute('data-phone');
+      if (phone) {
+        navigator.clipboard.writeText(phone).then(() => {
+          const oldText = btn.textContent;
+          btn.textContent = '✓ Đã chép!';
+          setTimeout(() => { btn.textContent = oldText; }, 1500);
+        }).catch(() => {
+          alert(`Số điện thoại: ${phone}`);
+        });
+      }
+    });
+  });
+
+  container.querySelectorAll('.btn-status-change').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const bId = Number(btn.getAttribute('data-id'));
+      const newStatus = btn.getAttribute('data-status');
+      updateAdminBookingStatus(bId, newStatus);
+    });
+  });
+
+  container.querySelectorAll('.btn-delete-order').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const bId = Number(btn.getAttribute('data-id'));
+      if (confirm('Bạn có chắc chắn muốn xóa đơn đặt này khỏi danh sách không? 🌸')) {
+        deleteAdminBooking(bId);
+      }
+    });
+  });
+}
+
+function updateAdminBookingStatus(bookingId, newStatus) {
+  const target = appState.bookings.find(b => b.id === bookingId);
+  if (target) {
+    target.status = newStatus;
+    try {
+      localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings));
+    } catch (err) { }
+
+    renderAdminDashboard();
+    renderBookedList();
+    playSuccessChime();
+  }
+}
+
+function deleteAdminBooking(bookingId) {
+  appState.bookings = appState.bookings.filter(b => b.id !== bookingId);
+  try {
+    localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings));
+  } catch (err) { }
+
+  renderAdminDashboard();
+  renderBookedList();
+  playChime(380);
 }
