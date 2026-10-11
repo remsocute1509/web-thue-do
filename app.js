@@ -980,7 +980,8 @@ function isCostumeBooked(characterName) {
   if (!targetClean || targetClean.length < 2) return false;
   return appState.bookings.some(b => {
     if (!b.character) return false;
-    if (b.status && (b.status.includes('Đã trả') || b.status.includes('Đã huỷ') || b.status.includes('Hủy'))) {
+    const st = (b.status || '').toLowerCase();
+    if (st.includes('trả') || st.includes('hoàn tất') || st.includes('hủy') || st.includes('huỷ')) {
       return false;
     }
     const bookedClean = b.character.toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
@@ -1641,17 +1642,25 @@ function renderBookedList() {
   const countBadge = document.getElementById('bookedCount');
   if (!container) return;
 
+  // Tự động lọc: Chỉ hiển thị các lịch thuê ĐANG HOẠT ĐỘNG (chưa trả đồ)
+  // Các đơn sau khi khách đã trả đồ (trạng thái chứa 'trả' hoặc 'hoàn tất') sẽ TỰ ĐỘNG XÓA KHỎI danh sách này!
+  const activeBookings = (appState.bookings || []).filter(b => {
+    if (!b.status) return true;
+    const st = b.status.toLowerCase();
+    return !st.includes('trả') && !st.includes('hoàn tất') && !st.includes('hủy') && !st.includes('huỷ');
+  });
+
   container.innerHTML = '';
   if (countBadge) {
-    countBadge.textContent = `${appState.bookings.length} lịch hẹn`;
+    countBadge.textContent = `${activeBookings.length} lịch hẹn`;
   }
 
-  if (appState.bookings.length === 0) {
+  if (activeBookings.length === 0) {
     container.innerHTML = '<p style="text-align:center; padding:12px; font-size:13px; color:var(--text-muted);">Chưa có lịch hẹn thuê nào 🌸</p>';
     return;
   }
 
-  appState.bookings.forEach(b => {
+  activeBookings.forEach(b => {
     const item = document.createElement('div');
     item.className = 'booked-card-item';
     const returnDate = b.returnDate || calculateReturnDate(b.date, b.duration);
@@ -1669,14 +1678,25 @@ function renderBookedList() {
       </div>
     `;
 
-    // Nếu Admin đang đăng nhập: Hiển thị thêm thông tin khách hàng bí mật ngay trên thẻ
+    // Nếu Admin đang đăng nhập: Hiển thị thêm thông tin khách hàng bí mật ngay trên thẻ kèm nút "Đã trả đồ" nhanh
     if (appState.isAdmin) {
       const adminSecretBar = document.createElement('div');
       adminSecretBar.className = 'booked-admin-secret-bar';
       adminSecretBar.innerHTML = `
-        <span>👑 [Admin] Khách: <strong>${escapeHtml(b.customerName || 'Khách đặt trước')}</strong> • 📞 <a href="tel:${escapeHtml(b.phone || '')}" style="color:#1d4ed8; text-decoration:none;">${escapeHtml(b.phone || 'Chưa có')}</a></span>
-        <span>Cọc: ${escapeHtml((b.pricing && b.pricing.depositFormatted) || '---')}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:4px;">
+          <span>👑 [Admin] Khách: <strong>${escapeHtml(b.customerName || 'Khách đặt trước')}</strong> • 📞 <a href="tel:${escapeHtml(b.phone || '')}" style="color:#1d4ed8; text-decoration:none;">${escapeHtml(b.phone || 'Chưa có')}</a></span>
+          <button type="button" class="btn-quick-returned" data-id="${b.id}" style="background:var(--primary, #ec4899); color:#fff; border:none; border-radius:12px; padding:3px 8px; font-size:11px; font-weight:700; cursor:pointer;" title="Bấm khi khách đã trả đồ để tự động xóa khỏi danh sách này">🌸 Khách Đã Trả Đồ</button>
+        </div>
       `;
+
+      const quickBtn = adminSecretBar.querySelector('.btn-quick-returned');
+      if (quickBtn) {
+        quickBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          updateAdminBookingStatus(b.id, 'Đã hoàn tất / Đã trả 🌸');
+        });
+      }
+
       item.appendChild(adminSecretBar);
     }
 
@@ -2868,7 +2888,13 @@ function updateAdminBookingStatus(bookingId, newStatus) {
 
     renderAdminDashboard();
     renderBookedList();
+    refreshAvailabilityUI();
     playSuccessChime();
+
+    const stLower = newStatus.toLowerCase();
+    if (stLower.includes('trả') || stLower.includes('hoàn tất')) {
+      alert(`🎉 Đã xác nhận khách trả đồ thành công!\n\n✨ Lịch thuê đơn "${target.character}" (${target.orderId || ''}) đã được TỰ ĐỘNG XÓA khỏi danh sách "Lịch Thuê Gần Đây", và trang phục đã SẴN SÀNG để khách khác tiếp tục thuê! 🌸`);
+    }
   }
 }
 
@@ -2880,5 +2906,6 @@ function deleteAdminBooking(bookingId) {
 
   renderAdminDashboard();
   renderBookedList();
+  refreshAvailabilityUI();
   playChime(380);
 }
