@@ -55,7 +55,7 @@ const appState = {
     currentTrackId: 'point_star',
     currentTrackName: '✨ Point the star ~ Chiều Gió Chill Mix',
     volume: 0.7,
-    favorites: ['point_star', 'sakura', 'kawaii', 'daydream'],
+    favorites: ['point_star', 'longaodance', 'sakura', 'kawaii', 'daydream'],
     activeTab: 'all'
   }
 };
@@ -1867,6 +1867,13 @@ function initCostumeCatalog() {
 // 10. BACKGROUND MUSIC PLAYER (MOCHIMOON BGM)
 // ========================================================
 const bgmThemes = {
+  longaodance: {
+    id: 'longaodance',
+    name: '🔥 Em Nói Là Đâu Có ~ longaodance Remix',
+    src: 'assets/audio/hen-ho-voi-anh-ta.m4a',
+    desc: 'Hẹn Hò Với Anh Ta • longaodance remix siêu cuốn',
+    icon: '🔥'
+  },
   point_star: {
     id: 'point_star',
     name: '✨ Point the star ~ Chiều Gió Chill Mix',
