@@ -1276,12 +1276,12 @@ function showPaymentStep(booking) {
   const bankTransferAmountEl = document.getElementById('bankTransferAmount');
   if (bankTransferAmountEl) bankTransferAmountEl.textContent = pricing.totalToPayFormatted;
 
-  // Bank Info MB Bank 0377193835 - snowy shoppu
+  // Bank Info MB Bank 0377193835 - DUONG NAM PHONG
   const bankAccEl = document.getElementById('bankAccNumber');
   if (bankAccEl) bankAccEl.textContent = '0377193835';
 
   const bankOwnerEl = document.getElementById('bankAccOwner');
-  if (bankOwnerEl) bankOwnerEl.textContent = 'snowy shoppu';
+  if (bankOwnerEl) bankOwnerEl.textContent = 'DUONG NAM PHONG';
 
   const bankContentEl = document.getElementById('bankTransferContent');
   if (bankContentEl) bankContentEl.textContent = transferContent;
@@ -1292,7 +1292,7 @@ function showPaymentStep(booking) {
   // VietQR Dynamic Image
   const vietQrImg = document.getElementById('vietQrImg');
   if (vietQrImg) {
-    vietQrImg.src = `https://img.vietqr.io/image/MB-0377193835-compact2.png?amount=${pricing.totalToPay}&addInfo=${encodeURIComponent(transferContent)}&accountName=SNOWY%20SHOPPU`;
+    vietQrImg.src = `https://img.vietqr.io/image/MB-0377193835-compact2.png?amount=${pricing.totalToPay}&addInfo=${encodeURIComponent(transferContent)}&accountName=DUONG%20NAM%20PHONG`;
   }
 
   // Ensure VietQR is visible
@@ -1409,7 +1409,7 @@ function onBankPaymentApproved(booking, txData) {
   playSuccessChime();
   playLofiMelody();
 
-  alert(`🎉 TING TING! Tài khoản MB Bank (0377193835) của snowy shoppu đã nhận được tiền!\n\nĐơn thuê: "${booking.character}" (${booking.orderId})\nTrạng thái: ĐÃ TỰ ĐỘNG DUYỆT HOÀN TẤT! ✨\nCảm ơn bạn đã ủng hộ shop nhé! 💕`);
+  alert(`🎉 TING TING! Tài khoản MB Bank (0377193835) của DUONG NAM PHONG đã nhận được tiền!\n\nĐơn thuê: "${booking.character}" (${booking.orderId})\nTrạng thái: ĐÃ TỰ ĐỘNG DUYỆT HOÀN TẤT! ✨\nCảm ơn bạn đã ủng hộ shop nhé! 💕`);
 }
 
 function showBookingFormStep() {
@@ -1505,7 +1505,7 @@ function initPaymentActions() {
       tabQrVietqr.classList.remove('active');
       customQrImg?.classList.remove('hidden');
       vietQrImg?.classList.add('hidden');
-      if (qrScanHint) qrScanHint.textContent = '🐰 Quét mã thẻ QR chính chủ snowy shoppu (MB Bank)';
+      if (qrScanHint) qrScanHint.textContent = '🐰 Quét mã thẻ QR chính chủ DUONG NAM PHONG (MB Bank)';
       playChime(520);
     });
 
