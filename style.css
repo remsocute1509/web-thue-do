@@ -3198,6 +3198,23 @@ body {
   transform: translateX(2px);
 }
 
+.booked-card-item.is-pending {
+  border-left: 3.5px solid #0284c7;
+  background: #f8fafc;
+}
+
+.booked-card-item.is-pending:hover {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+}
+
+.btn-resume-pay:hover,
+.btn-continue-pending-order:hover {
+  transform: translateY(-1px) scale(1.02);
+  filter: brightness(1.06);
+}
+
 .booked-card-title-row {
   display: flex;
   align-items: center;
