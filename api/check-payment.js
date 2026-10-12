@@ -1,5 +1,6 @@
 import fs from 'fs';
 
+const KV_BUCKET = '4fVC3QnzuUwxGeVLvAhHAb';
 const TMP_FILE = '/tmp/paid_orders.json';
 
 function getPaidOrders() {
@@ -27,22 +28,43 @@ export default async function handler(req, res) {
   let txInfo = null;
 
   if (orderId) {
-    const target = orderId.toLowerCase();
+    const cleanTarget = orderId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
+    // 1. Kiểm tra cache /tmp
     for (const [key, val] of Object.entries(paidOrders)) {
-      const kClean = key.replace('#', '').toLowerCase();
-      if (kClean === target || target.includes(kClean) || kClean.includes(target)) {
+      const kClean = key.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const valId = String(val?.orderId || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const valContent = String(val?.content || '').toLowerCase();
+      if (cleanTarget && (kClean === cleanTarget || cleanTarget.includes(kClean) || kClean.includes(cleanTarget) || valId === cleanTarget || valContent.includes(cleanTarget))) {
         isPaid = true;
         txInfo = val;
         break;
       }
     }
 
-    // Nếu chưa thấy trong cache và có cấu hình SEPAY_API_KEY, tự động đối soát trực tiếp với SePay API
-    if (!isPaid && process.env.SEPAY_API_KEY) {
+    // 2. Kiểm tra Cloud KV dùng chung toàn bộ Vercel Serverless
+    if (!isPaid && cleanTarget) {
       try {
-        const sepayRes = await fetch('https://my.sepay.vn/userapi/transactions/list?limit=20', {
+        const kvRes = await fetch(`https://kvdb.io/${KV_BUCKET}/${cleanTarget}`);
+        if (kvRes.ok) {
+          const kvData = await kvRes.json();
+          if (kvData) {
+            isPaid = true;
+            txInfo = kvData;
+          }
+        }
+      } catch (kvErr) {
+        console.error('KV check error:', kvErr);
+      }
+    }
+
+    // 3. Dự phòng đối soát trực tiếp SePay API nếu có cấu hình
+    const sepayKey = process.env.SEPAY_API_KEY;
+    if (!isPaid && sepayKey && cleanTarget) {
+      try {
+        const sepayRes = await fetch('https://my.sepay.vn/userapi/transactions/list?limit=30', {
           headers: {
-            'Authorization': `Apikey ${process.env.SEPAY_API_KEY}`,
+            'Authorization': `Apikey ${sepayKey}`,
             'Content-Type': 'application/json'
           }
         });
@@ -50,8 +72,8 @@ export default async function handler(req, res) {
           const sepayData = await sepayRes.json();
           const list = sepayData.messages || sepayData.transactions || [];
           const matchTx = list.find(t => {
-            const desc = (t.transaction_content || t.description || t.content || '').toLowerCase();
-            return desc.includes(target);
+            const desc = (t.transaction_content || t.description || t.content || '').toLowerCase().replace(/[^a-zA-Z0-9]/g, '');
+            return desc.includes(cleanTarget);
           });
           if (matchTx) {
             isPaid = true;

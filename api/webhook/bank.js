@@ -1,5 +1,6 @@
 import fs from 'fs';
 
+const KV_BUCKET = '4fVC3QnzuUwxGeVLvAhHAb';
 const TMP_FILE = '/tmp/paid_orders.json';
 
 function getPaidOrders() {
@@ -18,6 +19,21 @@ function savePaidOrders(data) {
   } catch (e) { }
 }
 
+async function parseBody(req) {
+  if (req.body && typeof req.body === 'object') return req.body;
+  if (typeof req.body === 'string') {
+    try { return JSON.parse(req.body); } catch(e) {}
+  }
+  return new Promise((resolve) => {
+    let data = '';
+    req.on('data', chunk => { data += chunk; });
+    req.on('end', () => {
+      try { resolve(JSON.parse(data)); } catch(e) { resolve({}); }
+    });
+    req.on('error', () => resolve({}));
+  });
+}
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -33,7 +49,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const payload = req.body || {};
+    const payload = await parseBody(req);
     console.log('[SEPAY WEBHOOK RECEIVED]:', JSON.stringify(payload));
 
     const content = String(payload.content || payload.description || payload.code || '');
@@ -49,20 +65,34 @@ export default async function handler(req, res) {
     }
 
     if (matchedOrder) {
-      const cleanKey = matchedOrder.replace('#', '');
-      const paidOrders = getPaidOrders();
-      paidOrders[cleanKey] = {
+      const cleanKey = matchedOrder.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const orderData = {
         orderId: matchedOrder.startsWith('#') ? matchedOrder : `#${matchedOrder}`,
         amount: amount,
         content: content,
         gateway: gateway,
-        time: date
+        time: date,
+        paid: true
       };
+
+      // 1. Lưu local /tmp
+      const paidOrders = getPaidOrders();
+      paidOrders[cleanKey] = orderData;
       savePaidOrders(paidOrders);
+
+      // 2. Lưu Cloud KV dùng chung toàn bộ Vercel Serverless Containers
+      try {
+        await fetch(`https://kvdb.io/${KV_BUCKET}/${cleanKey}`, {
+          method: 'POST',
+          body: JSON.stringify(orderData)
+        });
+      } catch (kvErr) {
+        console.error('KV save error:', kvErr);
+      }
+
       console.log(`[ORDER APPROVED]: ${matchedOrder} - ${amount}đ`);
     }
 
-    // SePay yêu cầu phản hồi HTTP 200 kèm JSON success: true
     return res.status(200).json({
       success: true,
       matchedOrder: matchedOrder,

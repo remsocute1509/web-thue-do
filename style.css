@@ -1710,8 +1710,8 @@ body {
   pointer-events: none;
   z-index: 0;
   background: radial-gradient(circle at 15% 20%, rgba(255, 182, 218, 0.25) 0%, transparent 45%),
-              radial-gradient(circle at 85% 80%, rgba(216, 180, 254, 0.25) 0%, transparent 45%),
-              radial-gradient(circle at 50% 50%, rgba(186, 230, 253, 0.15) 0%, transparent 55%);
+    radial-gradient(circle at 85% 80%, rgba(216, 180, 254, 0.25) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(186, 230, 253, 0.15) 0%, transparent 55%);
   filter: blur(25px);
   animation: introAuraBreath 6s ease-in-out infinite alternate;
 }
@@ -1721,6 +1721,7 @@ body {
     opacity: 0.65;
     transform: scale(0.98);
   }
+
   100% {
     opacity: 1;
     transform: scale(1.02);
@@ -1823,18 +1824,37 @@ body {
 }
 
 @keyframes cornerDrift {
-  0% { transform: translateY(0) rotate(0deg); }
-  100% { transform: translateY(-3px) rotate(10deg); }
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  100% {
+    transform: translateY(-3px) rotate(10deg);
+  }
 }
 
 @keyframes cornerGlint {
-  0% { transform: scale(0.9); opacity: 0.65; }
-  100% { transform: scale(1.18); opacity: 1; }
+  0% {
+    transform: scale(0.9);
+    opacity: 0.65;
+  }
+
+  100% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
 }
 
 @keyframes cornerFloatSub {
-  0% { transform: translateY(0); opacity: 0.65; }
-  100% { transform: translateY(-2px); opacity: 0.95; }
+  0% {
+    transform: translateY(0);
+    opacity: 0.65;
+  }
+
+  100% {
+    transform: translateY(-2px);
+    opacity: 0.95;
+  }
 }
 
 /* Nội dung văn bản trung tâm */
@@ -4220,8 +4240,13 @@ body {
 }
 
 @keyframes adminCrownBounce {
-  0% { transform: translateY(0) scale(1); }
-  100% { transform: translateY(-2px) scale(1.15); }
+  0% {
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    transform: translateY(-2px) scale(1.15);
+  }
 }
 
 .user-avatar-btn.is-admin {
@@ -4362,9 +4387,19 @@ body {
 }
 
 @keyframes shakeAlert {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px);
+  }
+
+  75% {
+    transform: translateX(4px);
+  }
 }
 
 .admin-login-actions {
@@ -4543,10 +4578,25 @@ body {
   flex-shrink: 0;
 }
 
-.kpi-all .kpi-icon-box { background: #e0f2fe; color: #0284c7; }
-.kpi-pending .kpi-icon-box { background: #fef3c7; color: #d97706; }
-.kpi-approved .kpi-icon-box { background: #d1fae5; color: #059669; }
-.kpi-money .kpi-icon-box { background: #fce7f3; color: #db2777; }
+.kpi-all .kpi-icon-box {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.kpi-pending .kpi-icon-box {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.kpi-approved .kpi-icon-box {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.kpi-money .kpi-icon-box {
+  background: #fce7f3;
+  color: #db2777;
+}
 
 .kpi-label {
   display: block;
@@ -4666,10 +4716,21 @@ body {
   box-shadow: 0 8px 24px rgba(180, 190, 220, 0.16);
 }
 
-.admin-order-card.status-pending { border-left: 5px solid #f59e0b; }
-.admin-order-card.status-approved { border-left: 5px solid #10b981; }
-.admin-order-card.status-renting { border-left: 5px solid #3b82f6; }
-.admin-order-card.status-completed { border-left: 5px solid #8b5cf6; }
+.admin-order-card.status-pending {
+  border-left: 5px solid #f59e0b;
+}
+
+.admin-order-card.status-approved {
+  border-left: 5px solid #10b981;
+}
+
+.admin-order-card.status-renting {
+  border-left: 5px solid #3b82f6;
+}
+
+.admin-order-card.status-completed {
+  border-left: 5px solid #8b5cf6;
+}
 
 .admin-order-top-row {
   display: flex;
@@ -4697,10 +4758,25 @@ body {
   border-radius: var(--radius-full);
 }
 
-.status-pill-pending { background: #fef3c7; color: #b45309; }
-.status-pill-approved { background: #d1fae5; color: #047857; }
-.status-pill-renting { background: #dbeafe; color: #1d4ed8; }
-.status-pill-completed { background: #ede9fe; color: #6d28d9; }
+.status-pill-pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-pill-approved {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.status-pill-renting {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-pill-completed {
+  background: #ede9fe;
+  color: #6d28d9;
+}
 
 .admin-order-details-grid {
   display: grid;

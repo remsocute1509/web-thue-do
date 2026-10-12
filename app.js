@@ -2516,7 +2516,7 @@ function initAdminPortal() {
 
       // Cho phép đăng nhập với: admin / admin123 hoặc admin / mochimoon hoặc mochimoon / mochimoon2026
       const isValid = (u === 'admin' && (p === 'admin123' || p === 'mochimoon' || p === 'admin')) ||
-                      (u === 'mochimoon' && (p === 'admin123' || p === 'mochimoon2026' || p === 'mochimoon'));
+        (u === 'mochimoon' && (p === 'admin123' || p === 'mochimoon2026' || p === 'mochimoon'));
 
       if (isValid) {
         appState.isAdmin = true;
