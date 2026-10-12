@@ -77,7 +77,47 @@ document.addEventListener('DOMContentLoaded', () => {
   initAdminPortal();
   checkExpiredBookings();
   setInterval(checkExpiredBookings, 30000);
+  syncCloudBookings();
+  setInterval(syncCloudBookings, 4000);
 });
+
+async function syncCloudBookings() {
+  try {
+    const res = await fetch('/api/bookings');
+    if (!res.ok) return;
+    const cloudList = await res.json();
+    if (Array.isArray(cloudList) && cloudList.length > 0) {
+      const mergedMap = new Map();
+      cloudList.forEach(b => {
+        if (b.orderId) mergedMap.set(b.orderId, b);
+      });
+      (appState.bookings || []).forEach(b => {
+        if (b.orderId && !mergedMap.has(b.orderId)) {
+          mergedMap.set(b.orderId, b);
+        }
+      });
+      appState.bookings = Array.from(mergedMap.values());
+      try {
+        localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings));
+      } catch (e) { }
+      renderBookedList();
+      refreshAvailabilityUI();
+      if (typeof renderAdminOrders === 'function' && appState.isAdmin) {
+        renderAdminOrders();
+      }
+    }
+  } catch (e) { }
+}
+
+async function saveCloudBookings(bookingsList) {
+  try {
+    fetch('/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bookingsList)
+    });
+  } catch (e) { }
+}
 
 function loadSavedState() {
   const savedAdmin = localStorage.getItem('mochimoon_is_admin');
@@ -1251,6 +1291,8 @@ function initCosplayBooking() {
       } catch (err) {
         console.warn('Booking save error', err);
       }
+
+      saveCloudBookings(appState.bookings);
 
       renderBookedList();
       refreshAvailabilityUI();
@@ -2991,6 +3033,7 @@ function updateAdminBookingStatus(bookingId, newStatus) {
     renderAdminDashboard();
     renderBookedList();
     refreshAvailabilityUI();
+    saveCloudBookings(appState.bookings);
     playSuccessChime();
 
     const stLower = newStatus.toLowerCase();
@@ -3009,5 +3052,6 @@ function deleteAdminBooking(bookingId) {
   renderAdminDashboard();
   renderBookedList();
   refreshAvailabilityUI();
+  saveCloudBookings(appState.bookings);
   playChime(380);
 }
