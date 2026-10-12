@@ -26,5 +26,12 @@
     "content": "THUEDO MC20500",
     "gateway": "MBBank (0377193835)",
     "time": "Vừa xong"
+  },
+  "MC-TEST123": {
+    "orderId": "#MC-TEST123",
+    "amount": 200000,
+    "content": "THUEDO MC-TEST123",
+    "gateway": "MBBank (0377193835)",
+    "time": "Vừa xong"
   }
 }

@@ -1422,7 +1422,7 @@ function showPaymentStep(booking) {
   const confirmBtn = document.getElementById('btnConfirmPaid');
   if (confirmBtn) {
     confirmBtn.disabled = false;
-    confirmBtn.innerHTML = '<span>✨ Tôi Đã Chuyển Khoản Thành Công</span>';
+    confirmBtn.innerHTML = '<span>✨ Tôi Đã Chuyển Khoản Thành Công ➔ Xem Hóa Đơn & Thông Tin</span>';
   }
   const statusBadge = document.getElementById('payStatusBadge');
   if (statusBadge) {
@@ -1534,7 +1534,7 @@ function onBankPaymentApproved(booking, txData) {
   playSuccessChime();
   playLofiMelody();
 
-  // Chuyển mượt mà qua Bước 3: Hóa đơn & Cảm ơn
+  // TỰ ĐỘNG CHUYỂN QUA TIẾP PHẦN THÔNG TIN & HÓA ĐƠN (KHÔNG BỊ ALERT CHẶN)
   showInvoiceStep(booking, txData);
 }
 
@@ -1557,7 +1557,7 @@ function showInvoiceStep(booking, txData) {
 
   appState.currentPaymentBooking = booking;
 
-  // 1. Populate Invoice Data
+  // 1. Điền toàn bộ thông tin chi tiết vào hóa đơn
   const orderId = booking.orderId || ('#MC-' + (booking.id || Date.now()));
   const invOrderIdEl = document.getElementById('invOrderId');
   if (invOrderIdEl) invOrderIdEl.textContent = orderId;
@@ -1565,7 +1565,7 @@ function showInvoiceStep(booking, txData) {
   const invMetaOrderCodeEl = document.getElementById('invMetaOrderCode');
   if (invMetaOrderCodeEl) invMetaOrderCodeEl.textContent = orderId;
 
-  // Created time
+  // Thời gian thanh toán
   const now = new Date();
   const timeFormatted = (txData?.time && txData.time !== 'Vừa xong' && txData.time !== 'Khách xác nhận')
     ? txData.time
@@ -1573,7 +1573,7 @@ function showInvoiceStep(booking, txData) {
   const invCreatedTimeEl = document.getElementById('invCreatedTime');
   if (invCreatedTimeEl) invCreatedTimeEl.textContent = timeFormatted;
 
-  // Customer info
+  // Thông tin khách thuê
   const invCustNameEl = document.getElementById('invCustName');
   if (invCustNameEl) invCustNameEl.textContent = booking.customerName || 'Khách hàng';
 
@@ -1593,7 +1593,7 @@ function showInvoiceStep(booking, txData) {
   const invCustNoteEl = document.getElementById('invCustNote');
   if (invCustNoteEl) invCustNoteEl.textContent = booking.note || 'Không có ghi chú thêm';
 
-  // Table items
+  // Thông tin trang phục & dịch vụ
   const invItemNameEl = document.getElementById('invItemName');
   if (invItemNameEl) invItemNameEl.textContent = booking.character;
 
@@ -1649,12 +1649,12 @@ function showInvoiceStep(booking, txData) {
   const invBarcodeTextEl = document.getElementById('invBarcodeText');
   if (invBarcodeTextEl) invBarcodeTextEl.textContent = `MOCHYMOON-${cleanCode}-PAID-MBBANK-0377193835`;
 
-  // 2. Switch Views
+  // 2. Tự động chuyển giao diện: Ẩn thanh toán, Hiện thông tin & Hóa đơn
   if (form) form.style.display = 'none';
   if (paymentPanel) paymentPanel.classList.add('hidden');
   invoicePanel.classList.remove('hidden');
 
-  // 3. Update Progress Bar
+  // 3. Cập nhật thanh tiến trình 3 bước
   if (stepPill1) {
     stepPill1.classList.remove('active');
     stepPill1.classList.add('completed');
@@ -1674,10 +1674,10 @@ function showInvoiceStep(booking, txData) {
     stepPill3.classList.remove('completed');
   }
 
-  // 4. Scroll smoothly to top of booking section
+  // 4. Cuộn mượt mà lên đầu bảng tiến trình
   document.getElementById('bookingStepsBar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  // 5. Celebration petals
+  // 5. Hiệu ứng cánh hoa anh đào nở rộ chúc mừng
   try {
     triggerPetalBurst();
   } catch (e) { }
@@ -1880,15 +1880,17 @@ function initPaymentActions() {
       }
     }
   });
+
   document.getElementById('stepPill3')?.addEventListener('click', () => {
-    if (appState.currentPaymentBooking && (appState.currentPaymentBooking.status || '').includes('Đã')) {
-      showInvoiceStep(appState.currentPaymentBooking);
+    const current = appState.currentPaymentBooking;
+    if (current && (current.status || '').includes('Đã')) {
+      showInvoiceStep(current);
     } else {
       const paid = (appState.bookings || []).find(b => (b.status || '').includes('Đã') || (b.status || '').includes('duyệt'));
       if (paid) {
         showInvoiceStep(paid);
       } else {
-        alert('Đơn hàng cần hoàn tất thanh toán trước khi xem hóa đơn nhé! 🌸');
+        alert('Đơn hàng cần hoàn tất thanh toán trước khi xem hóa đơn & thông tin nhé! 🌸');
       }
     }
   });
@@ -2037,7 +2039,7 @@ function renderBookedList() {
       });
     } else if (isPaid) {
       item.style.cursor = 'pointer';
-      item.title = 'Bấm để xem hóa đơn & biên lai đơn hàng này';
+      item.title = 'Bấm để xem hóa đơn & thông tin đơn hàng này';
       item.addEventListener('click', (e) => {
         if (e.target.closest('.btn-quick-returned') || e.target.closest('a')) return;
         showInvoiceStep(b);

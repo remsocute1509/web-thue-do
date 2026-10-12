@@ -39,7 +39,9 @@
         </button>
 
         <!-- Brand / Profile Pill & Admin Access -->
-        <div class="brand-pill" id="brandPill" onclick="if(window.handleAdminLogoClick) window.handleAdminLogoClick(event); else if(window.openAdminLoginModal) window.openAdminLoginModal();" title="mochimoon - Nhấp để mở Quản trị viên (Admin)" style="cursor: pointer;">
+        <div class="brand-pill" id="brandPill"
+          onclick="if(window.handleAdminLogoClick) window.handleAdminLogoClick(event); else if(window.openAdminLoginModal) window.openAdminLoginModal();"
+          title="mochimoon - Nhấp để mở Quản trị viên (Admin)" style="cursor: pointer;">
           <span class="brand-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
@@ -269,9 +271,13 @@
           </button>
 
           <!-- Logo Tiệm mochimoon / Avatar & Admin Access -->
-          <div class="user-avatar-btn" id="userProfileBtn" onclick="if(window.handleAdminLogoClick) window.handleAdminLogoClick(event); else if(window.openAdminLoginModal) window.openAdminLoginModal();" title="Logo tiệm mochimoon - Nhấp để Đăng nhập Quản trị viên (Admin)">
-            <img src="assets/mochiimoon_logo.png" alt="mochimoon Logo" class="avatar-img" id="userAvatar" style="pointer-events: none;">
-            <span class="admin-crown-badge-header hidden" id="adminHeaderBadge" title="Tài khoản Quản trị viên" style="pointer-events: none;">👑</span>
+          <div class="user-avatar-btn" id="userProfileBtn"
+            onclick="if(window.handleAdminLogoClick) window.handleAdminLogoClick(event); else if(window.openAdminLoginModal) window.openAdminLoginModal();"
+            title="Logo tiệm mochimoon - Nhấp để Đăng nhập Quản trị viên (Admin)">
+            <img src="assets/mochiimoon_logo.png" alt="mochimoon Logo" class="avatar-img" id="userAvatar"
+              style="pointer-events: none;">
+            <span class="admin-crown-badge-header hidden" id="adminHeaderBadge" title="Tài khoản Quản trị viên"
+              style="pointer-events: none;">👑</span>
             <div class="avatar-camera-overlay hidden" id="avatarOverlay">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -375,7 +381,8 @@
               <!-- Nội dung văn bản trong khung -->
               <div class="intro-card-content">
                 <h2 class="intro-title">
-                  Chào mừng bạn đến với <span class="intro-brand-name">Mochimoon</span> – thế giới cosplay lung linh của riêng bạn! <span class="intro-title-sparkle">✨</span>
+                  Chào mừng bạn đến với <span class="intro-brand-name">Mochimoon</span> – thế giới cosplay lung linh của
+                  riêng bạn! <span class="intro-title-sparkle">✨</span>
                 </h2>
 
                 <!-- Dải phân cách hoa văn pastel -->
@@ -386,7 +393,12 @@
                 </div>
 
                 <p class="intro-desc">
-                  Tại đây, chúng mình mang đến những bộ trang phục được <span class="highlight-soft">chăm chút chỉn chu</span>, <span class="highlight-soft">phom dáng chuẩn đẹp</span> cùng <span class="highlight-soft">đầy đủ phụ kiện đi kèm</span>, giúp bạn dễ dàng hóa thân thành nhân vật yêu thích. Dù là đi <span class="highlight-pill">fes</span>, đu <span class="highlight-pill">event</span> hay chụp ảnh kỷ niệm, Mochimoon luôn sẵn sàng đồng hành để bạn <span class="highlight-glow">tỏa sáng rạng rỡ nhất!</span> <span class="intro-ending-icons">🌸🌙</span>
+                  Tại đây, chúng mình mang đến những bộ trang phục được <span class="highlight-soft">chăm chút chỉn
+                    chu</span>, <span class="highlight-soft">phom dáng chuẩn đẹp</span> cùng <span
+                    class="highlight-soft">đầy đủ phụ kiện đi kèm</span>, giúp bạn dễ dàng hóa thân thành nhân vật yêu
+                  thích. Dù là đi <span class="highlight-pill">fes</span>, đu <span class="highlight-pill">event</span>
+                  hay chụp ảnh kỷ niệm, Mochimoon luôn sẵn sàng đồng hành để bạn <span class="highlight-glow">tỏa sáng
+                    rạng rỡ nhất!</span> <span class="intro-ending-icons">🌸🌙</span>
                 </p>
               </div>
             </div>
@@ -648,7 +660,7 @@
                 <div class="step-connector" id="stepConnector2"></div>
                 <div class="step-pill" id="stepPill3">
                   <span class="step-badge-num">3</span>
-                  <span class="step-text">Hóa Đơn & Cảm Ơn</span>
+                  <span class="step-text">Thông Tin & Hóa Đơn</span>
                 </div>
               </div>
 
@@ -803,7 +815,8 @@
                     <div class="qr-image-container">
                       <!-- Mã QR VietQR Tự Động Điền Sẵn Tiền & Nội Dung -->
                       <img id="vietQrImg" src="" alt="Mã QR Chuyển Khoản Tự Động" class="vietqr-img">
-                      <span class="qr-scan-hint" id="qrScanHint">⚡ Quét mã VietQR tự động điền sẵn số tiền và nội dung</span>
+                      <span class="qr-scan-hint" id="qrScanHint">⚡ Quét mã VietQR tự động điền sẵn số tiền và nội
+                        dung</span>
                     </div>
 
                     <div class="bank-info-list">
@@ -857,7 +870,7 @@
                   <!-- Payment Actions Row -->
                   <div class="payment-actions-row">
                     <button type="button" class="btn-confirm-paid" id="btnConfirmPaid">
-                      <span>✨ Tôi Đã Chuyển Khoản Thành Công</span>
+                      <span>✨ Tôi Đã Chuyển Khoản Thành Công ➔ Xem Hóa Đơn & Thông Tin</span>
                     </button>
                     <button type="button" class="btn-back-booking" id="btnBackToBooking">
                       <span>↩️ Quay Lại Đổi Thông Tin</span>
@@ -867,20 +880,20 @@
                   <!-- Quick Simulate Option -->
                   <div style="text-align: center; margin-top: 6px;">
                     <button type="button" id="btnSimulatePayment" class="btn-simulate-mini">
-                      ⚡ Thử Nghiệm: Giả Lập Nhận Tiền Ngân Hàng (Test Duyệt Ngay)
+                      ⚡ Thử Nghiệm: Giả Lập Nhận Tiền Ngay (Tự Chuyển Sang Bước Thông Tin)
                     </button>
                   </div>
                 </div>
               </div>
 
-              <!-- STEP 3: Thank You & Official Rental Invoice / Receipt Panel -->
+              <!-- STEP 3: Thông Tin Đơn Thuê & Hóa Đơn Xuất Vé Cảm Ơn -->
               <div class="booking-invoice-panel hidden" id="bookingInvoicePanel">
                 <!-- Thank You Celebration Banner -->
                 <div class="invoice-thankyou-card">
                   <div class="thankyou-badge-icon">🎉</div>
                   <div class="thankyou-message">
                     <h3>CẢM ƠN BẠN ĐÃ ĐẶT THUÊ ĐỒ TẠI MOCHYMOON! 💕</h3>
-                    <p>Giao dịch thanh toán đã thành công và đơn hàng đã được <strong>tự động duyệt</strong> trên hệ thống. Dưới đây là <strong>Hóa đơn điện tử & Phiếu thu tiền</strong> của bạn.</p>
+                    <p>Giao dịch thanh toán đã thành công và đơn hàng đã được <strong>tự động duyệt</strong> trên hệ thống. Dưới đây là <strong>thông tin đơn thuê & hóa đơn điện tử</strong> của bạn.</p>
                   </div>
                 </div>
 
@@ -1398,194 +1411,415 @@
   </div>
 
   <!-- Modal Hướng Dẫn Kết Nối Webhook Ngân Hàng Thật (SePay / Casso) -->
-    <div class="modal-overlay hidden" id="webhookGuideModal">
-      <div class="modal-card webhook-guide-card">
-        <div class="modal-header">
-          <h3>Kết Nối Ngân Hàng Tự Động Duyệt 🏦⚡</h3>
-          <button class="modal-close" id="closeWebhookGuideBtn">&times;</button>
+  <div class="modal-overlay hidden" id="webhookGuideModal">
+    <div class="modal-card webhook-guide-card">
+      <div class="modal-header">
+        <h3>Kết Nối Ngân Hàng Tự Động Duyệt 🏦⚡</h3>
+        <button class="modal-close" id="closeWebhookGuideBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="webhook-guide-intro">
+          Để website tự động phát hiện khi tài khoản <strong>MB Bank (0377193835)</strong> nhận được tiền và
+          <strong>tự động duyệt đơn</strong>, bạn có thể kết nối qua cổng <strong>SePay.vn</strong> (hoàn toàn miễn
+          phí cho shop nhỏ):
         </div>
-        <div class="modal-body">
-          <div class="webhook-guide-intro">
-            Để website tự động phát hiện khi tài khoản <strong>MB Bank (0377193835)</strong> nhận được tiền và
-            <strong>tự động duyệt đơn</strong>, bạn có thể kết nối qua cổng <strong>SePay.vn</strong> (hoàn toàn miễn
-            phí cho shop nhỏ):
-          </div>
 
-          <ol class="webhook-steps-list">
-            <li>
-              <strong>Bước 1:</strong> Đăng ký tài khoản miễn phí tại <a href="https://my.sepay.vn" target="_blank"
-                rel="noopener">my.sepay.vn</a>.
-            </li>
-            <li>
-              <strong>Bước 2:</strong> Vào mục <em>"Ngân hàng"</em> ➔ Chọn <strong>MB Bank</strong> ➔ Nhập số tài khoản
-              <code>0377193835</code> để liên kết an toàn.
-            </li>
-            <li>
-              <strong>Bước 3:</strong> Vào mục <em>"Tích hợp Webhook"</em> ➔ Bấm <strong>Thêm Webhook</strong> ➔ Dán địa
-              chỉ URL sau vào:
-              <div class="webhook-url-box">
-                <code id="webhookUrlSample">http://localhost:3000/api/webhook/bank</code>
-                <button type="button" class="btn-copy-mini" id="btnCopyWebhookUrl">📋 Copy URL</button>
-              </div>
-            </li>
-            <li>
-              <strong>Bước 4:</strong> Xong! Mỗi khi có khách chuyển khoản vào tài khoản MB Bank của bạn với nội dung có
-              chứa mã đơn (như <code>THUEDO MC83921</code>), SePay sẽ tự động gửi thông báo về và website <strong>TỰ
-                ĐỘNG DUYỆT ĐƠN NGAY LẬP TỨC</strong>! 🎉
-            </li>
-          </ol>
+        <ol class="webhook-steps-list">
+          <li>
+            <strong>Bước 1:</strong> Đăng ký tài khoản miễn phí tại <a href="https://my.sepay.vn" target="_blank"
+              rel="noopener">my.sepay.vn</a>.
+          </li>
+          <li>
+            <strong>Bước 2:</strong> Vào mục <em>"Ngân hàng"</em> ➔ Chọn <strong>MB Bank</strong> ➔ Nhập số tài khoản
+            <code>0377193835</code> để liên kết an toàn.
+          </li>
+          <li>
+            <strong>Bước 3:</strong> Vào mục <em>"Tích hợp Webhook"</em> ➔ Bấm <strong>Thêm Webhook</strong> ➔ Dán địa
+            chỉ URL sau vào:
+            <div class="webhook-url-box">
+              <code id="webhookUrlSample">http://localhost:3000/api/webhook/bank</code>
+              <button type="button" class="btn-copy-mini" id="btnCopyWebhookUrl">📋 Copy URL</button>
+            </div>
+          </li>
+          <li>
+            <strong>Bước 4:</strong> Xong! Mỗi khi có khách chuyển khoản vào tài khoản MB Bank của bạn với nội dung có
+            chứa mã đơn (như <code>THUEDO MC83921</code>), SePay sẽ tự động gửi thông báo về và website <strong>TỰ
+              ĐỘNG DUYỆT ĐƠN NGAY LẬP TỨC</strong>! 🎉
+          </li>
+        </ol>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="primary-btn" id="closeWebhookGuideBtn2">Đã Hiểu 🌸</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. MODAL ĐĂNG NHẬP QUẢN TRỊ VIÊN MOCHIMOON -->
+  <div class="modal-overlay hidden" id="adminLoginModal">
+    <div class="modal-card admin-login-card">
+      <div class="modal-header">
+        <div class="admin-login-header-title">
+          <span class="admin-crown-icon">👑</span>
+          <div>
+            <h3>Đăng Nhập Quản Trị Viên 🌸</h3>
+            <p class="admin-login-sub">Dành cho chủ shop quản lý đơn thuê & xem full thông tin khách hàng</p>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="primary-btn" id="closeWebhookGuideBtn2">Đã Hiểu 🌸</button>
+        <button class="modal-close" id="closeAdminLoginBtn">&times;</button>
+      </div>
+
+      <form id="adminLoginForm" class="admin-login-form">
+        <div class="admin-input-group">
+          <label for="adminUsername">Tài khoản quản trị:</label>
+          <div class="admin-input-wrapper">
+            <span class="admin-input-icon">👤</span>
+            <input type="text" id="adminUsername" placeholder="Nhập tài khoản (vd: admin)..." autocomplete="username"
+              required>
+          </div>
+        </div>
+
+        <div class="admin-input-group">
+          <label for="adminPassword">Mật khẩu:</label>
+          <div class="admin-input-wrapper">
+            <span class="admin-input-icon">🔒</span>
+            <input type="password" id="adminPassword" placeholder="Nhập mật khẩu..." autocomplete="current-password"
+              required>
+            <button type="button" class="btn-pwd-eye" id="btnTogglePwd" title="Hiện/Ẩn mật khẩu">👁️</button>
+          </div>
+        </div>
+
+        <div class="admin-login-hint-box">
+          <span class="hint-bulb">💡</span>
+          <div class="hint-text">
+            Tài khoản mặc định: <strong>admin</strong> • Mật khẩu: <strong>admin123</strong>
+          </div>
+        </div>
+
+        <div class="admin-login-alert hidden" id="adminLoginAlert"></div>
+
+        <div class="admin-login-actions">
+          <button type="button" class="btn-admin-cancel" id="cancelAdminLoginBtn">Hủy</button>
+          <button type="submit" class="primary-btn admin-btn-login">
+            <span>✨ Đăng Nhập Quản Trị</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. MODAL BẢNG QUẢN TRỊ VIÊN XEM FULL THÔNG TIN KHÁCH HÀNG -->
+  <div class="modal-overlay hidden" id="adminDashboardModal">
+    <div class="modal-card admin-dashboard-card">
+      <!-- Header Dashboard -->
+      <div class="modal-header admin-dash-header">
+        <div class="admin-dash-brand">
+          <div class="admin-logo-avatar-wrap">
+            <img src="assets/mochiimoon_logo.png" alt="mochimoon" class="admin-logo-avatar">
+            <span class="admin-avatar-crown">👑</span>
+          </div>
+          <div>
+            <h3>Quản Trị Viên Mochimoon • Quản Lý Khách Hàng</h3>
+            <p class="admin-login-status-badge">
+              <span class="status-dot-online"></span>
+              <span>Đang đăng nhập: <strong id="adminCurrentName">Admin (Chủ tiệm)</strong> • Toàn quyền xem thông tin
+                khách</span>
+            </p>
+          </div>
+        </div>
+        <div class="admin-dash-header-btns">
+          <button type="button" class="btn-admin-logout" id="btnAdminLogout" title="Đăng xuất khỏi tài khoản quản trị">
+            <span>🚪 Đăng Xuất</span>
+          </button>
+          <button class="modal-close" id="closeAdminDashBtn">&times;</button>
+        </div>
+      </div>
+
+      <!-- 4 KPI Summary Cards -->
+      <div class="admin-kpi-grid">
+        <div class="admin-kpi-card kpi-all">
+          <div class="kpi-icon-box">👥</div>
+          <div class="kpi-text-box">
+            <span class="kpi-label">Tổng khách / Đơn thuê</span>
+            <strong class="kpi-number" id="adminKpiTotalOrders">0 đơn</strong>
+          </div>
+        </div>
+        <div class="admin-kpi-card kpi-pending">
+          <div class="kpi-icon-box">⏳</div>
+          <div class="kpi-text-box">
+            <span class="kpi-label">Chờ cọc / Chờ duyệt</span>
+            <strong class="kpi-number" id="adminKpiPendingOrders">0 đơn</strong>
+          </div>
+        </div>
+        <div class="admin-kpi-card kpi-approved">
+          <div class="kpi-icon-box">✅</div>
+          <div class="kpi-text-box">
+            <span class="kpi-label">Đã cọc / Đang thuê</span>
+            <strong class="kpi-number" id="adminKpiApprovedOrders">0 đơn</strong>
+          </div>
+        </div>
+        <div class="admin-kpi-card kpi-money">
+          <div class="kpi-icon-box">💰</div>
+          <div class="kpi-text-box">
+            <span class="kpi-label">Tổng tiền đơn</span>
+            <strong class="kpi-number" id="adminKpiTotalRevenue">0đ</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolbar: Search & Filter -->
+      <div class="admin-toolbar-row">
+        <div class="admin-search-box">
+          <span class="admin-search-icon">🔍</span>
+          <input type="text" id="adminSearchInput"
+            placeholder="Tìm theo tên khách hàng, số điện thoại, mã đơn (#MC-)...">
+        </div>
+        <div class="admin-filter-box">
+          <select id="adminStatusFilter">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="pending">⏳ Chờ thanh toán cọc</option>
+            <option value="approved">✅ Đã cọc thành công</option>
+            <option value="renting">👘 Đang thuê đồ</option>
+            <option value="completed">🌸 Đã hoàn tất / Đã trả</option>
+          </select>
+          <button type="button" class="btn-admin-refresh" id="btnAdminRefresh" title="Tải lại danh sách">
+            <span>🔄 Làm mới</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Danh sách khách hàng Full Thông Tin -->
+      <div class="admin-orders-container" id="adminOrdersContainer">
+        <!-- Render danh sách chi tiết khách hàng tại đây -->
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer admin-dash-footer">
+        <div class="admin-footer-security-note">
+          <span>🔒 Dữ liệu thông tin khách hàng được bảo mật nội bộ và lưu trữ tại tiệm Mochimoon.</span>
+        </div>
+        <button type="button" class="primary-btn" id="closeAdminDashBtn2">Đóng Bảng Quản Trị</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
+</ul>
+</div>
+
+<!-- Mục giá thuê -->
+<div class="modal-section-box">
+  <div class="modal-section-badge">giá thuê</div>
+  <ul class="modal-bullet-list" id="modalCostumePriceList">
+    <!-- Render từ data-prices -->
+  </ul>
+</div>
+</div>
+
+<div class="modal-action-row">
+  <button type="button" class="modal-rent-now-btn" id="modalRentNowBtn">
+    <span>👘 Đặt Thuê Ngay Bộ Này</span>
+  </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Modal Hướng Dẫn Kết Nối Webhook Ngân Hàng Thật (SePay / Casso) -->
+<div class="modal-overlay hidden" id="webhookGuideModal">
+  <div class="modal-card webhook-guide-card">
+    <div class="modal-header">
+      <h3>Kết Nối Ngân Hàng Tự Động Duyệt 🏦⚡</h3>
+      <button class="modal-close" id="closeWebhookGuideBtn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="webhook-guide-intro">
+        Để website tự động phát hiện khi tài khoản <strong>MB Bank (0377193835)</strong> nhận được tiền và
+        <strong>tự động duyệt đơn</strong>, bạn có thể kết nối qua cổng <strong>SePay.vn</strong> (hoàn toàn miễn
+        phí cho shop nhỏ):
+      </div>
+
+      <ol class="webhook-steps-list">
+        <li>
+          <strong>Bước 1:</strong> Đăng ký tài khoản miễn phí tại <a href="https://my.sepay.vn" target="_blank"
+            rel="noopener">my.sepay.vn</a>.
+        </li>
+        <li>
+          <strong>Bước 2:</strong> Vào mục <em>"Ngân hàng"</em> ➔ Chọn <strong>MB Bank</strong> ➔ Nhập số tài khoản
+          <code>0377193835</code> để liên kết an toàn.
+        </li>
+        <li>
+          <strong>Bước 3:</strong> Vào mục <em>"Tích hợp Webhook"</em> ➔ Bấm <strong>Thêm Webhook</strong> ➔ Dán địa
+          chỉ URL sau vào:
+          <div class="webhook-url-box">
+            <code id="webhookUrlSample">http://localhost:3000/api/webhook/bank</code>
+            <button type="button" class="btn-copy-mini" id="btnCopyWebhookUrl">📋 Copy URL</button>
+          </div>
+        </li>
+        <li>
+          <strong>Bước 4:</strong> Xong! Mỗi khi có khách chuyển khoản vào tài khoản MB Bank của bạn với nội dung có
+          chứa mã đơn (như <code>THUEDO MC83921</code>), SePay sẽ tự động gửi thông báo về và website <strong>TỰ
+            ĐỘNG DUYỆT ĐƠN NGAY LẬP TỨC</strong>! 🎉
+        </li>
+      </ol>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="primary-btn" id="closeWebhookGuideBtn2">Đã Hiểu 🌸</button>
+    </div>
+  </div>
+</div>
+
+<!-- 1. MODAL ĐĂNG NHẬP QUẢN TRỊ VIÊN MOCHIMOON -->
+<div class="modal-overlay hidden" id="adminLoginModal">
+  <div class="modal-card admin-login-card">
+    <div class="modal-header">
+      <div class="admin-login-header-title">
+        <span class="admin-crown-icon">👑</span>
+        <div>
+          <h3>Đăng Nhập Quản Trị Viên 🌸</h3>
+          <p class="admin-login-sub">Dành cho chủ shop quản lý đơn thuê & xem full thông tin khách hàng</p>
+        </div>
+      </div>
+      <button class="modal-close" id="closeAdminLoginBtn">&times;</button>
+    </div>
+
+    <form id="adminLoginForm" class="admin-login-form">
+      <div class="admin-input-group">
+        <label for="adminUsername">Tài khoản quản trị:</label>
+        <div class="admin-input-wrapper">
+          <span class="admin-input-icon">👤</span>
+          <input type="text" id="adminUsername" placeholder="Nhập tài khoản (vd: admin)..." autocomplete="username"
+            required>
+        </div>
+      </div>
+
+      <div class="admin-input-group">
+        <label for="adminPassword">Mật khẩu:</label>
+        <div class="admin-input-wrapper">
+          <span class="admin-input-icon">🔒</span>
+          <input type="password" id="adminPassword" placeholder="Nhập mật khẩu..." autocomplete="current-password"
+            required>
+          <button type="button" class="btn-pwd-eye" id="btnTogglePwd" title="Hiện/Ẩn mật khẩu">👁️</button>
+        </div>
+      </div>
+
+      <div class="admin-login-hint-box">
+        <span class="hint-bulb">💡</span>
+        <div class="hint-text">
+          Tài khoản mặc định: <strong>admin</strong> • Mật khẩu: <strong>admin123</strong>
+        </div>
+      </div>
+
+      <div class="admin-login-alert hidden" id="adminLoginAlert"></div>
+
+      <div class="admin-login-actions">
+        <button type="button" class="btn-admin-cancel" id="cancelAdminLoginBtn">Hủy</button>
+        <button type="submit" class="primary-btn admin-btn-login">
+          <span>✨ Đăng Nhập Quản Trị</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 2. MODAL BẢNG QUẢN TRỊ VIÊN XEM FULL THÔNG TIN KHÁCH HÀNG -->
+<div class="modal-overlay hidden" id="adminDashboardModal">
+  <div class="modal-card admin-dashboard-card">
+    <!-- Header Dashboard -->
+    <div class="modal-header admin-dash-header">
+      <div class="admin-dash-brand">
+        <div class="admin-logo-avatar-wrap">
+          <img src="assets/mochiimoon_logo.png" alt="mochimoon" class="admin-logo-avatar">
+          <span class="admin-avatar-crown">👑</span>
+        </div>
+        <div>
+          <h3>Quản Trị Viên Mochimoon • Quản Lý Khách Hàng</h3>
+          <p class="admin-login-status-badge">
+            <span class="status-dot-online"></span>
+            <span>Đang đăng nhập: <strong id="adminCurrentName">Admin (Chủ tiệm)</strong> • Toàn quyền xem thông tin
+              khách</span>
+          </p>
+        </div>
+      </div>
+      <div class="admin-dash-header-btns">
+        <button type="button" class="btn-admin-logout" id="btnAdminLogout" title="Đăng xuất khỏi tài khoản quản trị">
+          <span>🚪 Đăng Xuất</span>
+        </button>
+        <button class="modal-close" id="closeAdminDashBtn">&times;</button>
+      </div>
+    </div>
+
+    <!-- 4 KPI Summary Cards -->
+    <div class="admin-kpi-grid">
+      <div class="admin-kpi-card kpi-all">
+        <div class="kpi-icon-box">👥</div>
+        <div class="kpi-text-box">
+          <span class="kpi-label">Tổng khách / Đơn thuê</span>
+          <strong class="kpi-number" id="adminKpiTotalOrders">0 đơn</strong>
+        </div>
+      </div>
+      <div class="admin-kpi-card kpi-pending">
+        <div class="kpi-icon-box">⏳</div>
+        <div class="kpi-text-box">
+          <span class="kpi-label">Chờ cọc / Chờ duyệt</span>
+          <strong class="kpi-number" id="adminKpiPendingOrders">0 đơn</strong>
+        </div>
+      </div>
+      <div class="admin-kpi-card kpi-approved">
+        <div class="kpi-icon-box">✅</div>
+        <div class="kpi-text-box">
+          <span class="kpi-label">Đã cọc / Đang thuê</span>
+          <strong class="kpi-number" id="adminKpiApprovedOrders">0 đơn</strong>
+        </div>
+      </div>
+      <div class="admin-kpi-card kpi-money">
+        <div class="kpi-icon-box">💰</div>
+        <div class="kpi-text-box">
+          <span class="kpi-label">Tổng tiền đơn</span>
+          <strong class="kpi-number" id="adminKpiTotalRevenue">0đ</strong>
         </div>
       </div>
     </div>
 
-    <!-- 1. MODAL ĐĂNG NHẬP QUẢN TRỊ VIÊN MOCHIMOON -->
-    <div class="modal-overlay hidden" id="adminLoginModal">
-      <div class="modal-card admin-login-card">
-        <div class="modal-header">
-          <div class="admin-login-header-title">
-            <span class="admin-crown-icon">👑</span>
-            <div>
-              <h3>Đăng Nhập Quản Trị Viên 🌸</h3>
-              <p class="admin-login-sub">Dành cho chủ shop quản lý đơn thuê & xem full thông tin khách hàng</p>
-            </div>
-          </div>
-          <button class="modal-close" id="closeAdminLoginBtn">&times;</button>
-        </div>
-
-        <form id="adminLoginForm" class="admin-login-form">
-          <div class="admin-input-group">
-            <label for="adminUsername">Tài khoản quản trị:</label>
-            <div class="admin-input-wrapper">
-              <span class="admin-input-icon">👤</span>
-              <input type="text" id="adminUsername" placeholder="Nhập tài khoản (vd: admin)..." autocomplete="username" required>
-            </div>
-          </div>
-
-          <div class="admin-input-group">
-            <label for="adminPassword">Mật khẩu:</label>
-            <div class="admin-input-wrapper">
-              <span class="admin-input-icon">🔒</span>
-              <input type="password" id="adminPassword" placeholder="Nhập mật khẩu..." autocomplete="current-password" required>
-              <button type="button" class="btn-pwd-eye" id="btnTogglePwd" title="Hiện/Ẩn mật khẩu">👁️</button>
-            </div>
-          </div>
-
-          <div class="admin-login-hint-box">
-            <span class="hint-bulb">💡</span>
-            <div class="hint-text">
-              Tài khoản mặc định: <strong>admin</strong> • Mật khẩu: <strong>admin123</strong>
-            </div>
-          </div>
-
-          <div class="admin-login-alert hidden" id="adminLoginAlert"></div>
-
-          <div class="admin-login-actions">
-            <button type="button" class="btn-admin-cancel" id="cancelAdminLoginBtn">Hủy</button>
-            <button type="submit" class="primary-btn admin-btn-login">
-              <span>✨ Đăng Nhập Quản Trị</span>
-            </button>
-          </div>
-        </form>
+    <!-- Toolbar: Search & Filter -->
+    <div class="admin-toolbar-row">
+      <div class="admin-search-box">
+        <span class="admin-search-icon">🔍</span>
+        <input type="text" id="adminSearchInput" placeholder="Tìm theo tên khách hàng, số điện thoại, mã đơn (#MC-)...">
+      </div>
+      <div class="admin-filter-box">
+        <select id="adminStatusFilter">
+          <option value="all">Tất cả trạng thái</option>
+          <option value="pending">⏳ Chờ thanh toán cọc</option>
+          <option value="approved">✅ Đã cọc thành công</option>
+          <option value="renting">👘 Đang thuê đồ</option>
+          <option value="completed">🌸 Đã hoàn tất / Đã trả</option>
+        </select>
+        <button type="button" class="btn-admin-refresh" id="btnAdminRefresh" title="Tải lại danh sách">
+          <span>🔄 Làm mới</span>
+        </button>
       </div>
     </div>
 
-    <!-- 2. MODAL BẢNG QUẢN TRỊ VIÊN XEM FULL THÔNG TIN KHÁCH HÀNG -->
-    <div class="modal-overlay hidden" id="adminDashboardModal">
-      <div class="modal-card admin-dashboard-card">
-        <!-- Header Dashboard -->
-        <div class="modal-header admin-dash-header">
-          <div class="admin-dash-brand">
-            <div class="admin-logo-avatar-wrap">
-              <img src="assets/mochiimoon_logo.png" alt="mochimoon" class="admin-logo-avatar">
-              <span class="admin-avatar-crown">👑</span>
-            </div>
-            <div>
-              <h3>Quản Trị Viên Mochimoon • Quản Lý Khách Hàng</h3>
-              <p class="admin-login-status-badge">
-                <span class="status-dot-online"></span>
-                <span>Đang đăng nhập: <strong id="adminCurrentName">Admin (Chủ tiệm)</strong> • Toàn quyền xem thông tin khách</span>
-              </p>
-            </div>
-          </div>
-          <div class="admin-dash-header-btns">
-            <button type="button" class="btn-admin-logout" id="btnAdminLogout" title="Đăng xuất khỏi tài khoản quản trị">
-              <span>🚪 Đăng Xuất</span>
-            </button>
-            <button class="modal-close" id="closeAdminDashBtn">&times;</button>
-          </div>
-        </div>
-
-        <!-- 4 KPI Summary Cards -->
-        <div class="admin-kpi-grid">
-          <div class="admin-kpi-card kpi-all">
-            <div class="kpi-icon-box">👥</div>
-            <div class="kpi-text-box">
-              <span class="kpi-label">Tổng khách / Đơn thuê</span>
-              <strong class="kpi-number" id="adminKpiTotalOrders">0 đơn</strong>
-            </div>
-          </div>
-          <div class="admin-kpi-card kpi-pending">
-            <div class="kpi-icon-box">⏳</div>
-            <div class="kpi-text-box">
-              <span class="kpi-label">Chờ cọc / Chờ duyệt</span>
-              <strong class="kpi-number" id="adminKpiPendingOrders">0 đơn</strong>
-            </div>
-          </div>
-          <div class="admin-kpi-card kpi-approved">
-            <div class="kpi-icon-box">✅</div>
-            <div class="kpi-text-box">
-              <span class="kpi-label">Đã cọc / Đang thuê</span>
-              <strong class="kpi-number" id="adminKpiApprovedOrders">0 đơn</strong>
-            </div>
-          </div>
-          <div class="admin-kpi-card kpi-money">
-            <div class="kpi-icon-box">💰</div>
-            <div class="kpi-text-box">
-              <span class="kpi-label">Tổng tiền đơn</span>
-              <strong class="kpi-number" id="adminKpiTotalRevenue">0đ</strong>
-            </div>
-          </div>
-        </div>
-
-        <!-- Toolbar: Search & Filter -->
-        <div class="admin-toolbar-row">
-          <div class="admin-search-box">
-            <span class="admin-search-icon">🔍</span>
-            <input type="text" id="adminSearchInput" placeholder="Tìm theo tên khách hàng, số điện thoại, mã đơn (#MC-)...">
-          </div>
-          <div class="admin-filter-box">
-            <select id="adminStatusFilter">
-              <option value="all">Tất cả trạng thái</option>
-              <option value="pending">⏳ Chờ thanh toán cọc</option>
-              <option value="approved">✅ Đã cọc thành công</option>
-              <option value="renting">👘 Đang thuê đồ</option>
-              <option value="completed">🌸 Đã hoàn tất / Đã trả</option>
-            </select>
-            <button type="button" class="btn-admin-refresh" id="btnAdminRefresh" title="Tải lại danh sách">
-              <span>🔄 Làm mới</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Danh sách khách hàng Full Thông Tin -->
-        <div class="admin-orders-container" id="adminOrdersContainer">
-          <!-- Render danh sách chi tiết khách hàng tại đây -->
-        </div>
-
-        <!-- Footer -->
-        <div class="modal-footer admin-dash-footer">
-          <div class="admin-footer-security-note">
-            <span>🔒 Dữ liệu thông tin khách hàng được bảo mật nội bộ và lưu trữ tại tiệm Mochimoon.</span>
-          </div>
-          <button type="button" class="primary-btn" id="closeAdminDashBtn2">Đóng Bảng Quản Trị</button>
-        </div>
-      </div>
+    <!-- Danh sách khách hàng Full Thông Tin -->
+    <div class="admin-orders-container" id="adminOrdersContainer">
+      <!-- Render danh sách chi tiết khách hàng tại đây -->
     </div>
 
-    <script src="app.js"></script>
+    <!-- Footer -->
+    <div class="modal-footer admin-dash-footer">
+      <div class="admin-footer-security-note">
+        <span>🔒 Dữ liệu thông tin khách hàng được bảo mật nội bộ và lưu trữ tại tiệm Mochimoon.</span>
+      </div>
+      <button type="button" class="primary-btn" id="closeAdminDashBtn2">Đóng Bảng Quản Trị</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 
 </html>

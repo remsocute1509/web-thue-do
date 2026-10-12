@@ -3,6 +3,7 @@ import re
 import sys
 import json
 import urllib.parse
+import urllib.request
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
@@ -49,13 +50,29 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
             is_paid = False
             tx_info = None
             if order_id:
+                target = re.sub(r'[^a-zA-Z0-9]', '', order_id).lower()
                 for key, val in paid_orders.items():
-                    k_clean = key.replace('#', '').lower()
-                    target = order_id.lower()
-                    if k_clean == target or target in k_clean or k_clean in target:
+                    k_clean = re.sub(r'[^a-zA-Z0-9]', '', key).lower()
+                    val_id = re.sub(r'[^a-zA-Z0-9]', '', str(val.get('orderId', ''))).lower() if isinstance(val, dict) else ''
+                    val_content = str(val.get('content', '')).lower() if isinstance(val, dict) else ''
+                    if (target and (k_clean == target or target in k_clean or k_clean in target or val_id == target or target in val_content)):
                         is_paid = True
                         tx_info = val
                         break
+
+            # Fallback check Cloud KV
+            if not is_paid and order_id:
+                try:
+                    clean_target = re.sub(r'[^a-zA-Z0-9]', '', order_id).lower()
+                    req = urllib.request.Request(f'https://kvdb.io/4fVC3QnzuUwxGeVLvAhHAb/{clean_target}', headers={'User-Agent': 'MochymoonLocal/1.0'})
+                    with urllib.request.urlopen(req, timeout=3) as kv_resp:
+                        if kv_resp.status == 200:
+                            kv_data = json.loads(kv_resp.read().decode('utf-8'))
+                            if kv_data:
+                                is_paid = True
+                                tx_info = kv_data
+                except Exception:
+                    pass
 
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
@@ -73,6 +90,29 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
             self.wfile.write(json.dumps(paid_orders, ensure_ascii=False).encode('utf-8'))
+            return
+
+        elif parsed.path == '/api/bookings':
+            bookings_file = os.path.join(DATA_DIR, 'bookings.json')
+            bookings = []
+            if os.path.exists(bookings_file):
+                try:
+                    with open(bookings_file, 'r', encoding='utf-8') as f:
+                        bookings = json.load(f)
+                except Exception:
+                    bookings = []
+            if not bookings:
+                try:
+                    req = urllib.request.Request('https://kvdb.io/4fVC3QnzuUwxGeVLvAhHAb/mochimoon_bookings')
+                    with urllib.request.urlopen(req, timeout=3) as kv_resp:
+                        if kv_resp.status == 200:
+                            bookings = json.loads(kv_resp.read().decode('utf-8'))
+                except Exception:
+                    pass
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps(bookings, ensure_ascii=False).encode('utf-8'))
             return
 
         super().do_GET()
@@ -153,6 +193,22 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
                 'orderId': order_id,
                 'message': 'Simulated bank notification registered'
             }, ensure_ascii=False).encode('utf-8'))
+            return
+
+        elif parsed.path == '/api/bookings':
+            content_len = int(self.headers.get('Content-Length', 0))
+            body_bytes = self.rfile.read(content_len)
+            try:
+                bookings_data = json.loads(body_bytes.decode('utf-8'))
+                bookings_file = os.path.join(DATA_DIR, 'bookings.json')
+                with open(bookings_file, 'w', encoding='utf-8') as f:
+                    json.dump(bookings_data, f, ensure_ascii=False, indent=2)
+            except Exception as e:
+                print("Bookings save error:", e)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
             return
 
         self.send_error(404, "Not Found")
