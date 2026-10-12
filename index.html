@@ -640,10 +640,15 @@
                   <span class="step-badge-num">1</span>
                   <span class="step-text">Điền Thông Tin Thuê</span>
                 </div>
-                <div class="step-connector" id="stepConnector"></div>
+                <div class="step-connector" id="stepConnector1"></div>
                 <div class="step-pill" id="stepPill2">
                   <span class="step-badge-num">2</span>
                   <span class="step-text">Thanh Toán & Cọc</span>
+                </div>
+                <div class="step-connector" id="stepConnector2"></div>
+                <div class="step-pill" id="stepPill3">
+                  <span class="step-badge-num">3</span>
+                  <span class="step-text">Hóa Đơn & Cảm Ơn</span>
                 </div>
               </div>
 
@@ -848,6 +853,219 @@
                         hàng sẽ <strong>TỰ ĐỘNG DUYỆT</strong> ngay lập tức!</span>
                     </div>
                   </div>
+
+                  <!-- Payment Actions Row -->
+                  <div class="payment-actions-row">
+                    <button type="button" class="btn-confirm-paid" id="btnConfirmPaid">
+                      <span>✨ Tôi Đã Chuyển Khoản Thành Công</span>
+                    </button>
+                    <button type="button" class="btn-back-booking" id="btnBackToBooking">
+                      <span>↩️ Quay Lại Đổi Thông Tin</span>
+                    </button>
+                  </div>
+
+                  <!-- Quick Simulate Option -->
+                  <div style="text-align: center; margin-top: 6px;">
+                    <button type="button" id="btnSimulatePayment" class="btn-simulate-mini">
+                      ⚡ Thử Nghiệm: Giả Lập Nhận Tiền Ngân Hàng (Test Duyệt Ngay)
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 3: Thank You & Official Rental Invoice / Receipt Panel -->
+              <div class="booking-invoice-panel hidden" id="bookingInvoicePanel">
+                <!-- Thank You Celebration Banner -->
+                <div class="invoice-thankyou-card">
+                  <div class="thankyou-badge-icon">🎉</div>
+                  <div class="thankyou-message">
+                    <h3>CẢM ƠN BẠN ĐÃ ĐẶT THUÊ ĐỒ TẠI MOCHYMOON! 💕</h3>
+                    <p>Giao dịch thanh toán đã thành công và đơn hàng đã được <strong>tự động duyệt</strong> trên hệ thống. Dưới đây là <strong>Hóa đơn điện tử & Phiếu thu tiền</strong> của bạn.</p>
+                  </div>
+                </div>
+
+                <!-- Printable Invoice Sheet -->
+                <div class="invoice-paper-sheet" id="printableInvoiceSheet">
+                  <!-- Sheet Header -->
+                  <div class="invoice-sheet-header">
+                    <div class="shop-brand-info">
+                      <div class="shop-brand-title">🌸 MOCHYMOON COSPLAY</div>
+                      <div class="shop-brand-sub">Tiệm Cho Thuê Trang Phục Cosplay & Phụ Kiện Uy Tín</div>
+                      <div class="shop-brand-contact">
+                        <span>📍 Cửa hàng Mochymoon Shop</span> •
+                        <span>📞 Hotline/Zalo: <strong>0377.193.835</strong></span>
+                      </div>
+                    </div>
+                    <div class="invoice-title-block">
+                      <h2 class="invoice-main-title">HÓA ĐƠN THUÊ TRANG PHỤC</h2>
+                      <span class="invoice-title-en">COSPLAY RENTAL INVOICE & RECEIPT</span>
+                      <div class="invoice-code-tag" id="invOrderId">#MC-83921</div>
+                    </div>
+                  </div>
+
+                  <!-- Paid Stamp Overlay -->
+                  <div class="invoice-stamp-paid">
+                    <div class="stamp-inner">
+                      <span class="stamp-star">★ ★ ★</span>
+                      <strong class="stamp-title">ĐÃ THANH TOÁN</strong>
+                      <span class="stamp-en">PAID IN FULL</span>
+                      <small class="stamp-bank">MB BANK • 0377193835</small>
+                    </div>
+                  </div>
+
+                  <!-- Invoice Meta Grid -->
+                  <div class="invoice-meta-grid">
+                    <div class="meta-item">
+                      <span class="meta-label">Mã hóa đơn / Đơn thuê:</span>
+                      <strong class="meta-val" id="invMetaOrderCode">#MC-83921</strong>
+                    </div>
+                    <div class="meta-item">
+                      <span class="meta-label">Thời gian lập & thanh toán:</span>
+                      <span class="meta-val" id="invCreatedTime">12/10/2026 - 15:50</span>
+                    </div>
+                    <div class="meta-item">
+                      <span class="meta-label">Phương thức thanh toán:</span>
+                      <span class="meta-val">Chuyển khoản MB Bank (Tự động duyệt)</span>
+                    </div>
+                    <div class="meta-item">
+                      <span class="meta-label">Tình trạng thanh toán:</span>
+                      <span class="meta-val status-paid-pill">✅ Đã Thanh Toán 100%</span>
+                    </div>
+                  </div>
+
+                  <!-- Customer Info Card -->
+                  <div class="invoice-customer-card">
+                    <div class="customer-card-title">👤 THÔNG TIN KHÁCH HÀNG & LỊCH THUÊ:</div>
+                    <div class="customer-info-grid">
+                      <div class="cust-row">
+                        <span class="cust-lbl">Họ & tên khách thuê:</span>
+                        <strong class="cust-val" id="invCustName">Nguyễn Văn A</strong>
+                      </div>
+                      <div class="cust-row">
+                        <span class="cust-lbl">Số điện thoại / Zalo:</span>
+                        <strong class="cust-val" id="invCustPhone">0377193835</strong>
+                      </div>
+                      <div class="cust-row">
+                        <span class="cust-lbl">Thời gian giữ đồ:</span>
+                        <span class="cust-val highlight-dates" id="invDateRange">12/10/2026 ➔ 15/10/2026</span>
+                      </div>
+                      <div class="cust-row">
+                        <span class="cust-lbl">Gói thời gian thuê:</span>
+                        <span class="cust-val" id="invDurationText">3 ngày (fes/shoot)</span>
+                      </div>
+                      <div class="cust-row full-width" id="invNoteRow">
+                        <span class="cust-lbl">Ghi chú của bạn:</span>
+                        <span class="cust-val" id="invCustNote">Không có ghi chú</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Line Items Table -->
+                  <div class="invoice-table-wrap">
+                    <table class="invoice-table">
+                      <thead>
+                        <tr>
+                          <th style="width: 45px; text-align: center;">STT</th>
+                          <th>Tên Trang Phục / Dịch Vụ</th>
+                          <th style="width: 85px; text-align: center;">Kích Cỡ</th>
+                          <th style="width: 150px; text-align: center;">Thời Gian Thuê</th>
+                          <th style="width: 110px; text-align: right;">Đơn Giá</th>
+                          <th style="width: 120px; text-align: right;">Thành Tiền</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td style="text-align: center; font-weight: 700;">1</td>
+                          <td>
+                            <strong class="table-item-title" id="invItemName">Himmel (Sousou no Frieren)</strong>
+                            <div class="table-item-desc" id="invItemDesc">Full set trang phục kèm Wig tạo kiểu chuẩn nhân vật</div>
+                          </td>
+                          <td style="text-align: center;"><span class="badge-size" id="invItemSize">Size XL</span></td>
+                          <td style="text-align: center;" class="table-dates" id="invItemDates">12/10 ➔ 15/10</td>
+                          <td style="text-align: right;" id="invItemUnitPrice">150.000đ</td>
+                          <td style="text-align: right; font-weight: 800; color: #0f172a;" id="invItemTotal">150.000đ</td>
+                        </tr>
+                        <tr class="deposit-row">
+                          <td style="text-align: center; color: #94a3b8;">2</td>
+                          <td colspan="3">
+                            <span class="deposit-title">🛡️ Tiền cọc bảo đảm trang phục</span>
+                            <div class="deposit-note" id="invDepositRule">Quy định: Cọc Thẻ học sinh / CCCD / Giấy khai sinh (hoặc cọc tiền mặt khi đến lấy đồ)</div>
+                          </td>
+                          <td style="text-align: right; color: #64748b;">Giữ giấy tờ</td>
+                          <td style="text-align: right; font-weight: 600; color: #16a34a;">0đ (Cọc khi lấy)</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <!-- Financial Summary Box -->
+                  <div class="invoice-financial-summary">
+                    <div class="fin-row">
+                      <span>Tổng tiền thuê trang phục:</span>
+                      <strong id="invSumRent">150.000đ</strong>
+                    </div>
+                    <div class="fin-row">
+                      <span>Ưu đãi / Giảm giá:</span>
+                      <span>0đ</span>
+                    </div>
+                    <div class="fin-row highlight-sum">
+                      <span>TỔNG TIỀN THANH TOÁN:</span>
+                      <strong class="total-big-val" id="invSumTotal">150.000đ</strong>
+                    </div>
+                    <div class="fin-row paid-row">
+                      <span>Số tiền đã thanh toán (MB Bank 0377193835):</span>
+                      <strong class="paid-green-val" id="invSumPaid">-150.000đ</strong>
+                    </div>
+                    <div class="fin-row balance-row">
+                      <span>Số tiền còn lại cần thanh toán khi nhận đồ:</span>
+                      <strong class="balance-zero-val" id="invSumBalance">0đ (Đã thanh toán 100%)</strong>
+                    </div>
+                  </div>
+
+                  <!-- Terms & Notice -->
+                  <div class="invoice-terms-box">
+                    <h5>📌 LƯU Ý & HƯỚNG DẪN DÀNH CHO BẠN:</h5>
+                    <ol>
+                      <li><strong>Nhận đồ tại shop hoặc giao hàng:</strong> Vui lòng xuất trình mã hóa đơn này hoặc số điện thoại đã đặt thuê khi tới nhận đồ.</li>
+                      <li><strong>Giấy tờ cọc đồ:</strong> Khi nhận đồ, bạn gửi lại Thẻ học sinh / CMND / CCCD (hoặc cọc tiền mặt) theo thỏa thuận để shop giữ hộ và sẽ hoàn trả đầy đủ khi bạn trả đồ.</li>
+                      <li><strong>Kiểm tra trang phục:</strong> Bạn vui lòng kiểm tra kỹ phụ kiện và tình trạng đồ cùng shop trước khi mang về sử dụng.</li>
+                      <li><strong>Bảo quản:</strong> Vui lòng không tự ý cắt may hoặc dùng chất tẩy mạnh làm hư hỏng trang phục.</li>
+                    </ol>
+                  </div>
+
+                  <!-- Signatures -->
+                  <div class="invoice-signatures-row">
+                    <div class="sig-block">
+                      <span class="sig-title">Người Thuê Trang Phục</span>
+                      <span class="sig-hint">(Đã xác nhận & ký điện tử)</span>
+                      <div class="sig-name" id="invSignCustomer">Khách Hàng</div>
+                    </div>
+                    <div class="sig-block shop-sig">
+                      <span class="sig-title">Đại Diện Mochymoon Shop</span>
+                      <span class="sig-hint">(Đã xác nhận thanh toán & duyệt đơn)</span>
+                      <div class="sig-name">DUONG NAM PHONG</div>
+                      <span class="sig-hotline">Hotline: 0377.193.835</span>
+                    </div>
+                  </div>
+
+                  <!-- Decorative Footer Barcode -->
+                  <div class="invoice-bottom-barcode">
+                    <div class="barcode-lines">||| | |||| | ||| || |||| | || ||||| ||| | ||| |||| | ||</div>
+                    <span class="barcode-text" id="invBarcodeText">MOCHYMOON-VERIFIED-MBBANK-0377193835</span>
+                  </div>
+                </div>
+
+                <!-- Invoice Action Toolbar -->
+                <div class="invoice-actions-toolbar">
+                  <button type="button" class="btn-invoice-action btn-print" id="btnPrintInvoice">
+                    <span>🖨️ In Hóa Đơn / Lưu PDF</span>
+                  </button>
+                  <button type="button" class="btn-invoice-action btn-book-more" id="btnBookAnother">
+                    <span>🌸 Thuê Thêm Bộ Khác</span>
+                  </button>
+                  <a href="https://zalo.me/0377193835" target="_blank" rel="noopener noreferrer" class="btn-invoice-action btn-zalo-contact" id="btnContactShop">
+                    <span>💬 Nhắn Zalo Hỗ Trợ</span>
+                  </a>
                 </div>
               </div>
             </div>

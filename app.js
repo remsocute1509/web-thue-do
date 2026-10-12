@@ -1340,11 +1340,16 @@ let bankPollingTimer = null;
 function showPaymentStep(booking) {
   const form = document.getElementById('bookingForm');
   const paymentPanel = document.getElementById('bookingPaymentPanel');
+  const invoicePanel = document.getElementById('bookingInvoicePanel');
   const stepPill1 = document.getElementById('stepPill1');
   const stepPill2 = document.getElementById('stepPill2');
-  const stepConnector = document.getElementById('stepConnector');
+  const stepPill3 = document.getElementById('stepPill3');
+  const stepConnector1 = document.getElementById('stepConnector1');
+  const stepConnector2 = document.getElementById('stepConnector2');
 
   if (!paymentPanel || !booking) return;
+
+  appState.currentPaymentBooking = booking;
 
   // Clean Order Code for Transfer
   const cleanCode = (booking.orderId || ('MC' + booking.id)).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
@@ -1405,12 +1410,9 @@ function showPaymentStep(booking) {
   const vietQrImg = document.getElementById('vietQrImg');
   if (vietQrImg) {
     vietQrImg.src = `https://img.vietqr.io/image/MB-0377193835-compact2.png?amount=${pricing.totalToPay}&addInfo=${encodeURIComponent(transferContent)}&accountName=DUONG%20NAM%20PHONG`;
-  }
-
-  // Ensure VietQR is visible
-  if (vietQrImg) {
     vietQrImg.classList.remove('hidden');
   }
+
   const qrScanHint = document.getElementById('qrScanHint');
   if (qrScanHint) {
     qrScanHint.textContent = '⚡ Quét mã VietQR tự động điền sẵn số tiền và nội dung đơn';
@@ -1436,8 +1438,9 @@ function showPaymentStep(booking) {
   if (listenTitle) listenTitle.textContent = '🔄 Hệ thống đang chờ ngân hàng MB Bank báo nhận tiền...';
   if (listenSub) listenSub.innerHTML = `Khi tài khoản <strong>0377193835</strong> nhận được tiền đúng cú pháp, đơn hàng sẽ <strong>TỰ ĐỘNG DUYỆT</strong> ngay lập tức!`;
 
-  // Switch View: Hide Form, Show Payment Step
+  // Switch View: Hide Form & Invoice, Show Payment Step
   if (form) form.style.display = 'none';
+  if (invoicePanel) invoicePanel.classList.add('hidden');
   paymentPanel.classList.remove('hidden');
 
   // Steps Progress Bar Update
@@ -1447,9 +1450,17 @@ function showPaymentStep(booking) {
   }
   if (stepPill2) {
     stepPill2.classList.add('active');
+    stepPill2.classList.remove('completed');
   }
-  if (stepConnector) {
-    stepConnector.classList.add('active');
+  if (stepPill3) {
+    stepPill3.classList.remove('active');
+    stepPill3.classList.remove('completed');
+  }
+  if (stepConnector1) {
+    stepConnector1.classList.add('active');
+  }
+  if (stepConnector2) {
+    stepConnector2.classList.remove('active');
   }
 
   // Scroll smoothly into view
@@ -1517,11 +1528,169 @@ function onBankPaymentApproved(booking, txData) {
     localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings));
   } catch (e) { }
 
+  saveCloudBookings(appState.bookings);
   renderBookedList();
+  refreshAvailabilityUI();
   playSuccessChime();
   playLofiMelody();
 
-  alert(`🎉 TING TING! Tài khoản MB Bank (0377193835) của DUONG NAM PHONG đã nhận được tiền!\n\nĐơn thuê: "${booking.character}" (${booking.orderId})\nTrạng thái: ĐÃ TỰ ĐỘNG DUYỆT HOÀN TẤT! ✨\nCảm ơn bạn đã ủng hộ shop nhé! 💕`);
+  // Chuyển mượt mà qua Bước 3: Hóa đơn & Cảm ơn
+  showInvoiceStep(booking, txData);
+}
+
+function showInvoiceStep(booking, txData) {
+  if (bankPollingTimer) {
+    clearInterval(bankPollingTimer);
+    bankPollingTimer = null;
+  }
+
+  const form = document.getElementById('bookingForm');
+  const paymentPanel = document.getElementById('bookingPaymentPanel');
+  const invoicePanel = document.getElementById('bookingInvoicePanel');
+  const stepPill1 = document.getElementById('stepPill1');
+  const stepPill2 = document.getElementById('stepPill2');
+  const stepPill3 = document.getElementById('stepPill3');
+  const stepConnector1 = document.getElementById('stepConnector1');
+  const stepConnector2 = document.getElementById('stepConnector2');
+
+  if (!invoicePanel || !booking) return;
+
+  appState.currentPaymentBooking = booking;
+
+  // 1. Populate Invoice Data
+  const orderId = booking.orderId || ('#MC-' + (booking.id || Date.now()));
+  const invOrderIdEl = document.getElementById('invOrderId');
+  if (invOrderIdEl) invOrderIdEl.textContent = orderId;
+
+  const invMetaOrderCodeEl = document.getElementById('invMetaOrderCode');
+  if (invMetaOrderCodeEl) invMetaOrderCodeEl.textContent = orderId;
+
+  // Created time
+  const now = new Date();
+  const timeFormatted = (txData?.time && txData.time !== 'Vừa xong' && txData.time !== 'Khách xác nhận')
+    ? txData.time
+    : `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  const invCreatedTimeEl = document.getElementById('invCreatedTime');
+  if (invCreatedTimeEl) invCreatedTimeEl.textContent = timeFormatted;
+
+  // Customer info
+  const invCustNameEl = document.getElementById('invCustName');
+  if (invCustNameEl) invCustNameEl.textContent = booking.customerName || 'Khách hàng';
+
+  const invSignCustomerEl = document.getElementById('invSignCustomer');
+  if (invSignCustomerEl) invSignCustomerEl.textContent = booking.customerName || 'Khách hàng';
+
+  const invCustPhoneEl = document.getElementById('invCustPhone');
+  if (invCustPhoneEl) invCustPhoneEl.textContent = booking.phone || 'Chưa cung cấp';
+
+  const dateRange = `${booking.date} ➔ ${booking.returnDate || calculateReturnDate(booking.date, booking.duration)}`;
+  const invDateRangeEl = document.getElementById('invDateRange');
+  if (invDateRangeEl) invDateRangeEl.textContent = dateRange;
+
+  const invDurationTextEl = document.getElementById('invDurationText');
+  if (invDurationTextEl) invDurationTextEl.textContent = booking.duration || '3 ngày (fes/shoot)';
+
+  const invCustNoteEl = document.getElementById('invCustNote');
+  if (invCustNoteEl) invCustNoteEl.textContent = booking.note || 'Không có ghi chú thêm';
+
+  // Table items
+  const invItemNameEl = document.getElementById('invItemName');
+  if (invItemNameEl) invItemNameEl.textContent = booking.character;
+
+  const invItemDescEl = document.getElementById('invItemDesc');
+  if (invItemDescEl) {
+    const charLower = (booking.character || '').toLowerCase();
+    if (charLower.includes('himmel')) {
+      invItemDescEl.textContent = 'Full set trang phục Hiệp sĩ Himmel kèm Áo choàng + Wig chuẩn form';
+    } else if (charLower.includes('frieren')) {
+      invItemDescEl.textContent = 'Full set trang phục Pháp sư Frieren kèm Khuyên tai + Wig tạo kiểu';
+    } else if (charLower.includes('kaito')) {
+      invItemDescEl.textContent = 'Full set Siêu đạo chích Kaito Kid kèm Áo choàng + Mũ + Kính đơn';
+    } else if (charLower.includes('flins')) {
+      invItemDescEl.textContent = 'Full set trang phục Flins cao cấp kèm Wig tạo kiểu chuẩn';
+    } else if (charLower.includes('kinosaki')) {
+      invItemDescEl.textContent = 'Full set nữ sinh Kinosaki Mei kèm Wig tạo kiểu';
+    } else if (charLower.includes('marin') || charLower.includes('shizuku')) {
+      invItemDescEl.textContent = 'Full set Kitagawa Marin Ver Shizuku kèm Cánh + Váy dạ hội';
+    } else {
+      invItemDescEl.textContent = 'Full set trang phục Cosplay cao cấp kèm Wig tạo kiểu & phụ kiện';
+    }
+  }
+
+  const invItemSizeEl = document.getElementById('invItemSize');
+  if (invItemSizeEl) invItemSizeEl.textContent = `Size ${booking.size}`;
+
+  const invItemDatesEl = document.getElementById('invItemDates');
+  if (invItemDatesEl) invItemDatesEl.textContent = dateRange;
+
+  const pricing = booking.pricing || getRentalPricing(booking.character, booking.duration, booking.size);
+  const invItemUnitPriceEl = document.getElementById('invItemUnitPrice');
+  if (invItemUnitPriceEl) invItemUnitPriceEl.textContent = pricing.rentPriceFormatted;
+
+  const invItemTotalEl = document.getElementById('invItemTotal');
+  if (invItemTotalEl) invItemTotalEl.textContent = pricing.rentPriceFormatted;
+
+  const invDepositRuleEl = document.getElementById('invDepositRule');
+  if (invDepositRuleEl) invDepositRuleEl.textContent = `Quy định: ${pricing.depositDesc || 'Cọc Thẻ học sinh / CCCD / Khai sinh (hoặc cọc tiền mặt khi lấy đồ)'}`;
+
+  const invSumRentEl = document.getElementById('invSumRent');
+  if (invSumRentEl) invSumRentEl.textContent = pricing.rentPriceFormatted;
+
+  const invSumTotalEl = document.getElementById('invSumTotal');
+  if (invSumTotalEl) invSumTotalEl.textContent = pricing.totalToPayFormatted;
+
+  const invSumPaidEl = document.getElementById('invSumPaid');
+  if (invSumPaidEl) invSumPaidEl.textContent = `-${pricing.totalToPayFormatted}`;
+
+  const invSumBalanceEl = document.getElementById('invSumBalance');
+  if (invSumBalanceEl) invSumBalanceEl.textContent = '0đ (Đã thanh toán 100%)';
+
+  const cleanCode = (booking.orderId || '').replace(/[^a-zA-Z0-9]/g, '');
+  const invBarcodeTextEl = document.getElementById('invBarcodeText');
+  if (invBarcodeTextEl) invBarcodeTextEl.textContent = `MOCHYMOON-${cleanCode}-PAID-MBBANK-0377193835`;
+
+  // 2. Switch Views
+  if (form) form.style.display = 'none';
+  if (paymentPanel) paymentPanel.classList.add('hidden');
+  invoicePanel.classList.remove('hidden');
+
+  // 3. Update Progress Bar
+  if (stepPill1) {
+    stepPill1.classList.remove('active');
+    stepPill1.classList.add('completed');
+  }
+  if (stepConnector1) {
+    stepConnector1.classList.add('active');
+  }
+  if (stepPill2) {
+    stepPill2.classList.remove('active');
+    stepPill2.classList.add('completed');
+  }
+  if (stepConnector2) {
+    stepConnector2.classList.add('active');
+  }
+  if (stepPill3) {
+    stepPill3.classList.add('active');
+    stepPill3.classList.remove('completed');
+  }
+
+  // 4. Scroll smoothly to top of booking section
+  document.getElementById('bookingStepsBar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // 5. Celebration petals
+  try {
+    triggerPetalBurst();
+  } catch (e) { }
+}
+
+function triggerPetalBurst() {
+  const container = document.getElementById('sakuraContainer');
+  if (!container) return;
+  for (let i = 0; i < 15; i++) {
+    setTimeout(() => {
+      createPetal(container);
+    }, i * 60);
+  }
 }
 
 function showBookingFormStep() {
@@ -1532,11 +1701,15 @@ function showBookingFormStep() {
 
   const form = document.getElementById('bookingForm');
   const paymentPanel = document.getElementById('bookingPaymentPanel');
+  const invoicePanel = document.getElementById('bookingInvoicePanel');
   const stepPill1 = document.getElementById('stepPill1');
   const stepPill2 = document.getElementById('stepPill2');
-  const stepConnector = document.getElementById('stepConnector');
+  const stepPill3 = document.getElementById('stepPill3');
+  const stepConnector1 = document.getElementById('stepConnector1');
+  const stepConnector2 = document.getElementById('stepConnector2');
 
   if (paymentPanel) paymentPanel.classList.add('hidden');
+  if (invoicePanel) invoicePanel.classList.add('hidden');
   if (form) form.style.display = 'flex';
 
   if (stepPill1) {
@@ -1545,9 +1718,17 @@ function showBookingFormStep() {
   }
   if (stepPill2) {
     stepPill2.classList.remove('active');
+    stepPill2.classList.remove('completed');
   }
-  if (stepConnector) {
-    stepConnector.classList.remove('active');
+  if (stepPill3) {
+    stepPill3.classList.remove('active');
+    stepPill3.classList.remove('completed');
+  }
+  if (stepConnector1) {
+    stepConnector1.classList.remove('active');
+  }
+  if (stepConnector2) {
+    stepConnector2.classList.remove('active');
   }
 
   document.getElementById('bookingStepsBar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1699,6 +1880,33 @@ function initPaymentActions() {
       }
     }
   });
+  document.getElementById('stepPill3')?.addEventListener('click', () => {
+    if (appState.currentPaymentBooking && (appState.currentPaymentBooking.status || '').includes('Đã')) {
+      showInvoiceStep(appState.currentPaymentBooking);
+    } else {
+      const paid = (appState.bookings || []).find(b => (b.status || '').includes('Đã') || (b.status || '').includes('duyệt'));
+      if (paid) {
+        showInvoiceStep(paid);
+      } else {
+        alert('Đơn hàng cần hoàn tất thanh toán trước khi xem hóa đơn nhé! 🌸');
+      }
+    }
+  });
+
+  // Nút In Hóa Đơn & Thuê Thêm Đơn Khác trên trang Hóa Đơn (Bước 3)
+  document.getElementById('btnPrintInvoice')?.addEventListener('click', () => {
+    window.print();
+  });
+
+  document.getElementById('btnBookAnother')?.addEventListener('click', () => {
+    const nameInput = document.getElementById('customerName');
+    const phoneInput = document.getElementById('customerPhone');
+    const noteInput = document.getElementById('bookingNote');
+    if (nameInput) nameInput.value = '';
+    if (phoneInput) phoneInput.value = '';
+    if (noteInput) noteInput.value = '';
+    showBookingFormStep();
+  });
 
   // 7. Copy Buttons
   function setupCopyBtn(btnId, targetFn) {
@@ -1810,6 +2018,13 @@ function renderBookedList() {
           </button>
         </div>
       ` : ''}
+      ${isPaid ? `
+        <div class="booked-invoice-row" style="margin-top: 6px; display:flex; justify-content: flex-end;">
+          <button type="button" class="btn-view-invoice" data-id="${b.id}" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border:none; border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(16,185,129,0.25);">
+            🧾 Xem Hóa Đơn ➔
+          </button>
+        </div>
+      ` : ''}
     `;
 
     if (isPending && isMine) {
@@ -1819,6 +2034,13 @@ function renderBookedList() {
         if (e.target.closest('.btn-quick-returned') || e.target.closest('a')) return;
         appState.currentPaymentBooking = b;
         showPaymentStep(b);
+      });
+    } else if (isPaid) {
+      item.style.cursor = 'pointer';
+      item.title = 'Bấm để xem hóa đơn & biên lai đơn hàng này';
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-quick-returned') || e.target.closest('a')) return;
+        showInvoiceStep(b);
       });
     }
 
