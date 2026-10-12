@@ -75,6 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initCostumeCatalog();
   initBackgroundMusicPlayer();
   initAdminPortal();
+  checkExpiredBookings();
+  setInterval(checkExpiredBookings, 30000);
 });
 
 function loadSavedState() {
@@ -974,6 +976,39 @@ function syncCostumeSize(characterName) {
   }
 }
 
+function isMyOrder(orderId) {
+  if (!orderId) return false;
+  try {
+    const myOrders = JSON.parse(localStorage.getItem('mochimoon_my_orders') || '[]');
+    return myOrders.includes(orderId) || (appState.currentPaymentBooking && appState.currentPaymentBooking.orderId === orderId);
+  } catch (e) {
+    return false;
+  }
+}
+
+function checkExpiredBookings() {
+  const HOLD_DURATION_MS = 20 * 60 * 1000; // Giữ slot chờ cọc trong 20 phút
+  const now = Date.now();
+  let changed = false;
+
+  (appState.bookings || []).forEach(b => {
+    if (b.status && b.status.includes('Chờ') && b.id && typeof b.id === 'number') {
+      if (now - b.id > HOLD_DURATION_MS) {
+        b.status = 'Đã hủy (Hết hạn giữ chỗ chờ cọc) ⌛';
+        changed = true;
+      }
+    }
+  });
+
+  if (changed) {
+    try {
+      localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings));
+    } catch (e) { }
+    renderBookedList();
+    refreshAvailabilityUI();
+  }
+}
+
 function isCostumeBooked(characterName) {
   if (!characterName) return false;
   const targetClean = characterName.toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
@@ -1074,12 +1109,13 @@ function updateCostumePreview(characterName) {
         return bookedClean.includes(targetClean) || targetClean.includes(bookedClean);
       });
 
-      if (pendingBooking) {
+      if (pendingBooking && isMyOrder(pendingBooking.orderId)) {
+        // Chỉ hiển thị nút thanh toán cho ĐÚNG KHÁCH ĐÃ TẠO ĐƠN NÀY
         stockWarning.innerHTML = `
-          ⚠️ Bộ trang phục <strong>${escapeHtml(characterName)}</strong> hiện đang có đơn chờ cọc (<strong>${escapeHtml(pendingBooking.orderId || '')}</strong>).<br/>
+          📌 Bạn đang có đơn chờ cọc cho bộ <strong>${escapeHtml(characterName)}</strong> (Mã: <strong>${escapeHtml(pendingBooking.orderId || '')}</strong>).<br/>
           <div style="margin-top:6px;">
             <button type="button" class="btn-continue-pending-order" style="background: linear-gradient(135deg, #0284c7, #0ea5e9); color: #fff; border:none; border-radius: 8px; padding: 5px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(2,132,199,0.25);">
-              💳 Bạn muốn thanh toán tiếp cho đơn này? Bấm vào đây ➔
+              💳 Tiếp Tục Thanh Toán Cho Đơn Của Bạn ➔
             </button>
           </div>
         `;
@@ -1091,6 +1127,9 @@ function updateCostumePreview(characterName) {
             showPaymentStep(pendingBooking);
           });
         }
+      } else if (pendingBooking) {
+        // Đối với khách mới (Khách B): KHÔNG HIỂN THỊ NÚT THANH TOÁN
+        stockWarning.innerHTML = `⏳ Bộ trang phục <strong>${escapeHtml(characterName)}</strong> hiện đang có khách giữ chỗ (Đang chờ chuyển khoản cọc trong 20 phút). Nếu khách không cọc, slot sẽ tự động mở lại cho bạn nhé! 🌸`;
       } else {
         stockWarning.innerHTML = `⚠️ Bộ trang phục <strong>${escapeHtml(characterName)}</strong> hiện đã có khách đặt thuê (Hết slot). Vui lòng chọn mẫu khác hoặc liên hệ shop nhé! 🌸`;
       }
@@ -1204,6 +1243,11 @@ function initCosplayBooking() {
       appState.currentPaymentBooking = newBooking;
       try {
         localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings));
+        const myOrders = JSON.parse(localStorage.getItem('mochimoon_my_orders') || '[]');
+        if (!myOrders.includes(newBooking.orderId)) {
+          myOrders.push(newBooking.orderId);
+        }
+        localStorage.setItem('mochimoon_my_orders', JSON.stringify(myOrders));
       } catch (err) {
         console.warn('Booking save error', err);
       }
@@ -1700,13 +1744,16 @@ function renderBookedList() {
     const st = b.status || 'Đang có người thuê 🌸';
     const isPending = st.includes('Chờ');
     const isPaid = st.includes('Đã') || st.includes('✅') || st.includes('duyệt');
+    const isMine = isMyOrder(b.orderId);
 
     item.className = `booked-card-item ${isPending ? 'is-pending' : ''}`;
 
     item.innerHTML = `
       <div class="booked-card-title-row">
         <span class="booked-card-char">👘 ${escapeHtml(b.character.split('(')[0].trim())}</span>
-        <span class="booked-card-status ${isPaid ? 'paid' : (isPending ? 'pending' : '')}">${escapeHtml(st)}</span>
+        <span class="booked-card-status ${isPaid ? 'paid' : (isPending ? 'pending' : '')}">
+          ${isMine && isPending ? '⏳ Đơn của bạn (Chờ cọc)' : escapeHtml(st)}
+        </span>
       </div>
       <div class="booked-card-meta">
         <span class="booked-meta-tag">🗓️ Thuê: <strong>${escapeHtml(b.date)}</strong></span>
@@ -1714,7 +1761,7 @@ function renderBookedList() {
         <span class="booked-meta-tag booked-return-highlight">🔄 Ngày trả: <strong>${escapeHtml(returnDate)}</strong></span>
         <span class="booked-meta-tag"><em>(${escapeHtml(b.duration)})</em></span>
       </div>
-      ${isPending ? `
+      ${isPending && isMine ? `
         <div class="booked-resume-row" style="margin-top: 6px; display:flex; justify-content: flex-end;">
           <button type="button" class="btn-resume-pay" data-id="${b.id}" style="background: linear-gradient(135deg, #0284c7, #0ea5e9); color: #fff; border:none; border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(2,132,199,0.25);">
             💳 Tiếp Tục Thanh Toán ➔
@@ -1723,7 +1770,7 @@ function renderBookedList() {
       ` : ''}
     `;
 
-    if (isPending) {
+    if (isPending && isMine) {
       item.style.cursor = 'pointer';
       item.title = 'Bấm để mở lại mã QR tiếp tục thanh toán đơn này';
       item.addEventListener('click', (e) => {
