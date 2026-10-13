@@ -55,7 +55,7 @@ const appState = {
     currentTrackId: 'point_star',
     currentTrackName: '✨ Point the star ~ Chiều Gió Chill Mix',
     volume: 0.7,
-    favorites: ['point_star', 'longaodance', 'sakura', 'kawaii', 'daydream'],
+    favorites: ['point_star', 'longaodance', 'snaptik_dance', 'sakura', 'kawaii', 'daydream'],
     activeTab: 'all'
   }
 };
@@ -67,12 +67,16 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSavedState();
   initSakuraPetals();
   initClock();
+  initWallpaperTimeSwitcher();
   initCalendar();
   renderTodoList();
   initEventListeners();
   initHealthTab();
   initCosplayBooking();
   initCostumeCatalog();
+  initCostumeSearch();
+  updateSearchBarVisibility();
+  renderInvoiceNotifications();
   initBackgroundMusicPlayer();
   initAdminPortal();
   checkExpiredBookings();
@@ -102,6 +106,7 @@ async function syncCloudBookings() {
       } catch (e) { }
       renderBookedList();
       refreshAvailabilityUI();
+      renderInvoiceNotifications();
       if (typeof renderAdminOrders === 'function' && appState.isAdmin) {
         renderAdminOrders();
       }
@@ -281,6 +286,162 @@ function updateClockDisplay() {
     dateBadgeEl.textContent = `🌸 ${dayName}, ${d}/${m}/${y}`;
   }
 }
+
+// ========================================================
+// 3.1. TIME-BASED AUTOMATIC BACKGROUND CHANGER
+// ========================================================
+const TIME_WALLPAPERS = {
+  morning: {
+    id: 'morning',
+    src: 'assets/bg_morning.jpg?v=2',
+    label: 'Buổi sáng',
+    icon: '🌅',
+    bgColor: '#e8f0fe',
+    hoursRange: '05:00 - 12:00'
+  },
+  afternoon: {
+    id: 'afternoon',
+    src: 'assets/bg_afternoon.jpg?v=2',
+    label: 'Buổi chiều',
+    icon: '☀️',
+    bgColor: '#fff1f5',
+    hoursRange: '12:00 - 18:00'
+  },
+  night: {
+    id: 'night',
+    src: 'assets/bg_night.jpg?v=2',
+    label: 'Buổi tối',
+    icon: '🌙',
+    bgColor: '#1c1b29',
+    hoursRange: '18:00 - 05:00'
+  }
+};
+
+let currentRenderedPeriod = '';
+let activeBgLayer = 'A';
+
+function getCurrentTimePeriod() {
+  const savedMode = localStorage.getItem('mochimoon_wallpaper_mode') || 'auto';
+  if (savedMode !== 'auto' && TIME_WALLPAPERS[savedMode]) {
+    return { period: savedMode, isAuto: false };
+  }
+
+  // Chế độ tự động theo giờ
+  let hours = new Date().getHours();
+  if (appState.clockMode === 'mock') {
+    hours = 14; // 14:53 -> buổi chiều
+  }
+
+  let period = 'morning';
+  if (hours >= 5 && hours < 12) {
+    period = 'morning';
+  } else if (hours >= 12 && hours < 18) {
+    period = 'afternoon';
+  } else {
+    period = 'night';
+  }
+
+  return { period, isAuto: true };
+}
+
+function updateTimeBasedBackground(forcedPeriod = null, isUserClick = false) {
+  const layerA = document.getElementById('bgLayerA');
+  const layerB = document.getElementById('bgLayerB');
+  const periodBadge = document.getElementById('timePeriodBadge');
+  const periodIcon = document.getElementById('timePeriodIcon');
+  const periodText = document.getElementById('timePeriodText');
+  const wallpaperSelect = document.getElementById('wallpaperModeSelect');
+
+  const { period, isAuto } = forcedPeriod ? { period: forcedPeriod, isAuto: (forcedPeriod === 'auto') } : getCurrentTimePeriod();
+  const actualPeriod = (period === 'auto') ? getCurrentTimePeriod().period : period;
+  const cfg = TIME_WALLPAPERS[actualPeriod] || TIME_WALLPAPERS.morning;
+
+  // Cập nhật Badge trên Clock Card
+  if (periodIcon) periodIcon.textContent = cfg.icon;
+  if (periodText) {
+    periodText.textContent = `${cfg.label}${isAuto ? '' : ' (Cố định)'}`;
+  }
+  if (periodBadge) {
+    periodBadge.title = isAuto
+      ? `Hình nền tự động: ${cfg.label} (${cfg.hoursRange}). Nhấp để đổi xem các buổi khác!`
+      : `Đang giữ hình nền: ${cfg.label}. Nhấp để đổi tiếp hoặc về tự động.`;
+  }
+
+  if (wallpaperSelect && !isUserClick) {
+    wallpaperSelect.value = isAuto ? 'auto' : actualPeriod;
+  }
+
+  // Nếu buổi này đã được render rồi thì không cần load lại
+  if (currentRenderedPeriod === actualPeriod && (layerA?.style.backgroundImage || layerB?.style.backgroundImage)) {
+    return;
+  }
+
+  currentRenderedPeriod = actualPeriod;
+
+  // Cập nhật màu nền fallback hài hòa
+  if (cfg.bgColor) {
+    document.body.style.backgroundColor = cfg.bgColor;
+  }
+
+  // Crossfade mượt mà giữa Layer A và Layer B
+  if (layerA && layerB) {
+    const targetLayer = (activeBgLayer === 'A') ? layerB : layerA;
+    const currentLayer = (activeBgLayer === 'A') ? layerA : layerB;
+
+    const img = new Image();
+    img.src = cfg.src;
+    img.onload = () => {
+      targetLayer.style.backgroundImage = `url('${cfg.src}')`;
+      targetLayer.style.opacity = '1';
+      currentLayer.style.opacity = '0';
+      activeBgLayer = (activeBgLayer === 'A') ? 'B' : 'A';
+    };
+  } else {
+    document.body.style.backgroundImage = `url('${cfg.src}')`;
+  }
+}
+
+function initWallpaperTimeSwitcher() {
+  const periodBadge = document.getElementById('timePeriodBadge');
+  if (periodBadge) {
+    periodBadge.addEventListener('click', () => {
+      const currentSaved = localStorage.getItem('mochimoon_wallpaper_mode') || 'auto';
+      // Xoay vòng: auto -> morning -> afternoon -> night -> auto
+      let nextMode = 'auto';
+      if (currentSaved === 'auto') nextMode = 'morning';
+      else if (currentSaved === 'morning') nextMode = 'afternoon';
+      else if (currentSaved === 'afternoon') nextMode = 'night';
+      else if (currentSaved === 'night') nextMode = 'auto';
+
+      localStorage.setItem('mochimoon_wallpaper_mode', nextMode);
+      updateTimeBasedBackground(nextMode, true);
+      playChime(620);
+    });
+  }
+
+  const wallpaperSelect = document.getElementById('wallpaperModeSelect');
+  if (wallpaperSelect) {
+    wallpaperSelect.addEventListener('change', (e) => {
+      const selected = e.target.value;
+      localStorage.setItem('mochimoon_wallpaper_mode', selected);
+      updateTimeBasedBackground(selected, true);
+      playChime(560);
+    });
+  }
+
+  // Áp dụng hình nền ngay lúc mở trang
+  updateTimeBasedBackground();
+
+  // Kiểm tra tự động mỗi 15 giây để chuyển đổi ngay khi đồng hồ bước qua khung giờ mới
+  setInterval(() => {
+    const savedMode = localStorage.getItem('mochimoon_wallpaper_mode') || 'auto';
+    if (savedMode === 'auto') {
+      updateTimeBasedBackground();
+    }
+  }, 15000);
+}
+window.updateTimeBasedBackground = updateTimeBasedBackground;
+window.initWallpaperTimeSwitcher = initWallpaperTimeSwitcher;
 
 // ========================================================
 // 4. CALENDAR LOGIC
@@ -540,13 +701,7 @@ function initEventListeners() {
     });
   }
 
-  // Search Bar Filter
-  const searchInput = document.getElementById('searchInput');
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      renderTodoList(e.target.value);
-    });
-  }
+  // Search Bar Filter được khởi tạo qua initCostumeSearch() bên dưới
 
   // Sidebar Nav Tabs
   const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
@@ -572,6 +727,7 @@ function initEventListeners() {
         document.getElementById('tabWardrobe')?.classList.add('active');
       }
 
+      updateSearchBarVisibility(targetTab);
       playChime(480);
     });
   });
@@ -590,6 +746,9 @@ function initEventListeners() {
       e.stopPropagation();
       const isClosed = notifDropdown.classList.contains('hidden');
       if (isClosed) {
+        if (typeof renderInvoiceNotifications === 'function') {
+          renderInvoiceNotifications();
+        }
         notifDropdown.classList.remove('hidden');
         playChime(560);
       } else {
@@ -623,6 +782,10 @@ function initEventListeners() {
       clearNotifs.addEventListener('click', () => {
         document.querySelectorAll('.notif-item').forEach(i => i.classList.remove('unread'));
         if (notifBadge) notifBadge.style.display = 'none';
+        try {
+          const allOrders = (appState.bookings || []).map(b => b.orderId || ('#MC-' + b.id));
+          localStorage.setItem('mochimoon_read_notifs', JSON.stringify(allOrders));
+        } catch (e) { }
         playSuccessChime();
       });
     }
@@ -684,6 +847,10 @@ function initEventListeners() {
 
   if (settingsBtn && settingsModal) {
     settingsBtn.addEventListener('click', () => {
+      const wpSelect = document.getElementById('wallpaperModeSelect');
+      if (wpSelect) {
+        wpSelect.value = localStorage.getItem('mochimoon_wallpaper_mode') || 'auto';
+      }
       settingsModal.classList.remove('hidden');
       playChime(500);
     });
@@ -706,6 +873,7 @@ function initEventListeners() {
         const clockMode = document.getElementById('clockSyncSelect').value;
         const timeFormat = document.getElementById('timeFormatSelect').value;
         const soundChecked = document.getElementById('soundToggleCheck').checked;
+        const wallpaperMode = document.getElementById('wallpaperModeSelect')?.value || 'auto';
 
         document.body.className = theme === 'pastel-dream' ? '' : `theme-${theme}`;
         localStorage.setItem('jiu_theme', theme);
@@ -714,6 +882,9 @@ function initEventListeners() {
         appState.timeFormat = timeFormat;
         appState.soundEnabled = soundChecked;
         localStorage.setItem('jiu_clock_mode', clockMode);
+
+        localStorage.setItem('mochimoon_wallpaper_mode', wallpaperMode);
+        updateTimeBasedBackground(wallpaperMode, true);
 
         updateClockDisplay();
         settingsModal.classList.add('hidden');
@@ -1296,6 +1467,9 @@ function initCosplayBooking() {
 
       renderBookedList();
       refreshAvailabilityUI();
+      if (typeof renderInvoiceNotifications === 'function') {
+        renderInvoiceNotifications(true);
+      }
       playSuccessChime();
 
       // Chuyển qua bước thanh toán nhưng vẫn ở trang đặt thuê đồ!
@@ -1531,6 +1705,9 @@ function onBankPaymentApproved(booking, txData) {
   saveCloudBookings(appState.bookings);
   renderBookedList();
   refreshAvailabilityUI();
+  if (typeof renderInvoiceNotifications === 'function') {
+    renderInvoiceNotifications(true);
+  }
   playSuccessChime();
   playLofiMelody();
 
@@ -1601,19 +1778,19 @@ function showInvoiceStep(booking, txData) {
   if (invItemDescEl) {
     const charLower = (booking.character || '').toLowerCase();
     if (charLower.includes('himmel')) {
-      invItemDescEl.textContent = 'Full set trang phục Hiệp sĩ Himmel kèm Áo choàng + Wig chuẩn form';
+      invItemDescEl.textContent = 'Full set trang phục Hiệp sĩ kèm Áo choàng + Wig chuẩn form';
     } else if (charLower.includes('frieren')) {
-      invItemDescEl.textContent = 'Full set trang phục Pháp sư Frieren kèm Khuyên tai + Wig tạo kiểu';
+      invItemDescEl.textContent = 'Full set trang phục Pháp sư kèm Khuyên tai + Wig tạo kiểu';
     } else if (charLower.includes('kaito')) {
-      invItemDescEl.textContent = 'Full set Siêu đạo chích Kaito Kid kèm Áo choàng + Mũ + Kính đơn';
+      invItemDescEl.textContent = 'Full set Siêu đạo chích kèm Áo choàng + Mũ + Kính đơn';
     } else if (charLower.includes('flins')) {
-      invItemDescEl.textContent = 'Full set trang phục Flins cao cấp kèm Wig tạo kiểu chuẩn';
+      invItemDescEl.textContent = 'Full set trang phục Flins cao cấp kèm Wig chuẩn form';
     } else if (charLower.includes('kinosaki')) {
       invItemDescEl.textContent = 'Full set nữ sinh Kinosaki Mei kèm Wig tạo kiểu';
     } else if (charLower.includes('marin') || charLower.includes('shizuku')) {
-      invItemDescEl.textContent = 'Full set Kitagawa Marin Ver Shizuku kèm Cánh + Váy dạ hội';
+      invItemDescEl.textContent = 'Full set Kitagawa Marin Shizuku kèm Cánh + Váy dạ hội';
     } else {
-      invItemDescEl.textContent = 'Full set trang phục Cosplay cao cấp kèm Wig tạo kiểu & phụ kiện';
+      invItemDescEl.textContent = 'Full set trang phục Cosplay cao cấp kèm Wig & phụ kiện';
     }
   }
 
@@ -2073,6 +2250,167 @@ function renderBookedList() {
 }
 
 // ========================================================
+// 8.1. INVOICE & ORDER NOTIFICATIONS SYSTEM (ICON THÔNG BÁO)
+// ========================================================
+function renderInvoiceNotifications(isNewAlert = false) {
+  const notifList = document.getElementById('notifList');
+  const notifBadge = document.getElementById('notifBadge');
+  if (!notifList) return;
+
+  // Lấy danh sách mã đơn của người dùng lưu trên máy này
+  let myOrderIds = [];
+  try {
+    myOrderIds = JSON.parse(localStorage.getItem('mochimoon_my_orders') || '[]');
+  } catch (e) { }
+
+  // Lấy các đơn đã đọc
+  let readNotifIds = [];
+  try {
+    readNotifIds = JSON.parse(localStorage.getItem('mochimoon_read_notifs') || '[]');
+  } catch (e) { }
+
+  const bookings = appState.bookings || [];
+
+  // Lọc chỉ lấy các đơn chưa bị xóa/hủy
+  const relevantBookings = bookings.filter(b => {
+    if (!b || !b.character) return false;
+    const st = (b.status || '').toLowerCase();
+    return !st.includes('hủy') && !st.includes('huỷ');
+  });
+
+  notifList.innerHTML = '';
+
+  if (relevantBookings.length === 0) {
+    notifList.innerHTML = `
+      <li class="notif-item">
+        <span class="notif-badge-icon">🧾</span>
+        <div class="notif-text">
+          <p><strong>Chưa có thông báo hóa đơn</strong></p>
+          <small>Khi bạn đặt thuê đồ cosplay, thông tin hóa đơn và trạng thái duyệt tiền sẽ tự động xuất hiện tại đây nhé! 🌸</small>
+        </div>
+      </li>
+      <li class="notif-item">
+        <span class="notif-badge-icon">✨</span>
+        <div class="notif-text">
+          <p>Mochimoon Cosplay kính chúc bạn có những trải nghiệm hóa trang thật lung linh!</p>
+          <small>Hôm nay</small>
+        </div>
+      </li>
+    `;
+    if (notifBadge && !isNewAlert) {
+      notifBadge.style.display = 'none';
+    }
+    return;
+  }
+
+  let unreadCount = 0;
+
+  relevantBookings.forEach((b) => {
+    const isPaid = (b.status || '').includes('Đã') || (b.status || '').includes('✅') || (b.status || '').includes('duyệt');
+    const isPending = (b.status || '').includes('Chờ');
+    const orderKey = b.orderId || ('#MC-' + b.id);
+    const isMine = myOrderIds.includes(orderKey);
+    const isRead = readNotifIds.includes(orderKey);
+
+    if (!isRead) {
+      unreadCount++;
+    }
+
+    const li = document.createElement('li');
+    li.className = `notif-item invoice-notif ${!isRead ? 'unread' : ''} ${isPaid ? 'paid' : (isPending ? 'pending' : '')}`;
+    li.setAttribute('data-order-id', orderKey);
+    li.title = isPaid ? 'Bấm để mở xem hóa đơn thanh toán' : 'Bấm để tiếp tục thanh toán đơn này';
+
+    const charShort = (b.character || 'Trang phục').split('(')[0].trim();
+    const statusText = isPaid
+      ? 'Đã duyệt thanh toán 100%'
+      : (isPending ? 'Chờ thanh toán cọc' : (b.status || 'Đang thuê'));
+
+    li.innerHTML = `
+      <span class="notif-badge-icon">${isPaid ? '🧾' : (isPending ? '⏳' : '🌸')}</span>
+      <div class="notif-text">
+        <div class="notif-top-meta">
+          <strong class="notif-code">${escapeHtml(orderKey)}</strong>
+          <span class="notif-status-tag ${isPaid ? 'paid' : (isPending ? 'pending' : '')}">
+            ${escapeHtml(statusText)}
+          </span>
+        </div>
+        <p class="notif-char-name">👘 <strong>${escapeHtml(charShort)}</strong> (Size ${escapeHtml(b.size || 'M')})</p>
+        <div class="notif-bottom-row">
+          <small>🗓️ ${escapeHtml(b.date || 'Hôm nay')}${isMine ? ' • <em>Đơn của bạn</em>' : ''}</small>
+          <span class="notif-view-link">${isPaid ? 'Xem hóa đơn ➔' : 'Tiếp tục cọc ➔'}</span>
+        </div>
+      </div>
+    `;
+
+    li.addEventListener('click', () => {
+      // Đánh dấu đã đọc đơn này
+      if (!readNotifIds.includes(orderKey)) {
+        readNotifIds.push(orderKey);
+        try {
+          localStorage.setItem('mochimoon_read_notifs', JSON.stringify(readNotifIds));
+        } catch (e) { }
+      }
+      li.classList.remove('unread');
+
+      // Chuyển sang tab Đặt lịch thuê đồ (tabHealth)
+      const healthTab = document.getElementById('tabHealth');
+      if (healthTab) {
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        healthTab.classList.add('active');
+        document.querySelectorAll('.sidebar-nav .nav-item').forEach(n => {
+          n.classList.toggle('active', n.getAttribute('data-tab') === 'health');
+        });
+      }
+
+      // Đóng dropdown thông báo
+      const notifDropdown = document.getElementById('notifDropdown');
+      if (notifDropdown) notifDropdown.classList.add('hidden');
+
+      // Hiển thị hóa đơn hoặc bước thanh toán
+      if (isPaid) {
+        showInvoiceStep(b);
+        const invoiceSheet = document.getElementById('printableInvoiceSheet') || document.getElementById('bookingInvoicePanel');
+        if (invoiceSheet) {
+          invoiceSheet.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } else {
+        showPaymentStep(b);
+        const payPanel = document.getElementById('bookingPaymentPanel');
+        if (payPanel) {
+          payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+
+      // Cập nhật lại số chưa đọc
+      const remainingUnread = document.querySelectorAll('.notif-item.invoice-notif.unread').length;
+      if (notifBadge) {
+        notifBadge.style.display = remainingUnread > 0 ? 'block' : 'none';
+      }
+
+      playSuccessChime();
+    });
+
+    notifList.appendChild(li);
+  });
+
+  // Cập nhật chấm đỏ thông báo
+  if (notifBadge) {
+    const isMuted = localStorage.getItem('jiu_notif_enabled') === 'false';
+    if (isMuted) {
+      notifBadge.style.display = 'none';
+    } else {
+      notifBadge.style.display = (unreadCount > 0 || isNewAlert) ? 'block' : 'none';
+    }
+  }
+
+  if (isNewAlert) {
+    playChime(660);
+  }
+}
+window.renderInvoiceNotifications = renderInvoiceNotifications;
+
+// ========================================================
 // 9. COSTUME CATALOG & LIGHTBOX
 // ========================================================
 function initCostumeCatalog() {
@@ -2252,6 +2590,231 @@ function initCostumeCatalog() {
 }
 
 // ========================================================
+// 9.1. COSTUME SEARCH & FILTER SYSTEM
+// ========================================================
+function updateSearchBarVisibility(activeTab) {
+  const searchBar = document.querySelector('.search-bar');
+  if (!searchBar) return;
+
+  const currentTab = activeTab || document.querySelector('.sidebar-nav .nav-item.active')?.getAttribute('data-tab') || 'tracker';
+  // Chỉ hiển thị ở mục thuê đồ (Mẫu đồ & Bảng giá: hobbies / Đặt lịch thuê đồ: health)
+  const isRentalSection = (currentTab === 'hobbies' || currentTab === 'health');
+
+  if (isRentalSection) {
+    searchBar.classList.remove('tab-hidden');
+  } else {
+    searchBar.classList.add('tab-hidden');
+    // Đóng dropdown tìm kiếm nếu đang mở
+    document.getElementById('searchResultsDropdown')?.classList.add('hidden');
+  }
+}
+window.updateSearchBarVisibility = updateSearchBarVisibility;
+
+function removeVietnameseAccents(str) {
+  if (!str) return '';
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase()
+    .trim();
+}
+
+function initCostumeSearch() {
+  const searchInput = document.getElementById('searchInput');
+  const searchClearBtn = document.getElementById('searchClearBtn');
+  const dropdown = document.getElementById('searchResultsDropdown');
+  const noResultsEl = document.getElementById('costumesNoResults');
+  const noResultsKeyword = document.getElementById('noResultsKeyword');
+  const btnResetSearch = document.getElementById('btnResetSearch');
+  const badgePill = document.querySelector('.catalog-badge-pill');
+
+  if (!searchInput) return;
+
+  function filterCostumes(query) {
+    const rawQuery = (query || '').trim();
+    const cleanQuery = removeVietnameseAccents(rawQuery);
+    const cards = document.querySelectorAll('.costume-catalog-card');
+
+    if (searchClearBtn) {
+      searchClearBtn.classList.toggle('hidden', rawQuery.length === 0);
+    }
+
+    // Nếu người dùng đang nhập tìm kiếm và đang ở tab khác thì tự chuyển sang tab Mẫu đồ & Bảng giá
+    if (rawQuery.length > 0) {
+      const hobbiesTab = document.getElementById('tabHobbies');
+      if (hobbiesTab && !hobbiesTab.classList.contains('active')) {
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        hobbiesTab.classList.add('active');
+        document.querySelectorAll('.sidebar-nav .nav-item').forEach(n => {
+          n.classList.toggle('active', n.getAttribute('data-tab') === 'hobbies');
+        });
+        updateSearchBarVisibility('hobbies');
+      }
+    }
+
+    let matchCount = 0;
+    const matchesList = [];
+
+    cards.forEach(card => {
+      const charAttr = card.getAttribute('data-character') || '';
+      const charName = card.querySelector('.catalog-char-name')?.textContent || '';
+      const infoBtn = card.querySelector('.catalog-info-btn');
+      const fullname = infoBtn?.getAttribute('data-fullname') || '';
+      const charInfo = infoBtn?.getAttribute('data-info') || '';
+      const prices = infoBtn?.getAttribute('data-prices') || '';
+
+      const searchableText = removeVietnameseAccents(`${charAttr} ${charName} ${fullname} ${charInfo} ${prices}`);
+
+      const isMatch = cleanQuery.length === 0 || searchableText.includes(cleanQuery);
+
+      if (isMatch) {
+        card.style.display = '';
+        matchCount++;
+        matchesList.push({
+          card,
+          name: charName || charAttr,
+          fullName: fullname || charAttr,
+          img: card.querySelector('.catalog-img')?.getAttribute('src') || '',
+          price: card.querySelector('.price-pill.fes .price-val')?.textContent || '',
+          isBooked: isCostumeBooked(charAttr || charName)
+        });
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    // Cập nhật số lượng trên huy hiệu đầu trang
+    if (badgePill) {
+      if (cleanQuery.length === 0) {
+        badgePill.textContent = `✨ ${cards.length} mẫu đồ cosplay mới cập nhật`;
+      } else {
+        badgePill.textContent = `✨ Tìm thấy ${matchCount}/${cards.length} mẫu đồ`;
+      }
+    }
+
+    // Hiển thị khung thông báo khi không có kết quả
+    if (noResultsEl) {
+      if (matchCount === 0 && cleanQuery.length > 0) {
+        noResultsEl.classList.remove('hidden');
+        if (noResultsKeyword) noResultsKeyword.textContent = rawQuery;
+      } else {
+        noResultsEl.classList.add('hidden');
+      }
+    }
+
+    // Cập nhật gợi ý thả xuống (instant dropdown)
+    renderSearchDropdown(rawQuery, matchesList);
+  }
+
+  function renderSearchDropdown(query, matches) {
+    if (!dropdown) return;
+
+    if (!query || query.length === 0) {
+      dropdown.classList.add('hidden');
+      dropdown.innerHTML = '';
+      return;
+    }
+
+    dropdown.innerHTML = '';
+    dropdown.classList.remove('hidden');
+
+    if (matches.length === 0) {
+      dropdown.innerHTML = `
+        <div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 13.5px;">
+          <span>🌸 Không tìm thấy mẫu đồ nào cho "<strong>${escapeHtml(query)}</strong>"</span>
+        </div>
+      `;
+      return;
+    }
+
+    matches.slice(0, 6).forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'search-result-item';
+      row.innerHTML = `
+        <img src="${item.img}" alt="${escapeHtml(item.name)}" class="search-item-img">
+        <div class="search-item-info">
+          <div class="search-item-title">${escapeHtml(item.fullName)}</div>
+          <div class="search-item-price">Thuê Fes/Shoot: ${escapeHtml(item.price)}</div>
+        </div>
+        <span class="search-item-stock ${item.isBooked ? 'out-of-stock' : 'in-stock'}">
+          ${item.isBooked ? '❌ Hết đồ' : '✨ Còn đồ'}
+        </span>
+      `;
+
+      row.addEventListener('click', () => {
+        dropdown.classList.add('hidden');
+        // Chuyển sang tab Mẫu đồ & Bảng giá
+        const hobbiesTab = document.getElementById('tabHobbies');
+        if (hobbiesTab) {
+          document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+          hobbiesTab.classList.add('active');
+          document.querySelectorAll('.sidebar-nav .nav-item').forEach(n => {
+            n.classList.toggle('active', n.getAttribute('data-tab') === 'hobbies');
+          });
+        }
+        // Cuộn mượt đến thẻ đồ và tạo hiệu ứng phát sáng nhẹ
+        item.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        item.card.classList.remove('search-highlight');
+        void item.card.offsetWidth; // force reflow
+        item.card.classList.add('search-highlight');
+        playSuccessChime();
+      });
+
+      dropdown.appendChild(row);
+    });
+
+    const footer = document.createElement('div');
+    footer.className = 'search-dropdown-footer';
+    footer.innerHTML = `
+      <span>Nhấp để xem chi tiết mẫu đồ 👘</span>
+      <span style="font-weight:700; color:var(--pastel-pink);">${matches.length} kết quả</span>
+    `;
+    dropdown.appendChild(footer);
+  }
+
+  // Lắng nghe sự kiện gõ tìm kiếm
+  searchInput.addEventListener('input', (e) => {
+    filterCostumes(e.target.value);
+    if (typeof renderTodoList === 'function') {
+      renderTodoList(e.target.value);
+    }
+  });
+
+  searchInput.addEventListener('focus', () => {
+    if (searchInput.value.trim().length > 0) {
+      filterCostumes(searchInput.value);
+    }
+  });
+
+  if (searchClearBtn) {
+    searchClearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      filterCostumes('');
+      searchInput.focus();
+      if (dropdown) dropdown.classList.add('hidden');
+      playChime(420);
+    });
+  }
+
+  if (btnResetSearch) {
+    btnResetSearch.addEventListener('click', () => {
+      searchInput.value = '';
+      filterCostumes('');
+      if (dropdown) dropdown.classList.add('hidden');
+      playChime(520);
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (dropdown && !dropdown.contains(e.target) && !searchInput.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+}
+
+// ========================================================
 // 10. BACKGROUND MUSIC PLAYER (MOCHIMOON BGM)
 // ========================================================
 const bgmThemes = {
@@ -2261,6 +2824,13 @@ const bgmThemes = {
     src: 'assets/audio/hen-ho-voi-anh-ta.m4a',
     desc: 'Hẹn Hò Với Anh Ta • longaodance remix siêu cuốn',
     icon: '🔥'
+  },
+  snaptik_dance: {
+    id: 'snaptik_dance',
+    name: '⚡ TikTok Dance ~ snaptik.vn_7482617452757617927',
+    src: 'assets/audio/snaptik.vn_7482617452757617927.mp3',
+    desc: 'Vũ điệu TikTok cực bắt tai • longaodance dance',
+    icon: '⚡'
   },
   point_star: {
     id: 'point_star',
@@ -2374,6 +2944,7 @@ function startBgmPlayback() {
   const audioElement = document.getElementById('bgmAudioPlayer');
   if (!audioElement) return;
 
+  audioElement.loop = false;
   const theme = bgmThemes[appState.bgm.currentTrackId] || bgmThemes.point_star;
   const currentSrc = audioElement.getAttribute('src');
   if (!currentSrc || !currentSrc.includes(theme.src)) {
@@ -2405,7 +2976,7 @@ function stopBgmPlayback() {
   updateBgmUIState();
 }
 
-function switchBgmTrack(trackId) {
+function switchBgmTrack(trackId, isAuto = false) {
   if (!bgmThemes[trackId]) return;
 
   appState.bgm.currentTrackId = trackId;
@@ -2417,27 +2988,30 @@ function switchBgmTrack(trackId) {
 
   const audioElement = document.getElementById('bgmAudioPlayer');
   if (audioElement) {
+    audioElement.loop = false;
     audioElement.src = bgmThemes[trackId].src;
     audioElement.currentTime = 0;
   }
 
   renderMusicPlaylist();
   startBgmPlayback();
-  playSuccessChime();
+  if (!isAuto) {
+    playSuccessChime();
+  }
 }
 
-function nextBgmTrack() {
+function nextBgmTrack(isAuto = false) {
   const visible = getVisibleTrackKeys();
   const currentIdx = visible.indexOf(appState.bgm.currentTrackId);
   const nextIdx = currentIdx === -1 ? 0 : (currentIdx + 1) % visible.length;
-  switchBgmTrack(visible[nextIdx]);
+  switchBgmTrack(visible[nextIdx], isAuto);
 }
 
 function prevBgmTrack() {
   const visible = getVisibleTrackKeys();
   const currentIdx = visible.indexOf(appState.bgm.currentTrackId);
   const prevIdx = currentIdx === -1 ? 0 : (currentIdx - 1 + visible.length) % visible.length;
-  switchBgmTrack(visible[prevIdx]);
+  switchBgmTrack(visible[prevIdx], false);
 }
 
 function updateBgmUIState() {
@@ -2574,6 +3148,7 @@ function initBackgroundMusicPlayer() {
 
   // Pre-load default track into audio element
   if (audioElement) {
+    audioElement.loop = false;
     const defaultTheme = bgmThemes[appState.bgm.currentTrackId] || bgmThemes.sakura;
     const currentSrc = audioElement.getAttribute('src');
     if (!currentSrc || !currentSrc.includes(defaultTheme.src)) {
@@ -2619,7 +3194,7 @@ function initBackgroundMusicPlayer() {
     });
 
     audioElement.addEventListener('ended', () => {
-      nextBgmTrack();
+      nextBgmTrack(true);
     });
   }
 
@@ -3257,6 +3832,7 @@ function updateAdminBookingStatus(bookingId, newStatus) {
     renderAdminDashboard();
     renderBookedList();
     refreshAvailabilityUI();
+    renderInvoiceNotifications();
     saveCloudBookings(appState.bookings);
     playSuccessChime();
 
@@ -3276,6 +3852,7 @@ function deleteAdminBooking(bookingId) {
   renderAdminDashboard();
   renderBookedList();
   refreshAvailabilityUI();
+  renderInvoiceNotifications();
   saveCloudBookings(appState.bookings);
   playChime(380);
 }

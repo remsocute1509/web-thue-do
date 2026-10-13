@@ -20,6 +20,10 @@
 </head>
 
 <body>
+  <!-- Dynamic Time-Based Background Crossfade Layers -->
+  <div class="dynamic-bg-layer" id="bgLayerA"></div>
+  <div class="dynamic-bg-layer" id="bgLayerB"></div>
+
   <!-- Floating sakura & sparkles background elements -->
   <div class="sakura-container" id="sakuraContainer"></div>
 
@@ -120,21 +124,11 @@
 
       <!-- TOP HEADER BAR -->
       <header class="top-header">
-        <div class="search-bar">
-          <span class="search-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-              stroke-linecap="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </span>
-          <input type="text" id="searchInput" placeholder="Search..." aria-label="Search" autocomplete="off">
-        </div>
-
         <div class="header-actions">
           <!-- Notification Button -->
           <div class="notification-wrapper">
-            <button class="icon-btn notif-btn" id="notifBtn" aria-label="Notifications" title="Bật/Tắt xem thông báo">
+            <button class="icon-btn notif-btn" id="notifBtn" aria-label="Notifications"
+              title="Xem hóa đơn & thông báo mới">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -144,33 +138,26 @@
             </button>
             <div class="notif-dropdown hidden" id="notifDropdown">
               <div class="notif-header">
-                <span>Thông báo mới</span>
+                <span>🧾 Thông báo & Hóa đơn</span>
                 <div class="notif-header-right">
-                  <span class="notif-clear" id="clearNotifs">Đã đọc</span>
+                  <span class="notif-clear" id="clearNotifs" title="Đánh dấu tất cả đã đọc">Đã đọc</span>
                   <button class="notif-close-btn" id="closeNotifBtn" title="Đóng thông báo"
                     aria-label="Close">&times;</button>
                 </div>
               </div>
-              <ul class="notif-list">
-                <li class="notif-item unread">
-                  <span class="notif-badge-icon">🌸</span>
-                  <div class="notif-text">
-                    <p>Đừng quên uống đủ 2L nước hôm nay nhé!</p>
-                    <small>10 phút trước</small>
-                  </div>
-                </li>
+              <ul class="notif-list" id="notifList">
                 <li class="notif-item">
-                  <span class="notif-badge-icon">✨</span>
+                  <span class="notif-badge-icon">🧾</span>
                   <div class="notif-text">
-                    <p>Bạn đã hoàn thành 80% nhiệm vụ hôm nay.</p>
-                    <small>1 giờ trước</small>
+                    <p><strong>Chưa có thông báo hóa đơn</strong></p>
+                    <small>Đang tải thông tin đơn hàng... 🌸</small>
                   </div>
                 </li>
               </ul>
               <!-- Bật / Tắt nhận thông báo -->
               <div class="notif-footer-toggle">
-                <span>Bật thông báo</span>
-                <label class="switch-toggle" title="Bật/Tắt nhận thông báo">
+                <span>Âm báo hóa đơn</span>
+                <label class="switch-toggle" title="Bật/Tắt âm thanh thông báo">
                   <input type="checkbox" id="notifSwitchToggle" checked>
                   <span class="slider-toggle"></span>
                 </label>
@@ -261,7 +248,7 @@
               </div>
             </div>
           </div>
-          <audio id="bgmAudioPlayer" src="assets/audio/point-the-star.mp3" preload="auto" loop
+          <audio id="bgmAudioPlayer" src="assets/audio/point-the-star.mp3" preload="auto"
             style="position:absolute;width:1px;height:1px;opacity:0.01;pointer-events:none;"></audio>
 
           <!-- Sound / Melody Toggle -->
@@ -301,61 +288,7 @@
         <!-- DASHBOARD GRID -->
         <div class="dashboard-grid">
 
-          <!-- 1. CLOCK CARD -->
-          <div class="card clock-card" id="clockCard">
-            <span class="card-deco-flower flower-tl">🌸</span>
-            <span class="card-deco-flower flower-br">🌸</span>
-
-            <div class="clock-display" id="clockDisplay">--:--</div>
-            <div class="clock-label">
-              <span class="sakura-tiny">🌸</span>
-              <span class="clock-label-text">Time</span>
-            </div>
-            <div class="clock-date-badge" id="clockDateBadge">--</div>
-          </div>
-
-          <!-- 2. CALENDAR CARD -->
-          <div class="card calendar-card" id="calendarCard">
-            <span class="card-deco-flower flower-calendar">🌸</span>
-
-            <div class="calendar-header">
-              <div class="calendar-title-wrap">
-                <h2 class="calendar-month-year" id="calendarMonthYear">March 2026</h2>
-              </div>
-              <div class="calendar-nav-buttons">
-                <button class="cal-nav-btn" id="prevMonthBtn" aria-label="Tháng trước">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                  </svg>
-                </button>
-                <button class="cal-nav-btn" id="nextMonthBtn" aria-label="Tháng sau">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- Days of week -->
-            <div class="calendar-weekdays">
-              <span>Su</span>
-              <span>Mo</span>
-              <span>Tu</span>
-              <span>We</span>
-              <span>Th</span>
-              <span>Fr</span>
-              <span>Sa</span>
-            </div>
-
-            <!-- Dates grid -->
-            <div class="calendar-days" id="calendarDays">
-              <!-- Injected via JavaScript -->
-            </div>
-          </div>
-
-          <!-- 3. MOCHIMOON INTRO CARD (Bên dưới Thời gian & Lịch, căn ở giữa) -->
+          <!-- 1. MOCHIMOON INTRO CARD (Lời chào - Đặt lên trên Thời gian & Lịch) -->
           <div class="card mochimoon-intro-card" id="mochimoonIntroCard">
             <!-- Nền ánh sáng pastel hào quang -->
             <div class="intro-card-aura" aria-hidden="true"></div>
@@ -404,6 +337,66 @@
             </div>
           </div>
 
+          <!-- 2. CLOCK CARD -->
+          <div class="card clock-card" id="clockCard">
+            <span class="card-deco-flower flower-tl">🌸</span>
+            <span class="card-deco-flower flower-br">🌸</span>
+
+            <div class="clock-display" id="clockDisplay">--:--</div>
+            <div class="clock-label">
+              <span class="sakura-tiny">🌸</span>
+              <span class="clock-label-text">Time</span>
+            </div>
+            <div class="clock-date-badge" id="clockDateBadge">--</div>
+            <div class="time-period-badge" id="timePeriodBadge"
+              title="Hình nền đổi tự động theo thời gian: Sáng / Chiều / Tối (Nhấp để đổi nhanh)">
+              <span id="timePeriodIcon">☀️</span>
+              <span id="timePeriodText">Buổi chiều</span>
+              <span class="time-period-sub">(Tự động đổi)</span>
+            </div>
+          </div>
+
+          <!-- 3. CALENDAR CARD -->
+          <div class="card calendar-card" id="calendarCard">
+            <span class="card-deco-flower flower-calendar">🌸</span>
+
+            <div class="calendar-header">
+              <div class="calendar-title-wrap">
+                <h2 class="calendar-month-year" id="calendarMonthYear">March 2026</h2>
+              </div>
+              <div class="calendar-nav-buttons">
+                <button class="cal-nav-btn" id="prevMonthBtn" aria-label="Tháng trước">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                </button>
+                <button class="cal-nav-btn" id="nextMonthBtn" aria-label="Tháng sau">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Days of week -->
+            <div class="calendar-weekdays">
+              <span>Su</span>
+              <span>Mo</span>
+              <span>Tu</span>
+              <span>We</span>
+              <span>Th</span>
+              <span>Fr</span>
+              <span>Sa</span>
+            </div>
+
+            <!-- Dates grid -->
+            <div class="calendar-days" id="calendarDays">
+              <!-- Injected via JavaScript -->
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -422,7 +415,18 @@
 
         <!-- Khung cuộn mẫu đồ có thanh trượt kéo lên xuống riêng -->
         <div class="costumes-scroll-wrapper" id="costumesScrollWrapper">
-          <div class="costumes-gallery-grid">
+          <div class="costumes-gallery-grid" id="costumesGalleryGrid">
+            <!-- Thông báo khi tìm kiếm không có mẫu đồ nào -->
+            <div class="costumes-no-results hidden" id="costumesNoResults">
+              <div class="no-results-icon">🌸🔍</div>
+              <h3>Không tìm thấy mẫu đồ cosplay phù hợp!</h3>
+              <p>Không có kết quả nào khớp với từ khóa "<strong id="noResultsKeyword"></strong>". Hãy thử tìm tên nhân
+                vật như <strong>Himmel</strong>, <strong>Frieren</strong>, <strong>Kaito Kid</strong>,
+                <strong>Flins</strong>, <strong>Kinosaki Mei</strong> hoặc <strong>Marin</strong> nhé ✨
+              </p>
+              <button type="button" class="btn-reset-search" id="btnResetSearch">Xem tất cả 6 mẫu đồ</button>
+            </div>
+
             <!-- 1. HIMMEL -->
             <div class="card costume-catalog-card" data-character="Himmel (Sousou no Frieren)">
               <div class="catalog-img-wrap">
@@ -640,7 +644,6 @@
               <p class="booking-subtitle">Chọn set đồ yêu thích, phụ kiện và ngày hẹn lấy đồ trực tiếp tại tiệm hoặc
                 giao tận nơi</p>
             </div>
-            <div class="booking-tag-pill">✨ Hỗ trợ thử đồ miễn phí</div>
           </div>
 
           <div class="booking-grid">
@@ -874,10 +877,15 @@
               <div class="booking-invoice-panel hidden" id="bookingInvoicePanel">
                 <!-- Thank You Celebration Banner -->
                 <div class="invoice-thankyou-card">
-                  <div class="thankyou-badge-icon">🎉</div>
+                  <div class="thankyou-video-container">
+                    <video class="thankyou-video-clip" src="assets/snaptik.vn_7482617452757617927.mp4" autoplay loop
+                      muted playsinline title="Cảm ơn bạn đã đặt thuê đồ tại mochimoon"></video>
+                    <span class="thankyou-video-tag">🎉 Thanks!</span>
+                  </div>
                   <div class="thankyou-message">
                     <h3>CẢM ƠN BẠN ĐÃ ĐẶT THUÊ ĐỒ TẠI MOCHIMOON! 💕</h3>
-                    <p>Giao dịch thanh toán đã thành công và đơn hàng đã được <strong>tự động duyệt</strong> trên hệ thống. Dưới đây là <strong>thông tin đơn thuê</strong> của bạn.</p>
+                    <p>Giao dịch thanh toán đã thành công và đơn hàng đã được <strong>tự động duyệt</strong> trên hệ
+                      thống. Dưới đây là <strong>thông tin đơn thuê</strong> của bạn.</p>
                   </div>
                 </div>
 
@@ -943,12 +951,12 @@
                     <table class="invoice-table">
                       <thead>
                         <tr>
-                          <th style="width: 45px; text-align: center;">STT</th>
-                          <th>Tên Trang Phục / Dịch Vụ</th>
-                          <th style="width: 85px; text-align: center;">Kích Cỡ</th>
-                          <th style="width: 150px; text-align: center;">Thời Gian Thuê</th>
-                          <th style="width: 110px; text-align: right;">Đơn Giá</th>
-                          <th style="width: 120px; text-align: right;">Thành Tiền</th>
+                          <th style="width: 38px; text-align: center;">STT</th>
+                          <th style="min-width: 190px;">Tên Trang Phục / Phụ Kiện</th>
+                          <th style="width: 75px; text-align: center;">Kích Cỡ</th>
+                          <th style="width: 110px; text-align: center;">Thời Gian Thuê</th>
+                          <th style="width: 90px; text-align: right;">Đơn Giá</th>
+                          <th style="width: 95px; text-align: right;">Thành Tiền</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -956,12 +964,14 @@
                           <td style="text-align: center; font-weight: 700;">1</td>
                           <td>
                             <strong class="table-item-title" id="invItemName">Himmel (Sousou no Frieren)</strong>
-                            <div class="table-item-desc" id="invItemDesc">Full set trang phục kèm Wig tạo kiểu chuẩn nhân vật</div>
+                            <div class="table-item-desc" id="invItemDesc">Full set trang phục Hiệp sĩ kèm Áo choàng +
+                              Wig chuẩn form</div>
                           </td>
                           <td style="text-align: center;"><span class="badge-size" id="invItemSize">Size XL</span></td>
                           <td style="text-align: center;" class="table-dates" id="invItemDates">12/10 ➔ 15/10</td>
                           <td style="text-align: right;" id="invItemUnitPrice">150.000đ</td>
-                          <td style="text-align: right; font-weight: 800; color: #0f172a;" id="invItemTotal">150.000đ</td>
+                          <td style="text-align: right; font-weight: 800; color: #0f172a;" id="invItemTotal">150.000đ
+                          </td>
                         </tr>
                       </tbody>
                     </table>
@@ -1199,7 +1209,10 @@
 
           <!-- Bottom Notice -->
           <div class="rules-bottom-alert">
-            <span class="rules-alert-icon">🌸</span>
+            <div class="rules-thankyou-video-wrap">
+              <video class="rules-thankyou-video" src="assets/snaptik.vn_7482617452757617927.mp4" autoplay loop muted
+                playsinline title="Mochimoon Cảm Ơn Quý Khách"></video>
+            </div>
             <div class="rules-alert-text">
               <strong>Mochimoon Cảm Ơn Quý Khách!</strong> Chúc các bạn có những buổi Fes/Shoot thật vui vẻ và có những
               bức hình lung linh nhất. Nếu có bất kỳ thắc mắc nào, đừng ngại inbox ngay cho shop để được tư vấn nhé! 💕
@@ -1219,6 +1232,15 @@
         <button class="modal-close" id="closeSettingsBtn">&times;</button>
       </div>
       <div class="modal-body">
+        <div class="setting-row">
+          <label for="wallpaperModeSelect">Hình nền theo buổi:</label>
+          <select id="wallpaperModeSelect">
+            <option value="auto">✨ Tự động theo giờ thực (Sáng / Chiều / Tối)</option>
+            <option value="morning">🌅 Buổi sáng (05:00 - 12:00)</option>
+            <option value="afternoon">☀️ Buổi chiều (12:00 - 18:00)</option>
+            <option value="night">🌙 Buổi tối (18:00 - 05:00)</option>
+          </select>
+        </div>
         <div class="setting-row">
           <label for="themeSelect">Giao diện (Theme):</label>
           <select id="themeSelect">
@@ -1491,4 +1513,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>

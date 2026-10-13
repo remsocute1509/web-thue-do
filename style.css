@@ -70,14 +70,35 @@ body {
   justify-content: center;
   align-items: center;
   background-color: #e5ebff;
-  background-image: url('assets/bg.jpg');
-  background-position: center center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
   padding: 20px 16px;
   overflow-x: hidden;
   position: relative;
+  transition: background-color 1.2s ease;
+}
+
+/* Dynamic Time-Based Background Crossfade Layers */
+.dynamic-bg-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+}
+
+#bgLayerA {
+  opacity: 1;
+  background-image: url('assets/bg_morning.jpg?v=2');
+}
+
+#bgLayerB {
+  opacity: 0;
 }
 
 /* Floating Sakura Petals Overlay */
@@ -334,7 +355,7 @@ body {
 .top-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 28px;
   margin-bottom: 26px;
 }
@@ -346,6 +367,23 @@ body {
   position: relative;
   display: flex;
   align-items: center;
+  animation: fadeInSearchBar 0.25s ease-out;
+}
+
+.search-bar.tab-hidden {
+  display: none !important;
+}
+
+@keyframes fadeInSearchBar {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .search-icon {
@@ -360,7 +398,7 @@ body {
 .search-bar input {
   width: 100%;
   height: 44px;
-  padding: 0 20px 0 48px;
+  padding: 0 42px 0 48px;
   background: rgba(246, 247, 255, 0.82);
   border: 1.5px solid rgba(255, 255, 255, 0.95);
   border-radius: var(--radius-full);
@@ -383,11 +421,237 @@ body {
   box-shadow: 0 0 0 4px rgba(158, 182, 250, 0.22);
 }
 
+/* Nút xóa từ khóa tìm kiếm */
+.search-clear-btn {
+  position: absolute;
+  right: 14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: #e2e6f8;
+  color: #636b94;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 5;
+}
+
+.search-clear-btn:hover {
+  background: #f78da7;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.search-clear-btn.hidden {
+  display: none !important;
+}
+
+/* Dropdown gợi ý kết quả tìm kiếm tức thì */
+.search-results-dropdown {
+  position: absolute;
+  top: 52px;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(248, 180, 205, 0.7);
+  border-radius: 20px;
+  box-shadow: 0 16px 45px rgba(180, 160, 215, 0.28), 0 0 25px rgba(255, 220, 235, 0.4);
+  padding: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeInSearchDropdown 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.search-results-dropdown.hidden {
+  display: none !important;
+}
+
+@keyframes fadeInSearchDropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #fbfbfe;
+  border: 1px solid rgba(230, 235, 252, 0.85);
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+
+.search-result-item:hover {
+  background: linear-gradient(135deg, #fff2f7 0%, #f3f0ff 100%);
+  border-color: rgba(248, 160, 190, 0.6);
+  transform: translateX(4px);
+  box-shadow: 0 4px 14px rgba(235, 170, 200, 0.2);
+}
+
+.search-item-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 6px rgba(150, 155, 200, 0.18);
+  flex-shrink: 0;
+}
+
+.search-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-item-title {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-item-price {
+  font-size: 12px;
+  color: #e8557a;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.search-item-stock {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.search-item-stock.in-stock {
+  background: #e8f9ee;
+  color: #1e8346;
+}
+
+.search-item-stock.out-of-stock {
+  background: #fee7ee;
+  color: #d8456d;
+}
+
+.search-dropdown-footer {
+  padding: 8px 12px 4px 12px;
+  font-size: 12px;
+  color: #8c93b7;
+  text-align: center;
+  border-top: 1px dashed rgba(220, 225, 245, 0.8);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Thông báo khi không tìm thấy mẫu đồ trong catalog */
+.costumes-no-results {
+  grid-column: 1 / -1;
+  padding: 42px 24px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 2px dashed rgba(248, 180, 205, 0.8);
+  border-radius: 24px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(230, 190, 215, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.costumes-no-results.hidden {
+  display: none !important;
+}
+
+.no-results-icon {
+  font-size: 42px;
+  margin-bottom: 12px;
+  animation: gentlePulse 2s ease-in-out infinite;
+}
+
+.costumes-no-results h3 {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 8px;
+}
+
+.costumes-no-results p {
+  font-size: 14.5px;
+  color: var(--text-muted);
+  max-width: 520px;
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+.btn-reset-search {
+  padding: 9px 24px;
+  background: linear-gradient(135deg, #fba1ba 0%, #f78da7 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-full);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(247, 141, 167, 0.35);
+  transition: all 0.25s ease;
+}
+
+.btn-reset-search:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 18px rgba(247, 141, 167, 0.5);
+}
+
+.costume-catalog-card.search-highlight {
+  animation: cardHighlightGlow 2.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes cardHighlightGlow {
+  0% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 6px rgba(247, 141, 167, 0.7), 0 16px 36px rgba(247, 141, 167, 0.35);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: var(--card-shadow);
+  }
+}
+
 /* Header Actions */
 .header-actions {
   display: flex;
   align-items: center;
   gap: 18px;
+  margin-left: auto;
 }
 
 /* Header Action Buttons */
@@ -427,13 +691,14 @@ body {
   position: absolute;
   top: 66px;
   right: 0;
-  width: 330px;
+  width: 360px;
+  max-width: 92vw;
   background: #ffffff;
   border-radius: var(--radius-md);
   box-shadow: 0 16px 45px rgba(120, 125, 180, 0.28);
   border: 1.5px solid rgba(220, 225, 250, 0.9);
   z-index: 100;
-  padding: 18px;
+  padding: 16px;
   animation: fadeInDown 0.22s ease;
 }
 
@@ -461,14 +726,17 @@ body {
 }
 
 .notif-clear {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--pastel-blue-dark);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
   transition: var(--transition-smooth);
 }
 
 .notif-clear:hover {
+  background: #fdf2f8;
   color: var(--pastel-pink-dark);
 }
 
@@ -492,21 +760,109 @@ body {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .notif-item {
   display: flex;
   gap: 10px;
   font-size: 13.5px;
-  padding: 9px 10px;
+  padding: 10px 12px;
   border-radius: var(--radius-sm);
   background: #fbfbfe;
+  border: 1px solid #edf0fa;
   transition: var(--transition-smooth);
 }
 
 .notif-item.unread {
   background: #f0f4ff;
+  border-color: #dbeafe;
+}
+
+.notif-item.invoice-notif {
+  cursor: pointer;
+  position: relative;
+}
+
+.notif-item.invoice-notif:hover {
+  background: #fdf2f8;
+  border-color: #f472b6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
+}
+
+.notif-item.invoice-notif.paid {
+  border-left: 3.5px solid #10b981;
+}
+
+.notif-item.invoice-notif.pending {
+  border-left: 3.5px solid #f59e0b;
+}
+
+.notif-top-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.notif-code {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.notif-status-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.notif-status-tag.paid {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.notif-status-tag.pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.notif-char-name {
+  font-size: 13px;
+  color: #334155;
+  margin: 2px 0 4px;
+  line-height: 1.35;
+}
+
+.notif-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notif-bottom-row small {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.notif-view-link {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #be185d;
+  white-space: nowrap;
+}
+
+.notif-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .notif-text p {
@@ -1301,6 +1657,39 @@ body {
   font-size: 13px;
 }
 
+/* Badge trên Clock Card hiển thị buổi và chế độ hình nền */
+.time-period-badge {
+  margin-top: 14px;
+  padding: 6px 18px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-full);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-heading);
+  box-shadow: 0 4px 14px rgba(150, 160, 210, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: var(--transition-smooth);
+}
+
+.time-period-badge:hover {
+  background: #ffffff;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 18px rgba(240, 140, 180, 0.35);
+  border-color: var(--pastel-pink);
+}
+
+.time-period-badge .time-period-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
 /* ========================================================
    CARD 2: TO-DO LIST CARD
    ======================================================== */
@@ -1654,7 +2043,7 @@ body {
 }
 
 /* ========================================================
-   MOCHIMOON INTRO CARD (Dưới thời gian & lịch, căn ở giữa)
+   MOCHIMOON INTRO CARD (Trên thời gian & lịch, căn ở giữa)
    ======================================================== */
 .mochimoon-intro-card {
   grid-column: 1 / -1;
@@ -2921,6 +3310,43 @@ body {
   box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12);
 }
 
+/* Video trong thẻ Cảm Ơn Đặt Thuê Đồ */
+.thankyou-video-container {
+  position: relative;
+  width: 175px;
+  height: 144px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(244, 114, 182, 0.35);
+  border: 2.5px solid rgba(255, 255, 255, 0.95);
+  background: #fdf2f8;
+}
+
+.thankyou-video-clip {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thankyou-video-tag {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 .thankyou-badge-icon {
   font-size: 36px;
   line-height: 1;
@@ -2929,8 +3355,15 @@ body {
 }
 
 @keyframes gentleBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 .thankyou-message h3 {
@@ -3055,8 +3488,15 @@ body {
 }
 
 @keyframes stampDrop {
-  0% { transform: scale(2.5) rotate(-30deg); opacity: 0; }
-  100% { transform: scale(1) rotate(-10deg); opacity: 1; }
+  0% {
+    transform: scale(2.5) rotate(-30deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1) rotate(-10deg);
+    opacity: 1;
+  }
 }
 
 .stamp-star {
@@ -3194,12 +3634,15 @@ body {
 .invoice-table-wrap {
   overflow-x: auto;
   margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .invoice-table {
   width: 100%;
+  min-width: 550px;
   border-collapse: collapse;
   font-size: 13px;
+  table-layout: auto;
 }
 
 .invoice-table th {
@@ -3211,6 +3654,14 @@ body {
   padding: 8px 10px;
   border-top: 1.5px solid #cbd5e1;
   border-bottom: 1.5px solid #cbd5e1;
+  white-space: nowrap;
+}
+
+.invoice-table th:nth-child(2),
+.invoice-table td:nth-child(2) {
+  white-space: normal;
+  min-width: 190px;
+  width: 40%;
 }
 
 .invoice-table td {
@@ -3223,12 +3674,22 @@ body {
   color: #0f172a;
   font-size: 13.5px;
   font-weight: 800;
+  line-height: 1.35;
+  display: block;
+  margin-bottom: 3px;
 }
 
 .table-item-desc {
-  font-size: 11.5px;
+  font-size: 12px;
   color: #64748b;
+  line-height: 1.4;
   margin-top: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: normal;
 }
 
 .badge-size {
@@ -4731,6 +5192,25 @@ body {
   gap: 16px;
   box-shadow: 0 6px 20px rgba(247, 142, 169, 0.12);
   margin-top: 6px;
+}
+
+/* Video trong khung Mochimoon Cảm Ơn Quý Khách (Quy định & Lưu ý) */
+.rules-thankyou-video-wrap {
+  width: 140px;
+  height: 115px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 18px rgba(247, 142, 169, 0.3);
+  background: #fff0f5;
+}
+
+.rules-thankyou-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .rules-alert-icon {
