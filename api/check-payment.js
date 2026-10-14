@@ -1,100 +1,48 @@
-import fs from 'fs';
+// api/check-payment.js
+// Kiểm tra trạng thái thanh toán - Public (không lộ dữ liệu cá nhân)
+// Chỉ trả về trạng thái paid/unpaid + thông tin giao dịch cơ bản
 
-const KV_BUCKET = '4fVC3QnzuUwxGeVLvAhHAb';
-const TMP_FILE = '/tmp/paid_orders.json';
-
-function getPaidOrders() {
-  try {
-    if (fs.existsSync(TMP_FILE)) {
-      return JSON.parse(fs.readFileSync(TMP_FILE, 'utf-8'));
-    }
-  } catch (e) { }
-  return global._paidOrders || {};
-}
+import { query } from './lib/db.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   const orderId = String(req.query.orderId || '').trim().replace('#', '');
-  const paidOrders = getPaidOrders();
-
-  let isPaid = false;
-  let txInfo = null;
-
-  if (orderId) {
-    const cleanTarget = orderId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-
-    // 1. Kiểm tra cache /tmp
-    for (const [key, val] of Object.entries(paidOrders)) {
-      const kClean = key.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const valId = String(val?.orderId || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const valContent = String(val?.content || '').toLowerCase();
-      if (cleanTarget && (kClean === cleanTarget || cleanTarget.includes(kClean) || kClean.includes(cleanTarget) || valId === cleanTarget || valContent.includes(cleanTarget))) {
-        isPaid = true;
-        txInfo = val;
-        break;
-      }
-    }
-
-    // 2. Kiểm tra Cloud KV dùng chung toàn bộ Vercel Serverless
-    if (!isPaid && cleanTarget) {
-      try {
-        const kvRes = await fetch(`https://kvdb.io/${KV_BUCKET}/${cleanTarget}`);
-        if (kvRes.ok) {
-          const kvData = await kvRes.json();
-          if (kvData) {
-            isPaid = true;
-            txInfo = kvData;
-          }
-        }
-      } catch (kvErr) {
-        console.error('KV check error:', kvErr);
-      }
-    }
-
-    // 3. Dự phòng đối soát trực tiếp SePay API nếu có cấu hình
-    const sepayKey = process.env.SEPAY_API_KEY;
-    if (!isPaid && sepayKey && cleanTarget) {
-      try {
-        const sepayRes = await fetch('https://my.sepay.vn/userapi/transactions/list?limit=30', {
-          headers: {
-            'Authorization': `Apikey ${sepayKey}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        if (sepayRes.ok) {
-          const sepayData = await sepayRes.json();
-          const list = sepayData.messages || sepayData.transactions || [];
-          const matchTx = list.find(t => {
-            const desc = (t.transaction_content || t.description || t.content || '').toLowerCase().replace(/[^a-zA-Z0-9]/g, '');
-            return desc.includes(cleanTarget);
-          });
-          if (matchTx) {
-            isPaid = true;
-            txInfo = {
-              orderId: `#${orderId}`,
-              amount: matchTx.amount_in || matchTx.transferAmount || 0,
-              content: matchTx.transaction_content || matchTx.description || '',
-              gateway: matchTx.bank_brand_name || 'MBBank',
-              time: matchTx.transaction_date || 'Vừa xong'
-            };
-          }
-        }
-      } catch (apiErr) {
-        console.error('SePay API check error:', apiErr);
-      }
-    }
+  if (!orderId) {
+    return res.status(400).json({ error: 'orderId is required' });
   }
 
-  return res.status(200).json({
-    orderId: orderId,
-    paid: isPaid,
-    transaction: txInfo
-  });
+  try {
+    // Tìm trong paid_orders bằng case-insensitive
+    const result = await query(
+      `SELECT order_id, amount, gateway, paid_at
+       FROM paid_orders
+       WHERE LOWER(REPLACE(order_id, '#', '')) = LOWER($1)
+       LIMIT 1`,
+      [orderId]
+    );
+
+    if (result.rows.length > 0) {
+      const row = result.rows[0];
+      return res.status(200).json({
+        orderId: orderId,
+        paid: true,
+        transaction: {
+          orderId: row.order_id,
+          amount: row.amount,
+          gateway: row.gateway,
+          time: row.paid_at,
+        }
+      });
+    }
+
+    return res.status(200).json({ orderId, paid: false, transaction: null });
+  } catch (err) {
+    console.error('[check-payment]', err.message);
+    return res.status(500).json({ error: 'Database error' });
+  }
 }

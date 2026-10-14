@@ -85,31 +85,48 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(syncCloudBookings, 4000);
 });
 
+function getAdminToken() {
+  return localStorage.getItem('mochimoon_admin_token') || '';
+}
+
+function setAdminToken(token) {
+  if (token) localStorage.setItem('mochimoon_admin_token', token);
+  else localStorage.removeItem('mochimoon_admin_token');
+}
+
+function getAdminHeaders() {
+  const token = getAdminToken();
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
 async function syncCloudBookings() {
+  if (!appState.isAdmin) return; // Chỉ sync khi đã đăng nhập admin
   try {
-    const res = await fetch('/api/bookings');
+    const res = await fetch('/api/bookings', { headers: getAdminHeaders() });
     if (!res.ok) return;
     const cloudList = await res.json();
     if (Array.isArray(cloudList) && cloudList.length > 0) {
       const mergedMap = new Map();
       cloudList.forEach(b => {
-        if (b.orderId) mergedMap.set(b.orderId, b);
+        const key = b.order_id || b.orderId;
+        if (key) mergedMap.set(key, {
+          ...b,
+          orderId: b.order_id || b.orderId,
+          customerName: b.customer_name || b.customerName,
+          costumeName: b.costume_name || b.costumeName,
+          rentalDate: b.rental_date || b.rentalDate,
+          returnDate: b.return_date || b.returnDate,
+        });
       });
       (appState.bookings || []).forEach(b => {
-        if (b.orderId && !mergedMap.has(b.orderId)) {
-          mergedMap.set(b.orderId, b);
-        }
+        if (b.orderId && !mergedMap.has(b.orderId)) mergedMap.set(b.orderId, b);
       });
       appState.bookings = Array.from(mergedMap.values());
-      try {
-        localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings));
-      } catch (e) { }
+      try { localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings)); } catch (e) { }
       renderBookedList();
       refreshAvailabilityUI();
       renderInvoiceNotifications();
-      if (typeof renderAdminOrders === 'function' && appState.isAdmin) {
-        renderAdminOrders();
-      }
+      if (typeof renderAdminOrders === 'function' && appState.isAdmin) renderAdminOrders();
     }
   } catch (e) { }
 }
@@ -118,15 +135,16 @@ async function saveCloudBookings(bookingsList) {
   try {
     fetch('/api/bookings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
       body: JSON.stringify(bookingsList)
     });
   } catch (e) { }
 }
 
 function loadSavedState() {
-  const savedAdmin = localStorage.getItem('mochimoon_is_admin');
-  appState.isAdmin = (savedAdmin === 'true');
+  // Kiểm tra admin token thay vì flag boolean đơn giản
+  const savedToken = getAdminToken();
+  appState.isAdmin = !!savedToken;
 
   const savedTasks = localStorage.getItem('jiu_tasks');
   if (savedTasks) {
@@ -146,6 +164,13 @@ function loadSavedState() {
         if (!b.customerName) b.customerName = idx === 0 ? 'Nguyễn Thảo Linh' : 'Trần Quỳnh Anh';
         if (!b.phone) b.phone = idx === 0 ? '0912345678' : '0988776655';
         if (!b.orderId) b.orderId = idx === 0 ? '#MC-10291' : '#MC-58204';
+        if (b.cccd && typeof b.cccd === 'string' && b.cccd.startsWith('{')) {
+          try {
+            const parsed = JSON.parse(b.cccd);
+            if (!b.cccdFront && parsed.front) b.cccdFront = parsed.front;
+            if (!b.cccdBack && parsed.back) b.cccdBack = parsed.back;
+          } catch (e) { }
+        }
       });
     } catch (e) {
       console.error(e);
@@ -244,6 +269,23 @@ function createPetal(container) {
 function initClock() {
   updateClockDisplay();
   setInterval(updateClockDisplay, 1000);
+
+  const videoBg = document.getElementById('clockVideoBg');
+  const toggleBtn = document.getElementById('clockVideoToggleBtn');
+  if (videoBg && toggleBtn) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (videoBg.paused) {
+        videoBg.play();
+        toggleBtn.textContent = '🎬';
+        toggleBtn.title = 'Tạm dừng video nền';
+      } else {
+        videoBg.pause();
+        toggleBtn.textContent = '▶️';
+        toggleBtn.title = 'Tiếp tục phát video nền';
+      }
+    });
+  }
 }
 
 function updateClockDisplay() {
@@ -480,6 +522,23 @@ function initCalendar() {
       renderCalendar();
     });
   }
+
+  const calVideoBg = document.getElementById('calendarVideoBg');
+  const calToggleBtn = document.getElementById('calendarVideoToggleBtn');
+  if (calVideoBg && calToggleBtn) {
+    calToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (calVideoBg.paused) {
+        calVideoBg.play();
+        calToggleBtn.textContent = '🎬';
+        calToggleBtn.title = 'Tạm dừng video nền lịch';
+      } else {
+        calVideoBg.pause();
+        calToggleBtn.textContent = '▶️';
+        calToggleBtn.title = 'Tiếp tục phát video nền lịch';
+      }
+    });
+  }
 }
 
 function renderCalendar() {
@@ -703,33 +762,145 @@ function initEventListeners() {
 
   // Search Bar Filter được khởi tạo qua initCostumeSearch() bên dưới
 
-  // Sidebar Nav Tabs
-  const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
-  const tabPanes = document.querySelectorAll('.tab-pane');
+  // ========================================================
+  // CENTRAL TAB SWITCHING & MOBILE DRAWER CONTROLLER
+  // ========================================================
+  function switchTab(targetTab) {
+    if (!targetTab) return;
 
+    // 1. Cập nhật trạng thái Active trên Desktop Sidebar
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(n => {
+      n.classList.toggle('active', n.getAttribute('data-tab') === targetTab);
+    });
+
+    // 2. Cập nhật trạng thái Active trong Mobile Drawer (gộp 4 trang)
+    document.querySelectorAll('.mobile-drawer-nav .mobile-nav-item').forEach(n => {
+      n.classList.toggle('active', n.getAttribute('data-tab') === targetTab);
+    });
+
+    // 3. Chuyển đổi nội dung Tab Pane
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    tabPanes.forEach(pane => {
+      pane.classList.remove('active');
+    });
+
+    if (targetTab === 'tracker') {
+      document.getElementById('tabDailyTracker')?.classList.add('active');
+    } else if (targetTab === 'health') {
+      document.getElementById('tabHealth')?.classList.add('active');
+    } else if (targetTab === 'hobbies') {
+      document.getElementById('tabHobbies')?.classList.add('active');
+    } else if (targetTab === 'wardrobe') {
+      document.getElementById('tabWardrobe')?.classList.add('active');
+    }
+
+    if (typeof updateSearchBarVisibility === 'function') {
+      updateSearchBarVisibility(targetTab);
+    }
+    if (typeof playChime === 'function') {
+      playChime(480);
+    }
+
+    // Cuộn lên đầu trang trên điện thoại để trải nghiệm mượt mà
+    if (window.innerWidth <= 960) {
+      const mainContent = document.querySelector('.main-content');
+      if (mainContent) mainContent.scrollTop = 0;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+  window.switchTab = switchTab;
+
+  // Lắng nghe click các tab trên Desktop Sidebar
+  const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
   navItems.forEach(item => {
     item.addEventListener('click', () => {
-      navItems.forEach(n => n.classList.remove('active'));
-      item.classList.add('active');
-
       const targetTab = item.getAttribute('data-tab');
-      tabPanes.forEach(pane => {
-        pane.classList.remove('active');
-      });
-
-      if (targetTab === 'tracker') {
-        document.getElementById('tabDailyTracker')?.classList.add('active');
-      } else if (targetTab === 'health') {
-        document.getElementById('tabHealth')?.classList.add('active');
-      } else if (targetTab === 'hobbies') {
-        document.getElementById('tabHobbies')?.classList.add('active');
-      } else if (targetTab === 'wardrobe') {
-        document.getElementById('tabWardrobe')?.classList.add('active');
-      }
-
-      updateSearchBarVisibility(targetTab);
-      playChime(480);
+      switchTab(targetTab);
     });
+  });
+
+  // Xử lý Drawer trên điện thoại (Nút 3 gạch gộp 4 trang)
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
+  const mobileDrawer = document.getElementById('mobileDrawer');
+  const mobileDrawerBackdrop = document.getElementById('mobileDrawerBackdrop');
+  const mobileDrawerClose = document.getElementById('mobileDrawerClose');
+
+  function openMobileDrawer() {
+    const notifDropdown = document.getElementById('notifDropdown');
+    const musicDropdown = document.getElementById('musicDropdown');
+    if (notifDropdown) notifDropdown.classList.add('hidden');
+    if (musicDropdown) musicDropdown.classList.add('hidden');
+
+    mobileDrawer?.classList.add('open');
+    mobileDrawerBackdrop?.classList.add('open');
+    document.body.classList.add('drawer-locked');
+    if (typeof playChime === 'function') playChime(520);
+  }
+
+  function closeMobileDrawer() {
+    mobileDrawer?.classList.remove('open');
+    mobileDrawerBackdrop?.classList.remove('open');
+    document.body.classList.remove('drawer-locked');
+  }
+
+  window.openMobileDrawer = openMobileDrawer;
+  window.closeMobileDrawer = closeMobileDrawer;
+
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (window.innerWidth <= 960) {
+        if (mobileDrawer?.classList.contains('open')) {
+          closeMobileDrawer();
+        } else {
+          openMobileDrawer();
+        }
+      } else {
+        // Trên máy tính: thu gọn/mở rộng sidebar
+        sidebar?.classList.toggle('collapsed');
+      }
+    });
+  }
+
+  mobileDrawerClose?.addEventListener('click', closeMobileDrawer);
+  mobileDrawerBackdrop?.addEventListener('click', closeMobileDrawer);
+
+  // Click vào các mục trang trong Mobile Drawer
+  document.querySelectorAll('.mobile-drawer-nav .mobile-nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const targetTab = item.getAttribute('data-tab');
+      switchTab(targetTab);
+      closeMobileDrawer();
+    });
+  });
+
+  // Các nút footer trong Mobile Drawer
+  document.getElementById('mobSettingsBtn')?.addEventListener('click', () => {
+    closeMobileDrawer();
+    document.getElementById('settingsBtn')?.click();
+  });
+
+  document.getElementById('mobAdminBtn')?.addEventListener('click', () => {
+    closeMobileDrawer();
+    if (window.openAdminLoginModal) {
+      window.openAdminLoginModal();
+    } else {
+      document.getElementById('userProfileBtn')?.click();
+    }
+  });
+
+  // Đóng Drawer và các modal khi bấm phím Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const notifEl = document.getElementById('notifDropdown');
+      const musicEl = document.getElementById('musicDropdown');
+      if (notifEl) notifEl.classList.add('hidden');
+      if (musicEl) musicEl.classList.add('hidden');
+      if (mobileDrawer?.classList.contains('open')) {
+        closeMobileDrawer();
+      }
+    }
   });
 
   // Notification Dropdown Toggle & Notification Switch
@@ -746,6 +917,11 @@ function initEventListeners() {
       e.stopPropagation();
       const isClosed = notifDropdown.classList.contains('hidden');
       if (isClosed) {
+        // Đóng bảng nhạc và mobile drawer nếu đang mở
+        const musicDropdown = document.getElementById('musicDropdown');
+        if (musicDropdown) musicDropdown.classList.add('hidden');
+        if (typeof closeMobileDrawer === 'function') closeMobileDrawer();
+
         if (typeof renderInvoiceNotifications === 'function') {
           renderInvoiceNotifications();
         }
@@ -1373,6 +1549,238 @@ function syncBookingDateInput(year, month, day) {
   }
 }
 
+// ========================================================
+// CCCD UPLOAD, COMPRESSION & LIGHTBOX HANDLERS
+// ========================================================
+let cccdUploadedState = {
+  front: '',
+  back: ''
+};
+
+function readAndCompressImage(file, maxDimension = 1200, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) {
+      reject(new Error('Vui lòng chọn tệp hình ảnh hợp lệ (JPG, PNG, WebP)'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.onerror = () => reject(new Error('Không thể đọc dữ liệu ảnh'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('Lỗi khi đọc tệp ảnh'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function openCccdLightbox(src, title = 'Ảnh Căn Cước Công Dân (CCCD)') {
+  const modal = document.getElementById('cccdLightboxModal');
+  const img = document.getElementById('cccdLightboxImg');
+  const titleEl = document.getElementById('cccdLightboxTitle');
+  if (!modal || !img || !src) return;
+
+  img.src = src;
+  if (titleEl) titleEl.textContent = title;
+  modal.classList.remove('hidden');
+}
+
+function closeCccdLightbox() {
+  const modal = document.getElementById('cccdLightboxModal');
+  const img = document.getElementById('cccdLightboxImg');
+  if (modal) modal.classList.add('hidden');
+  if (img) img.src = '';
+}
+
+function resetCccdUploads() {
+  cccdUploadedState = { front: '', back: '' };
+
+  const frontInput = document.getElementById('cccdFrontInput');
+  const backInput = document.getElementById('cccdBackInput');
+  if (frontInput) frontInput.value = '';
+  if (backInput) backInput.value = '';
+
+  const frontBox = document.getElementById('cccdFrontBox');
+  const frontPlaceholder = document.getElementById('cccdFrontPlaceholder');
+  const frontPreview = document.getElementById('cccdFrontPreviewWrap');
+  const frontImg = document.getElementById('cccdFrontPreviewImg');
+  if (frontBox) frontBox.classList.remove('has-file');
+  if (frontPlaceholder) frontPlaceholder.classList.remove('hidden');
+  if (frontPreview) frontPreview.classList.add('hidden');
+  if (frontImg) frontImg.src = '';
+
+  const backBox = document.getElementById('cccdBackBox');
+  const backPlaceholder = document.getElementById('cccdBackPlaceholder');
+  const backPreview = document.getElementById('cccdBackPreviewWrap');
+  const backImg = document.getElementById('cccdBackPreviewImg');
+  if (backBox) backBox.classList.remove('has-file');
+  if (backPlaceholder) backPlaceholder.classList.remove('hidden');
+  if (backPreview) backPreview.classList.add('hidden');
+  if (backImg) backImg.src = '';
+
+  const errorAlert = document.getElementById('cccdErrorAlert');
+  if (errorAlert) errorAlert.classList.add('hidden');
+  if (frontBox) frontBox.classList.remove('is-invalid');
+  if (backBox) backBox.classList.remove('is-invalid');
+}
+
+function initCccdUploadHandlers() {
+  const frontBox = document.getElementById('cccdFrontBox');
+  const frontInput = document.getElementById('cccdFrontInput');
+  const frontPlaceholder = document.getElementById('cccdFrontPlaceholder');
+  const frontPreview = document.getElementById('cccdFrontPreviewWrap');
+  const frontImg = document.getElementById('cccdFrontPreviewImg');
+  const frontDelBtn = document.getElementById('cccdFrontDelBtn');
+
+  const backBox = document.getElementById('cccdBackBox');
+  const backInput = document.getElementById('cccdBackInput');
+  const backPlaceholder = document.getElementById('cccdBackPlaceholder');
+  const backPreview = document.getElementById('cccdBackPreviewWrap');
+  const backImg = document.getElementById('cccdBackPreviewImg');
+  const backDelBtn = document.getElementById('cccdBackDelBtn');
+
+  const lightboxModal = document.getElementById('cccdLightboxModal');
+  const lightboxCloseBtn = document.getElementById('closeCccdLightboxBtn');
+
+  if (lightboxCloseBtn) {
+    lightboxCloseBtn.addEventListener('click', closeCccdLightbox);
+  }
+  if (lightboxModal) {
+    lightboxModal.addEventListener('click', (e) => {
+      if (e.target === lightboxModal) closeCccdLightbox();
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && lightboxModal && !lightboxModal.classList.contains('hidden')) {
+      closeCccdLightbox();
+    }
+  });
+
+  function setupCccdCard(box, input, placeholder, previewWrap, previewImg, delBtn, sideKey, labelName) {
+    if (!box || !input) return;
+
+    box.addEventListener('click', (e) => {
+      if (e.target === delBtn || delBtn?.contains(e.target)) {
+        return;
+      }
+      if (e.target === previewImg && cccdUploadedState[sideKey]) {
+        openCccdLightbox(cccdUploadedState[sideKey], `🪪 ${labelName}`);
+        return;
+      }
+      input.click();
+    });
+
+    input.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+
+      try {
+        const compressedBase64 = await readAndCompressImage(file, 1200, 0.82);
+        cccdUploadedState[sideKey] = compressedBase64;
+
+        if (previewImg) previewImg.src = compressedBase64;
+        if (placeholder) placeholder.classList.add('hidden');
+        if (previewWrap) previewWrap.classList.remove('hidden');
+        box.classList.add('has-file');
+        box.classList.remove('is-invalid');
+
+        const otherSideKey = sideKey === 'front' ? 'back' : 'front';
+        if (cccdUploadedState[otherSideKey]) {
+          const alertEl = document.getElementById('cccdErrorAlert');
+          if (alertEl) alertEl.classList.add('hidden');
+        }
+
+        playChime(640);
+      } catch (err) {
+        alert(err.message || 'Không thể tải ảnh');
+      }
+    });
+
+    if (delBtn) {
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        cccdUploadedState[sideKey] = '';
+        input.value = '';
+        if (previewImg) previewImg.src = '';
+        if (previewWrap) previewWrap.classList.add('hidden');
+        if (placeholder) placeholder.classList.remove('hidden');
+        box.classList.remove('has-file');
+      });
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      box.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        box.style.borderColor = 'var(--pastel-pink)';
+        box.style.background = '#fff0f6';
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      box.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        box.style.borderColor = '';
+        box.style.background = '';
+      });
+    });
+
+    box.addEventListener('drop', async (e) => {
+      const file = e.dataTransfer?.files?.[0];
+      if (!file) return;
+      try {
+        const compressedBase64 = await readAndCompressImage(file, 1200, 0.82);
+        cccdUploadedState[sideKey] = compressedBase64;
+
+        if (previewImg) previewImg.src = compressedBase64;
+        if (placeholder) placeholder.classList.add('hidden');
+        if (previewWrap) previewWrap.classList.remove('hidden');
+        box.classList.add('has-file');
+        box.classList.remove('is-invalid');
+
+        const otherSideKey = sideKey === 'front' ? 'back' : 'front';
+        if (cccdUploadedState[otherSideKey]) {
+          const alertEl = document.getElementById('cccdErrorAlert');
+          if (alertEl) alertEl.classList.add('hidden');
+        }
+
+        playChime(640);
+      } catch (err) {
+        alert(err.message || 'Không thể tải ảnh');
+      }
+    });
+  }
+
+  setupCccdCard(frontBox, frontInput, frontPlaceholder, frontPreview, frontImg, frontDelBtn, 'front', 'Mặt trước CCCD');
+  setupCccdCard(backBox, backInput, backPlaceholder, backPreview, backImg, backDelBtn, 'back', 'Mặt sau CCCD');
+}
+
 function initCosplayBooking() {
   // Set default date to today
   const dateInput = document.getElementById('bookingDateInput');
@@ -1383,6 +1791,9 @@ function initCosplayBooking() {
     const d = String(today.getDate()).padStart(2, '0');
     dateInput.value = `${y}-${m}-${d}`;
   }
+
+  // Khởi tạo các sự kiện tải ảnh CCCD
+  initCccdUploadHandlers();
 
   // Character Select Change Handler
   const charSelect = document.getElementById('bookingCharacter');
@@ -1422,6 +1833,48 @@ function initCosplayBooking() {
       const customerPhone = document.getElementById('customerPhone')?.value.trim() || '';
       const note = document.getElementById('bookingNote')?.value.trim() || '';
 
+      // BẮT BUỘC PHẢI GỬI ĐỦ 2 MẶT ẢNH CCCD MỚI ĐƯỢC QUA THANH TOÁN
+      const frontBox = document.getElementById('cccdFrontBox');
+      const backBox = document.getElementById('cccdBackBox');
+      const errorAlert = document.getElementById('cccdErrorAlert');
+
+      const hasFront = Boolean(cccdUploadedState.front);
+      const hasBack = Boolean(cccdUploadedState.back);
+
+      if (!hasFront || !hasBack) {
+        let errorMsg = '';
+        if (!hasFront && !hasBack) {
+          errorMsg = '⚠️ Bạn bắt buộc phải tải lên cả 2 mặt Căn cước công dân (Mặt trước & Mặt sau) thì mới được chuyển qua thanh toán cọc nhé! 🌸';
+          if (frontBox) frontBox.classList.add('is-invalid');
+          if (backBox) backBox.classList.add('is-invalid');
+        } else if (!hasFront) {
+          errorMsg = '⚠️ Bạn còn thiếu ảnh Mặt trước CCCD. Vui lòng tải lên để hoàn tất đơn nhé! 🌸';
+          if (frontBox) frontBox.classList.add('is-invalid');
+          if (backBox) backBox.classList.remove('is-invalid');
+        } else {
+          errorMsg = '⚠️ Bạn còn thiếu ảnh Mặt sau CCCD. Vui lòng tải lên để hoàn tất đơn nhé! 🌸';
+          if (backBox) backBox.classList.add('is-invalid');
+          if (frontBox) frontBox.classList.remove('is-invalid');
+        }
+
+        if (errorAlert) {
+          errorAlert.textContent = errorMsg;
+          errorAlert.classList.remove('hidden');
+        }
+
+        const targetCard = !hasFront ? frontBox : backBox;
+        if (targetCard) {
+          targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        alert(errorMsg);
+        return;
+      }
+
+      if (errorAlert) errorAlert.classList.add('hidden');
+      if (frontBox) frontBox.classList.remove('is-invalid');
+      if (backBox) backBox.classList.remove('is-invalid');
+
       // Format date for display
       let displayDate = dateVal;
       if (dateVal) {
@@ -1447,7 +1900,10 @@ function initCosplayBooking() {
         phone: customerPhone,
         note,
         pricing,
-        status: 'Chờ thanh toán cọc ⏳'
+        status: 'Chờ thanh toán cọc ⏳',
+        cccdFront: cccdUploadedState.front || '',
+        cccdBack: cccdUploadedState.back || '',
+        cccd: (cccdUploadedState.front || cccdUploadedState.back) ? JSON.stringify({ front: cccdUploadedState.front, back: cccdUploadedState.back }) : ''
       };
 
       appState.bookings.unshift(newBooking);
@@ -1471,6 +1927,9 @@ function initCosplayBooking() {
         renderInvoiceNotifications(true);
       }
       playSuccessChime();
+
+      // Reset CCCD state cho các lượt tiếp theo
+      resetCccdUploads();
 
       // Chuyển qua bước thanh toán nhưng vẫn ở trang đặt thuê đồ!
       showPaymentStep(newBooking);
@@ -1557,6 +2016,37 @@ function showPaymentStep(booking) {
     if (noteRow) noteRow.style.display = 'none';
   }
 
+  // Update CCCD status in bill
+  const payCccdStatus = document.getElementById('payCccdStatus');
+  if (payCccdStatus) {
+    const hasFront = Boolean(booking.cccdFront);
+    const hasBack = Boolean(booking.cccdBack);
+
+    if (hasFront && hasBack) {
+      payCccdStatus.innerHTML = `
+        <span style="color:#059669; font-weight:700;">Đã đính kèm đủ 2 mặt ✓</span>
+        <button type="button" class="btn-view-bill-cccd" id="btnViewBillCccd" style="margin-left:8px; font-size:11px; padding:2px 8px; border-radius:12px; background:rgba(236,72,153,0.12); color:#db2777; border:1px solid rgba(236,72,153,0.3); cursor:pointer; font-weight:700;">🔍 Xem lại</button>
+      `;
+      document.getElementById('btnViewBillCccd')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openCccdLightbox(booking.cccdFront, `🪪 Ảnh Mặt Trước CCCD - ${escapeHtml(booking.customerName || '')}`);
+      });
+    } else if (hasFront || hasBack) {
+      const src = hasFront ? booking.cccdFront : booking.cccdBack;
+      const label = hasFront ? 'Mặt trước' : 'Mặt sau';
+      payCccdStatus.innerHTML = `
+        <span style="color:#0284c7; font-weight:700;">Đã đính kèm (${label}) ✓</span>
+        <button type="button" class="btn-view-bill-cccd" id="btnViewBillCccd" style="margin-left:8px; font-size:11px; padding:2px 8px; border-radius:12px; background:rgba(236,72,153,0.12); color:#db2777; border:1px solid rgba(236,72,153,0.3); cursor:pointer; font-weight:700;">🔍 Xem lại</button>
+      `;
+      document.getElementById('btnViewBillCccd')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openCccdLightbox(src, `🪪 Ảnh ${label} CCCD - ${escapeHtml(booking.customerName || '')}`);
+      });
+    } else {
+      payCccdStatus.innerHTML = `<span style="color:#94a3b8; font-style:italic;">Chưa đính kèm (mang CCCD gốc / cọc tiền khi lấy đồ)</span>`;
+    }
+  }
+
   const pricing = booking.pricing || getRentalPricing(booking.character, booking.duration, booking.size);
   const payRentPriceEl = document.getElementById('payRentPrice');
   if (payRentPriceEl) payRentPriceEl.textContent = pricing.rentPriceFormatted;
@@ -1580,12 +2070,14 @@ function showPaymentStep(booking) {
   const noticeCodeEl = document.getElementById('noticeOrderCode');
   if (noticeCodeEl) noticeCodeEl.textContent = transferContent;
 
-  // VietQR Dynamic Image
+  // VietQR Dynamic Image & Rem Anime Canvas Generator
+  const qrUrl = `https://img.vietqr.io/image/MB-0377193835-qr_only.png?amount=${pricing.totalToPay}&addInfo=${encodeURIComponent(transferContent)}&accountName=DUONG%20NAM%20PHONG`;
   const vietQrImg = document.getElementById('vietQrImg');
   if (vietQrImg) {
-    vietQrImg.src = `https://img.vietqr.io/image/MB-0377193835-compact2.png?amount=${pricing.totalToPay}&addInfo=${encodeURIComponent(transferContent)}&accountName=DUONG%20NAM%20PHONG`;
-    vietQrImg.classList.remove('hidden');
+    vietQrImg.src = qrUrl;
   }
+  // Render VietQR lên khung Rem Anime bằng HTML5 Canvas siêu chuẩn xác & đồng bộ màu anime
+  renderRemVietQrCanvas(qrUrl);
 
   const qrScanHint = document.getElementById('qrScanHint');
   if (qrScanHint) {
@@ -1926,38 +2418,46 @@ function initPaymentActions() {
     });
   }
 
-  // 2. Nút "Thử Nghiệm: Giả Lập Nhận Tiền Ngân Hàng"
+  // 2. Nút "Admin: Duyệt Thanh Toán Thủ Công" (chỉ admin mới thấy)
   const btnSimulate = document.getElementById('btnSimulatePayment');
   if (btnSimulate) {
     btnSimulate.addEventListener('click', async () => {
       const current = appState.currentPaymentBooking;
       if (!current) {
-        alert('Vui lòng tạo một đơn thuê trước để thử nghiệm tính năng tự duyệt nhé!');
+        alert('Vui lòng tạo một đơn thuê trước!');
+        return;
+      }
+      if (!appState.isAdmin) {
+        alert('Chỉ admin mới có thể duyệt thủ công!');
         return;
       }
       btnSimulate.disabled = true;
-      btnSimulate.textContent = '⏳ Đang giả lập ting ting...';
+      btnSimulate.textContent = '⏳ Đang duyệt...';
 
       try {
-        const res = await fetch('/api/simulate-payment', {
+        const res = await fetch('/api/admin-approve', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
           body: JSON.stringify({
             orderId: current.orderId,
-            amount: current.pricing?.totalToPay || 200000
+            amount: current.pricing?.totalToPay || 200000,
+            note: 'Admin manual approval'
           })
         });
         const data = await res.json();
-        console.log('Simulate payment response:', data);
+        if (data.success) {
+          onBankPaymentApproved(current, { time: new Date().toLocaleString('vi-VN'), gateway: 'Admin' });
+        } else {
+          alert('Lỗi: ' + (data.error || 'Unknown'));
+        }
       } catch (err) {
-        console.warn('Simulation error:', err);
-        // Fallback local trigger
-        onBankPaymentApproved(current, { time: 'Giả lập test', gateway: 'MBBank 0377193835' });
+        console.warn('Approve error:', err);
+        onBankPaymentApproved(current, { time: 'Admin approve', gateway: 'Manual' });
       }
 
       setTimeout(() => {
         btnSimulate.disabled = false;
-        btnSimulate.textContent = '⚡ Thử Nghiệm: Giả Lập Nhận Tiền';
+        btnSimulate.textContent = '⚡ Admin: Duyệt Thủ Công';
       }, 1500);
     });
   }
@@ -2031,6 +2531,7 @@ function initPaymentActions() {
   if (btnBack) {
     btnBack.addEventListener('click', () => {
       showBookingFormStep();
+      resetCccdUploads();
       const nameInput = document.getElementById('customerName');
       const phoneInput = document.getElementById('customerPhone');
       const noteInput = document.getElementById('bookingNote');
@@ -2078,6 +2579,7 @@ function initPaymentActions() {
   });
 
   document.getElementById('btnBookAnother')?.addEventListener('click', () => {
+    resetCccdUploads();
     const nameInput = document.getElementById('customerName');
     const phoneInput = document.getElementById('customerPhone');
     const noteInput = document.getElementById('bookingNote');
@@ -2115,6 +2617,185 @@ function initPaymentActions() {
     return txt.replace(/[^0-9]/g, '');
   });
   setupCopyBtn('btnCopyContent', () => document.getElementById('bankTransferContent')?.textContent.trim() || '');
+
+  // 8. Tải mã QR Canvas và đổi kiểu hiển thị
+  const btnDownloadQr = document.getElementById('btnDownloadQr');
+  if (btnDownloadQr) {
+    btnDownloadQr.addEventListener('click', () => {
+      const canvas = document.getElementById('remQrCanvas');
+      if (!canvas) return;
+      try {
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        const orderCode = document.getElementById('noticeOrderCode')?.textContent.trim() || 'MC-ORDER';
+        link.download = `mochimoon-rem-qr-${orderCode.replace(/[^a-zA-Z0-9_-]/g, '')}.png`;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        console.warn('Lỗi tải ảnh:', err);
+      }
+    });
+  }
+
+  const btnToggleQrStyle = document.getElementById('btnToggleQrStyle');
+  if (btnToggleQrStyle) {
+    btnToggleQrStyle.addEventListener('click', () => {
+      currentRemQrStyle = (currentRemQrStyle === 'softwhite') ? 'transparent' : 'softwhite';
+      renderRemVietQrCanvas(currentVietQrUrl);
+      btnToggleQrStyle.textContent = (currentRemQrStyle === 'transparent') ? '🎨 Kiểu: Trong suốt' : '🎨 Kiểu: Nền sáng';
+    });
+  }
+
+  // Khởi tạo Canvas ban đầu với ảnh mặc định
+  renderRemVietQrCanvas('assets/qr_snowy_shoppu.jpg');
+}
+
+// ============================================================================
+// REM ANIME VIETQR CANVAS RENDERER & COLOR SYNCHRONIZER
+// ============================================================================
+let currentRemQrStyle = 'softwhite'; // 'softwhite' | 'transparent'
+let currentVietQrUrl = '';
+
+/**
+ * Tự động căn chỉnh và render mã QR vào khung tranh Rem Anime bằng HTML5 Canvas:
+ * 1. Tọa độ 4 góc chuẩn xác trong ảnh 1024x1024:
+ *    Ô caro ảnh mẫu: Top-Left (614, 381), Bottom-Right (991, 757) (kích thước 377x376).
+ *    Đệm lề an toàn 14px: x: 628, y: 395, width: 349, height: 348.
+ * 2. Đồng bộ hóa màu sắc anime:
+ *    - Các điểm đen mã QR -> Xanh Navy Rem Anime cao cấp: RGB(22, 54, 98) / #163662.
+ *    - Nền trắng mã QR -> Trắng pastel êm dịu RGB(248, 252, 255) hoặc Trong suốt lộ lưới caro Rem.
+ *    - Giữ nguyên sắc đỏ nhận diện logo VietQR ở tâm.
+ */
+async function renderRemVietQrCanvas(vietQrUrl, forceStyle) {
+  const canvas = document.getElementById('remQrCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  if (forceStyle) currentRemQrStyle = forceStyle;
+  if (vietQrUrl) currentVietQrUrl = vietQrUrl;
+
+  canvas.width = 1024;
+  canvas.height = 1024;
+
+  // 1. Tải ảnh mẫu Rem Anime
+  const bgImg = new Image();
+  bgImg.crossOrigin = 'anonymous';
+  bgImg.src = 'assets/qr_rem_bg.jpg';
+  await new Promise((resolve) => {
+    if (bgImg.complete && bgImg.naturalWidth > 0) return resolve();
+    bgImg.onload = resolve;
+    bgImg.onerror = resolve;
+  });
+
+  // Vẽ nền ảnh Rem
+  ctx.clearRect(0, 0, 1024, 1024);
+  if (bgImg.naturalWidth > 0) {
+    ctx.drawImage(bgImg, 0, 0, 1024, 1024);
+  }
+
+  const qrSource = currentVietQrUrl || 'assets/qr_snowy_shoppu.jpg';
+  if (!qrSource) return;
+
+  // 2. Tải ảnh VietQR (tự động fallback qua proxy nếu CORS chặn)
+  const loadQrImage = (url) => new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => {
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        const proxyImg = new Image();
+        proxyImg.crossOrigin = 'anonymous';
+        proxyImg.onload = () => resolve(proxyImg);
+        proxyImg.onerror = () => resolve(null);
+        proxyImg.src = `/api/vietqr-proxy?url=${encodeURIComponent(url)}`;
+      } else {
+        resolve(null);
+      }
+    };
+    img.src = url;
+  });
+
+  const qrImg = await loadQrImage(qrSource);
+  if (!qrImg) return;
+
+  // 3. Canvas phụ đổi màu điểm ảnh mã QR để đồng bộ sắc thái Rem Anime
+  const offCanvas = document.createElement('canvas');
+  const ow = qrImg.naturalWidth || 490;
+  const oh = qrImg.naturalHeight || 490;
+  offCanvas.width = ow;
+  offCanvas.height = oh;
+  const offCtx = offCanvas.getContext('2d');
+  offCtx.drawImage(qrImg, 0, 0, ow, oh);
+
+  try {
+    const imgData = offCtx.getImageData(0, 0, ow, oh);
+    const data = imgData.data;
+
+    // Vùng logo VietQR ở trung tâm (giữ nguyên sắc đỏ)
+    const cxMin = Math.floor(ow * 0.41);
+    const cxMax = Math.ceil(ow * 0.59);
+    const cyMin = Math.floor(oh * 0.41);
+    const cyMax = Math.ceil(oh * 0.59);
+
+    for (let y = 0; y < oh; y++) {
+      for (let x = 0; x < ow; x++) {
+        const i = (y * ow + x) * 4;
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+
+        if (a === 0) continue;
+
+        // Bỏ qua logo trung tâm
+        if (x >= cxMin && x <= cxMax && y >= cyMin && y <= cyMax) {
+          continue;
+        }
+
+        // Đổi màu các ô mã QR (Dark modules -> Xanh Navy Rem Anime)
+        if (r < 85 && g < 85 && b < 85) {
+          data[i] = 22;     // R
+          data[i + 1] = 54; // G
+          data[i + 2] = 98; // B (#163662)
+          data[i + 3] = 255;
+        }
+        // Đổi màu nền (White -> Nền sáng hoặc Trong suốt)
+        else if (r > 215 && g > 215 && b > 215) {
+          if (currentRemQrStyle === 'transparent') {
+            data[i + 3] = 0; // Trong suốt để lộ lưới caro Rem
+          } else {
+            // Nền trắng pastel êm dịu (92% opacity)
+            data[i] = 248;
+            data[i + 1] = 252;
+            data[i + 2] = 255;
+            data[i + 3] = 235;
+          }
+        }
+      }
+    }
+    offCtx.putImageData(imgData, 0, 0);
+  } catch (err) {
+    console.warn('[RemQR] Canvas recolor CORS warning:', err);
+  }
+
+  // 4. Căn chỉnh chính xác 4 góc vào ô caro của Rem (1024x1024):
+  // Khung caro: x=614, y=381, w=377, h=376.
+  // Đệm an toàn 14px: x=628, y=395, w=349, h=348.
+  const slotX = 628;
+  const slotY = 395;
+  const slotW = 349;
+  const slotH = 348;
+
+  ctx.save();
+  if (typeof ctx.roundRect === 'function') {
+    ctx.beginPath();
+    ctx.roundRect(slotX - 1, slotY - 1, slotW + 2, slotH + 2, 10);
+    ctx.clip();
+  }
+  ctx.drawImage(offCanvas, slotX, slotY, slotW, slotH);
+  ctx.restore();
 }
 
 function calculateReturnDate(startDateStr, durationStr) {
@@ -2221,28 +2902,6 @@ function renderBookedList() {
         if (e.target.closest('.btn-quick-returned') || e.target.closest('a')) return;
         showInvoiceStep(b);
       });
-    }
-
-    // Nếu Admin đang đăng nhập: Hiển thị thêm thông tin khách hàng bí mật ngay trên thẻ kèm nút "Đã trả đồ" nhanh
-    if (appState.isAdmin) {
-      const adminSecretBar = document.createElement('div');
-      adminSecretBar.className = 'booked-admin-secret-bar';
-      adminSecretBar.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:4px;">
-          <span>👑 [Admin] Khách: <strong>${escapeHtml(b.customerName || 'Khách đặt trước')}</strong> • 📞 <a href="tel:${escapeHtml(b.phone || '')}" style="color:#1d4ed8; text-decoration:none;">${escapeHtml(b.phone || 'Chưa có')}</a></span>
-          <button type="button" class="btn-quick-returned" data-id="${b.id}" style="background:var(--primary, #ec4899); color:#fff; border:none; border-radius:12px; padding:3px 8px; font-size:11px; font-weight:700; cursor:pointer;" title="Bấm khi khách đã trả đồ để tự động xóa khỏi danh sách này">🌸 Khách Đã Trả Đồ</button>
-        </div>
-      `;
-
-      const quickBtn = adminSecretBar.querySelector('.btn-quick-returned');
-      if (quickBtn) {
-        quickBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          updateAdminBookingStatus(b.id, 'Đã hoàn tất / Đã trả 🌸');
-        });
-      }
-
-      item.appendChild(adminSecretBar);
     }
 
     container.appendChild(item);
@@ -2354,14 +3013,7 @@ function renderInvoiceNotifications(isNewAlert = false) {
       li.classList.remove('unread');
 
       // Chuyển sang tab Đặt lịch thuê đồ (tabHealth)
-      const healthTab = document.getElementById('tabHealth');
-      if (healthTab) {
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-        healthTab.classList.add('active');
-        document.querySelectorAll('.sidebar-nav .nav-item').forEach(n => {
-          n.classList.toggle('active', n.getAttribute('data-tab') === 'health');
-        });
-      }
+      switchTab('health');
 
       // Đóng dropdown thông báo
       const notifDropdown = document.getElementById('notifDropdown');
@@ -2593,18 +3245,11 @@ function initCostumeCatalog() {
 // 9.1. COSTUME SEARCH & FILTER SYSTEM
 // ========================================================
 function updateSearchBarVisibility(activeTab) {
-  const searchBar = document.querySelector('.search-bar');
+  const searchBar = document.getElementById('searchBar');
   if (!searchBar) return;
 
-  const currentTab = activeTab || document.querySelector('.sidebar-nav .nav-item.active')?.getAttribute('data-tab') || 'tracker';
-  // Chỉ hiển thị ở mục thuê đồ (Mẫu đồ & Bảng giá: hobbies / Đặt lịch thuê đồ: health)
-  const isRentalSection = (currentTab === 'hobbies' || currentTab === 'health');
-
-  if (isRentalSection) {
-    searchBar.classList.remove('tab-hidden');
-  } else {
-    searchBar.classList.add('tab-hidden');
-    // Đóng dropdown tìm kiếm nếu đang mở
+  searchBar.classList.remove('tab-hidden');
+  if (activeTab && activeTab !== 'hobbies') {
     document.getElementById('searchResultsDropdown')?.classList.add('hidden');
   }
 }
@@ -2628,7 +3273,6 @@ function initCostumeSearch() {
   const noResultsEl = document.getElementById('costumesNoResults');
   const noResultsKeyword = document.getElementById('noResultsKeyword');
   const btnResetSearch = document.getElementById('btnResetSearch');
-  const badgePill = document.querySelector('.catalog-badge-pill');
 
   if (!searchInput) return;
 
@@ -2645,12 +3289,7 @@ function initCostumeSearch() {
     if (rawQuery.length > 0) {
       const hobbiesTab = document.getElementById('tabHobbies');
       if (hobbiesTab && !hobbiesTab.classList.contains('active')) {
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-        hobbiesTab.classList.add('active');
-        document.querySelectorAll('.sidebar-nav .nav-item').forEach(n => {
-          n.classList.toggle('active', n.getAttribute('data-tab') === 'hobbies');
-        });
-        updateSearchBarVisibility('hobbies');
+        switchTab('hobbies');
       }
     }
 
@@ -2685,14 +3324,7 @@ function initCostumeSearch() {
       }
     });
 
-    // Cập nhật số lượng trên huy hiệu đầu trang
-    if (badgePill) {
-      if (cleanQuery.length === 0) {
-        badgePill.textContent = `✨ ${cards.length} mẫu đồ cosplay mới cập nhật`;
-      } else {
-        badgePill.textContent = `✨ Tìm thấy ${matchCount}/${cards.length} mẫu đồ`;
-      }
-    }
+
 
     // Hiển thị khung thông báo khi không có kết quả
     if (noResultsEl) {
@@ -2746,14 +3378,7 @@ function initCostumeSearch() {
       row.addEventListener('click', () => {
         dropdown.classList.add('hidden');
         // Chuyển sang tab Mẫu đồ & Bảng giá
-        const hobbiesTab = document.getElementById('tabHobbies');
-        if (hobbiesTab) {
-          document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-          hobbiesTab.classList.add('active');
-          document.querySelectorAll('.sidebar-nav .nav-item').forEach(n => {
-            n.classList.toggle('active', n.getAttribute('data-tab') === 'hobbies');
-          });
-        }
+        switchTab('hobbies');
         // Cuộn mượt đến thẻ đồ và tạo hiệu ứng phát sáng nhẹ
         item.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
         item.card.classList.remove('search-highlight');
@@ -3222,6 +3847,11 @@ function initBackgroundMusicPlayer() {
       e.stopPropagation();
       const isHidden = musicDropdown.classList.contains('hidden');
       if (isHidden) {
+        // Đóng thông báo và mobile drawer nếu đang mở
+        const notifDropdown = document.getElementById('notifDropdown');
+        if (notifDropdown) notifDropdown.classList.add('hidden');
+        if (typeof closeMobileDrawer === 'function') closeMobileDrawer();
+
         musicDropdown.classList.remove('hidden');
         playChime(580);
         // Khi mở bảng điều khiển nhạc, nếu đang dừng thì chủ động phát
@@ -3388,7 +4018,6 @@ function setupClickAnywhereToPlay() {
 // ========================================================
 function initAdminPortal() {
   const userProfileBtn = document.getElementById('userProfileBtn');
-  const brandPill = document.getElementById('brandPill');
   const adminHeaderBadge = document.getElementById('adminHeaderBadge');
 
   const adminLoginModal = document.getElementById('adminLoginModal');
@@ -3428,9 +4057,6 @@ function initAdminPortal() {
   if (userProfileBtn) {
     userProfileBtn.addEventListener('click', handleLogoClick);
   }
-  if (brandPill) {
-    brandPill.addEventListener('click', handleLogoClick);
-  }
 
   // Toggle ẩn/hiện mật khẩu
   if (btnTogglePwd && adminPasswordInput) {
@@ -3450,39 +4076,53 @@ function initAdminPortal() {
     });
   }
 
-  // Xử lý Form Đăng Nhập Admin
+  // Xử lý Form Đăng Nhập Admin - xác thực qua server API
   if (adminLoginForm) {
-    adminLoginForm.addEventListener('submit', (e) => {
+    adminLoginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const u = (adminUsernameInput?.value || '').trim().toLowerCase();
+      const u = (adminUsernameInput?.value || '').trim();
       const p = (adminPasswordInput?.value || '').trim();
 
-      // Cho phép đăng nhập với: admin / admin123 hoặc admin / mochimoon hoặc mochimoon / mochimoon2026
-      const isValid = (u === 'admin' && (p === 'admin123' || p === 'mochimoon' || p === 'admin')) ||
-        (u === 'mochimoon' && (p === 'admin123' || p === 'mochimoon2026' || p === 'mochimoon'));
+      const submitBtn = adminLoginForm.querySelector('button[type="submit"]');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '⏳ Đang xác thực...'; }
 
-      if (isValid) {
-        appState.isAdmin = true;
-        try {
-          localStorage.setItem('mochimoon_is_admin', 'true');
-        } catch (err) { }
+      try {
+        const res = await fetch('/api/admin-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        const data = await res.json();
 
-        if (adminLoginAlert) adminLoginAlert.classList.add('hidden');
-        closeAdminLoginModal();
-        updateAdminUIState();
-        renderBookedList();
-        playSuccessChime();
+        if (res.ok && data.success && data.token) {
+          appState.isAdmin = true;
+          setAdminToken(data.token);
+          // Xóa flag cũ nếu còn
+          try { localStorage.removeItem('mochimoon_is_admin'); } catch (err) { }
 
-        // Mở ngay Bảng Quản Trị Khách Hàng
-        setTimeout(() => {
-          openAdminDashboard();
-        }, 200);
-      } else {
+          if (adminLoginAlert) adminLoginAlert.classList.add('hidden');
+          closeAdminLoginModal();
+          updateAdminUIState();
+          renderBookedList();
+          playSuccessChime();
+          syncCloudBookings();
+
+          setTimeout(() => { openAdminDashboard(); }, 200);
+        } else {
+          if (adminLoginAlert) {
+            adminLoginAlert.textContent = '❌ Sai tài khoản hoặc mật khẩu!';
+            adminLoginAlert.classList.remove('hidden');
+          }
+          playChime(320);
+        }
+      } catch (err) {
         if (adminLoginAlert) {
-          adminLoginAlert.textContent = '❌ Sai tài khoản hoặc mật khẩu! Gợi ý: admin / admin123';
+          adminLoginAlert.textContent = '❌ Lỗi kết nối server. Vui lòng thử lại.';
           adminLoginAlert.classList.remove('hidden');
         }
         playChime(320);
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '🌸 Đăng Nhập'; }
       }
     });
   }
@@ -3501,9 +4141,8 @@ function initAdminPortal() {
     btnAdminLogout.addEventListener('click', () => {
       if (confirm('Bạn có muốn đăng xuất khỏi tài khoản Quản trị viên không? 🌸')) {
         appState.isAdmin = false;
-        try {
-          localStorage.removeItem('mochimoon_is_admin');
-        } catch (err) { }
+        setAdminToken(null);
+        try { localStorage.removeItem('mochimoon_is_admin'); } catch (err) { }
 
         closeAdminDashboard();
         updateAdminUIState();
@@ -3766,6 +4405,34 @@ function renderAdminDashboard() {
         </div>
       ` : ''}
 
+      <!-- Căn cước công dân đính kèm nếu có -->
+      <div class="admin-cccd-section">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <span class="admin-detail-label" style="margin-bottom:0;">🪪 Ảnh Căn Cước Công Dân (CCCD):</span>
+          <span style="font-size:11px; font-weight:700; color:${(b.cccdFront || b.cccdBack) ? '#059669' : '#94a3b8'};">
+            ${(b.cccdFront && b.cccdBack) ? '✓ Đủ 2 mặt' : (b.cccdFront || b.cccdBack ? '✓ 1 mặt' : 'Chưa tải lên')}
+          </span>
+        </div>
+        ${(b.cccdFront || b.cccdBack) ? `
+          <div class="admin-cccd-thumbs">
+            ${b.cccdFront ? `
+              <div class="admin-cccd-thumb-item" data-cccd-src="${escapeHtml(b.cccdFront)}" data-cccd-title="Mặt trước CCCD - Khách: ${escapeHtml(custName)}" title="Nhấp để phóng to Mặt trước">
+                <img src="${escapeHtml(b.cccdFront)}" alt="Mặt trước CCCD" class="admin-cccd-thumb-img">
+                <span class="admin-cccd-thumb-tag">Mặt trước</span>
+              </div>
+            ` : ''}
+            ${b.cccdBack ? `
+              <div class="admin-cccd-thumb-item" data-cccd-src="${escapeHtml(b.cccdBack)}" data-cccd-title="Mặt sau CCCD - Khách: ${escapeHtml(custName)}" title="Nhấp để phóng to Mặt sau">
+                <img src="${escapeHtml(b.cccdBack)}" alt="Mặt sau CCCD" class="admin-cccd-thumb-img">
+                <span class="admin-cccd-thumb-tag">Mặt sau</span>
+              </div>
+            ` : ''}
+          </div>
+        ` : `
+          <span class="admin-no-cccd">Khách chưa tải ảnh CCCD trực tuyến (Đối chiếu CCCD hoặc tiền cọc trực tiếp khi giao đồ)</span>
+        `}
+      </div>
+
       <!-- Thanh công cụ cập nhật trạng thái & Xóa -->
       <div class="admin-order-bottom-bar">
         <div class="admin-quick-actions">
@@ -3782,6 +4449,18 @@ function renderAdminDashboard() {
     `;
 
     container.appendChild(card);
+  });
+
+  // Gắn sự kiện xem ảnh CCCD cho Admin
+  container.querySelectorAll('.admin-cccd-thumb-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const src = item.getAttribute('data-cccd-src');
+      const title = item.getAttribute('data-cccd-title') || 'Ảnh Căn Cước Công Dân (CCCD)';
+      if (src && typeof openCccdLightbox === 'function') {
+        openCccdLightbox(src, title);
+      }
+    });
   });
 
   // Gắn sự kiện cho các nút trên từng Card

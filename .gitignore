@@ -1,0 +1,24 @@
+# Environment variables - KHÔNG BAO GIỜ commit lên git!
+.env
+.env.local
+.env.production
+
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Data files (dữ liệu nhạy cảm)
+data/bookings.json
+data/paid_orders.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+
+# Build outputs
+dist/
+.vercel/

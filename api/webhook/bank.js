@@ -1,63 +1,46 @@
-import fs from 'fs';
+// api/webhook/bank.js
+// SePay Webhook handler
+// Nhận thông báo thanh toán -> lưu Supabase -> gửi Discord
 
-const KV_BUCKET = '4fVC3QnzuUwxGeVLvAhHAb';
-const TMP_FILE = '/tmp/paid_orders.json';
-
-function getPaidOrders() {
-  try {
-    if (fs.existsSync(TMP_FILE)) {
-      return JSON.parse(fs.readFileSync(TMP_FILE, 'utf-8'));
-    }
-  } catch (e) { }
-  return global._paidOrders || {};
-}
-
-function savePaidOrders(data) {
-  global._paidOrders = data;
-  try {
-    fs.writeFileSync(TMP_FILE, JSON.stringify(data), 'utf-8');
-  } catch (e) { }
-}
+import { query } from '../lib/db.js';
+import { sendPaymentNotification } from '../lib/discord.js';
 
 async function parseBody(req) {
   if (req.body && typeof req.body === 'object') return req.body;
   if (typeof req.body === 'string') {
-    try { return JSON.parse(req.body); } catch(e) {}
+    try { return JSON.parse(req.body); } catch (e) {}
   }
   return new Promise((resolve) => {
     let data = '';
     req.on('data', chunk => { data += chunk; });
     req.on('end', () => {
-      try { resolve(JSON.parse(data)); } catch(e) { resolve({}); }
+      try { resolve(JSON.parse(data)); } catch (e) { resolve({}); }
     });
     req.on('error', () => resolve({}));
   });
 }
 
 export default async function handler(req, res) {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method !== 'POST') {
-    return res.status(200).json({ success: true, message: 'SePay Webhook ready' });
+    return res.status(200).json({ success: true, message: 'SePay Webhook endpoint ready' });
   }
 
   try {
     const payload = await parseBody(req);
-    console.log('[SEPAY WEBHOOK RECEIVED]:', JSON.stringify(payload));
+    console.log('[SEPAY WEBHOOK]:', JSON.stringify(payload));
 
     const content = String(payload.content || payload.description || payload.code || '');
-    const amount = payload.transferAmount || payload.amount || 0;
+    const amount  = payload.transferAmount || payload.amount || 0;
     const gateway = payload.gateway || payload.subAccount || 'MBBank';
-    const date = payload.transactionDate || payload.when || new Date().toLocaleString('vi-VN');
+    const date    = payload.transactionDate || payload.when || new Date().toISOString();
 
-    // Regex tìm mã đơn hàng MC29138 hoặc MC-29138
+    // Tìm mã đơn hàng từ nội dung chuyển khoản (MC29138 hoặc MC-29138)
     const match = content.match(/MC[-_]?\d+/i);
     let matchedOrder = match ? match[0].toUpperCase().replace('_', '-') : '';
     if (!matchedOrder && payload.orderId) {
@@ -65,41 +48,64 @@ export default async function handler(req, res) {
     }
 
     if (matchedOrder) {
-      const cleanKey = matchedOrder.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const orderData = {
-        orderId: matchedOrder.startsWith('#') ? matchedOrder : `#${matchedOrder}`,
-        amount: amount,
-        content: content,
-        gateway: gateway,
-        time: date,
-        paid: true
-      };
+      const orderId = matchedOrder.startsWith('#') ? matchedOrder : `#${matchedOrder}`;
+      const orderKey = matchedOrder.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
-      // 1. Lưu local /tmp
-      const paidOrders = getPaidOrders();
-      paidOrders[cleanKey] = orderData;
-      savePaidOrders(paidOrders);
+      // Lưu vào Supabase
+      await query(
+        `INSERT INTO paid_orders (order_id, amount, content, gateway, paid_at, raw_payload)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (order_id) DO UPDATE SET
+           amount=EXCLUDED.amount, content=EXCLUDED.content,
+           gateway=EXCLUDED.gateway, paid_at=EXCLUDED.paid_at,
+           raw_payload=EXCLUDED.raw_payload`,
+        [orderId, amount, content, gateway, date, JSON.stringify(payload)]
+      );
 
-      // 2. Lưu Cloud KV dùng chung toàn bộ Vercel Serverless Containers
+      // Lấy thông tin khách hàng từ bookings để bổ sung Discord embed
+      let customerInfo = {};
       try {
-        await fetch(`https://kvdb.io/${KV_BUCKET}/${cleanKey}`, {
-          method: 'POST',
-          body: JSON.stringify(orderData)
-        });
-      } catch (kvErr) {
-        console.error('KV save error:', kvErr);
+        const bookingRes = await query(
+          `SELECT customer_name, email, phone FROM bookings
+           WHERE LOWER(REPLACE(order_id, '#', '')) = LOWER($1) LIMIT 1`,
+          [orderKey]
+        );
+        if (bookingRes.rows.length > 0) {
+          customerInfo = bookingRes.rows[0];
+        }
+      } catch (e) { /* bỏ qua nếu không tìm thấy */ }
+
+      // Gửi Discord notification
+      const discordSent = await sendPaymentNotification({
+        orderId,
+        amount,
+        content,
+        gateway,
+        time: date,
+        customerName: customerInfo.customer_name,
+        email: customerInfo.email,
+        phone: customerInfo.phone,
+      });
+
+      // Đánh dấu discord_sent
+      if (discordSent) {
+        await query(
+          `UPDATE paid_orders SET discord_sent=TRUE WHERE order_id=$1`,
+          [orderId]
+        );
       }
 
-      console.log(`[ORDER APPROVED]: ${matchedOrder} - ${amount}đ`);
+      console.log(`[ORDER APPROVED]: ${orderId} - ${amount}đ`);
     }
 
     return res.status(200).json({
       success: true,
-      matchedOrder: matchedOrder,
+      matchedOrder: matchedOrder || null,
       message: 'Webhook processed successfully'
     });
   } catch (err) {
-    console.error('Webhook error:', err);
-    return res.status(200).json({ success: true, message: 'Error handled' });
+    console.error('[Webhook error]:', err.message);
+    // Luôn trả 200 để SePay không retry liên tục
+    return res.status(200).json({ success: true, message: 'Error handled gracefully' });
   }
 }

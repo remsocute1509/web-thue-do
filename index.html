@@ -42,10 +42,8 @@
           </svg>
         </button>
 
-        <!-- Brand / Profile Pill & Admin Access -->
-        <div class="brand-pill" id="brandPill"
-          onclick="if(window.handleAdminLogoClick) window.handleAdminLogoClick(event); else if(window.openAdminLoginModal) window.openAdminLoginModal();"
-          title="mochimoon - Nhấp để mở Quản trị viên (Admin)" style="cursor: pointer;">
+        <!-- Brand / Profile Pill -->
+        <div class="brand-pill" id="brandPill">
           <span class="brand-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
@@ -290,6 +288,12 @@
 
           <!-- 1. MOCHIMOON INTRO CARD (Lời chào - Đặt lên trên Thời gian & Lịch) -->
           <div class="card mochimoon-intro-card" id="mochimoonIntroCard">
+            <!-- Nền ảnh cửa sổ biển ngắm mây pastel lung linh HD -->
+            <div class="intro-card-bg-wrap">
+              <img src="assets/window_sea_banner_hd.png" alt="Cửa sổ biển Mochimoon" class="intro-card-bg-img">
+              <div class="intro-card-bg-overlay"></div>
+            </div>
+
             <!-- Nền ánh sáng pastel hào quang -->
             <div class="intro-card-aura" aria-hidden="true"></div>
 
@@ -327,7 +331,7 @@
 
                 <p class="intro-desc">
                   Tại đây, chúng mình mang đến những bộ trang phục được <span class="highlight-soft">chăm chút chỉn
-                    chu</span>, <span class="highlight-soft">phom dáng chuẩn đẹp</span> cùng <span
+                    chu</span>, <span class="highlight-soft">form dáng chuẩn đẹp</span> cùng <span
                     class="highlight-soft">đầy đủ phụ kiện đi kèm</span>, giúp bạn dễ dàng hóa thân thành nhân vật yêu
                   thích. Dù là đi <span class="highlight-pill">fes</span>, đu <span class="highlight-pill">event</span>
                   hay chụp ảnh kỷ niệm, Mochimoon luôn sẵn sàng đồng hành để bạn <span class="highlight-glow">tỏa sáng
@@ -339,25 +343,44 @@
 
           <!-- 2. CLOCK CARD -->
           <div class="card clock-card" id="clockCard">
+            <!-- Video nền aesthetic -->
+            <div class="clock-video-bg-wrap">
+              <video class="clock-video-bg" id="clockVideoBg" src="assets/clock_video.mp4" autoplay loop muted
+                playsinline></video>
+              <div class="clock-video-overlay"></div>
+            </div>
+
+            <button type="button" class="clock-video-toggle-btn" id="clockVideoToggleBtn"
+              title="Tạm dừng / Phát video nền">🎬</button>
+
             <span class="card-deco-flower flower-tl">🌸</span>
             <span class="card-deco-flower flower-br">🌸</span>
 
-            <div class="clock-display" id="clockDisplay">--:--</div>
-            <div class="clock-label">
-              <span class="sakura-tiny">🌸</span>
-              <span class="clock-label-text">Time</span>
-            </div>
-            <div class="clock-date-badge" id="clockDateBadge">--</div>
-            <div class="time-period-badge" id="timePeriodBadge"
-              title="Hình nền đổi tự động theo thời gian: Sáng / Chiều / Tối (Nhấp để đổi nhanh)">
-              <span id="timePeriodIcon">☀️</span>
-              <span id="timePeriodText">Buổi chiều</span>
-              <span class="time-period-sub">(Tự động đổi)</span>
+            <div class="clock-content-wrap">
+              <div class="clock-display" id="clockDisplay">--:--</div>
+              <div class="clock-label">
+                <span class="sakura-tiny">🌸</span>
+                <span class="clock-label-text">Time</span>
+              </div>
+              <div class="clock-date-badge" id="clockDateBadge">--</div>
+              <div class="time-period-badge" id="timePeriodBadge"
+                title="Hình nền đổi tự động theo thời gian: Sáng / Chiều / Tối (Nhấp để đổi nhanh)">
+                <span id="timePeriodIcon">☀️</span>
+                <span id="timePeriodText">Buổi chiều</span>
+                <span class="time-period-sub">(Tự động đổi)</span>
+              </div>
             </div>
           </div>
 
           <!-- 3. CALENDAR CARD -->
           <div class="card calendar-card" id="calendarCard">
+            <!-- Video nền lịch aesthetic -->
+            <div class="calendar-video-bg-wrap">
+              <video class="calendar-video-bg" id="calendarVideoBg" src="assets/calendar_video.mp4"
+                poster="assets/calendar_video_poster.jpg" autoplay loop muted playsinline></video>
+              <div class="calendar-video-overlay"></div>
+            </div>
+
             <span class="card-deco-flower flower-calendar">🌸</span>
 
             <div class="calendar-header">
@@ -365,6 +388,8 @@
                 <h2 class="calendar-month-year" id="calendarMonthYear">March 2026</h2>
               </div>
               <div class="calendar-nav-buttons">
+                <button type="button" class="cal-nav-btn cal-video-toggle-btn" id="calendarVideoToggleBtn"
+                  title="Tạm dừng / Phát video nền lịch" aria-label="Tạm dừng/Phát video nền">🎬</button>
                 <button class="cal-nav-btn" id="prevMonthBtn" aria-label="Tháng trước">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                     stroke-linecap="round">
@@ -409,7 +434,25 @@
               <p>Trang phục cosplay thực tế tại tiệm mochimoon • Chi tiết size, tóc giả tạo kiểu & bảng giá thuê công
                 khai</p>
             </div>
-            <div class="catalog-badge-pill">✨ 6 mẫu đồ cosplay mới cập nhật</div>
+          </div>
+
+          <!-- Thanh Tìm Kiếm Mẫu Đồ Cosplay (Thay thế mục mới cập nhật) -->
+          <div class="catalog-search-bar-wrap">
+            <div class="search-bar" id="searchBar">
+              <span class="search-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </span>
+              <input type="text" id="searchInput"
+                placeholder="Tìm kiếm trang phục, nhân vật (Himmel, Frieren, Kaito Kid, Marin...)"
+                aria-label="Tìm kiếm trang phục cosplay" autocomplete="off">
+              <button type="button" class="search-clear-btn hidden" id="searchClearBtn" aria-label="Xóa từ khóa"
+                title="Xóa tìm kiếm">&times;</button>
+              <div class="search-results-dropdown hidden" id="searchResultsDropdown"></div>
+            </div>
           </div>
         </div>
 
@@ -651,19 +694,28 @@
             <div class="booking-left-col">
               <!-- Step Progress Bar -->
               <div class="booking-steps-bar" id="bookingStepsBar">
-                <div class="step-pill active" id="stepPill1">
+                <div class="step-pill active" id="stepPill1" title="Bước 1: Điền thông tin thuê đồ">
                   <span class="step-badge-num">1</span>
-                  <span class="step-text">Điền Thông Tin Thuê</span>
+                  <span class="step-text">
+                    <span class="step-text-full">Điền Thông Tin Thuê</span>
+                    <span class="step-text-short">Thông tin</span>
+                  </span>
                 </div>
                 <div class="step-connector" id="stepConnector1"></div>
-                <div class="step-pill" id="stepPill2">
+                <div class="step-pill" id="stepPill2" title="Bước 2: Thanh toán tiền cọc đồ">
                   <span class="step-badge-num">2</span>
-                  <span class="step-text">Thanh Toán & Cọc</span>
+                  <span class="step-text">
+                    <span class="step-text-full">Thanh Toán & Cọc</span>
+                    <span class="step-text-short">Đặt cọc</span>
+                  </span>
                 </div>
                 <div class="step-connector" id="stepConnector2"></div>
-                <div class="step-pill" id="stepPill3">
+                <div class="step-pill" id="stepPill3" title="Bước 3: Xem thông tin & hóa đơn">
                   <span class="step-badge-num">3</span>
-                  <span class="step-text">Thông Tin & Hóa Đơn</span>
+                  <span class="step-text">
+                    <span class="step-text-full">Thông Tin & Hóa Đơn</span>
+                    <span class="step-text-short">Hóa đơn</span>
+                  </span>
                 </div>
               </div>
 
@@ -730,6 +782,73 @@
                   </div>
                 </div>
 
+                <!-- CHỖ TẢI ẢNH CCCD / GIẤY TỜ TÙY THÂN -->
+                <div class="form-group cccd-upload-group">
+                  <div class="cccd-label-row">
+                    <label class="booking-label">
+                      <span>🪪 Ảnh Căn cước công dân (CCCD):</span>
+                    </label>
+                    <span class="cccd-optional-tag">🌸 Khuyên dùng để tiệm giữ đồ nhanh</span>
+                  </div>
+
+                  <div class="cccd-upload-grid">
+                    <!-- Khung tải Mặt trước CCCD -->
+                    <div class="cccd-card" id="cccdFrontBox" title="Nhấp để tải ảnh Mặt trước CCCD">
+                      <input type="file" id="cccdFrontInput" accept="image/*" class="cccd-hidden-input">
+                      <div class="cccd-empty-state" id="cccdFrontPlaceholder">
+                        <div class="cccd-icon-circle">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+                            <circle cx="9" cy="10" r="2"></circle>
+                            <line x1="15" y1="8" x2="17" y2="8"></line>
+                            <line x1="15" y1="12" x2="17" y2="12"></line>
+                            <line x1="7" y1="16" x2="17" y2="16"></line>
+                          </svg>
+                        </div>
+                        <strong class="cccd-step-name">Mặt trước CCCD</strong>
+                        <span class="cccd-hint-text">Nhấp để chụp hoặc tải ảnh</span>
+                      </div>
+                      <div class="cccd-preview-state hidden" id="cccdFrontPreviewWrap">
+                        <img id="cccdFrontPreviewImg" src="" alt="Mặt trước CCCD" class="cccd-thumb-img">
+                        <button type="button" class="cccd-btn-del" id="cccdFrontDelBtn"
+                          title="Xóa ảnh và chọn lại">✕</button>
+                        <span class="cccd-badge-side front">Mặt trước ✓</span>
+                      </div>
+                    </div>
+
+                    <!-- Khung tải Mặt sau CCCD -->
+                    <div class="cccd-card" id="cccdBackBox" title="Nhấp để tải ảnh Mặt sau CCCD">
+                      <input type="file" id="cccdBackInput" accept="image/*" class="cccd-hidden-input">
+                      <div class="cccd-empty-state" id="cccdBackPlaceholder">
+                        <div class="cccd-icon-circle">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+                            <line x1="7" y1="8" x2="17" y2="8"></line>
+                            <line x1="7" y1="12" x2="17" y2="12"></line>
+                            <line x1="7" y1="16" x2="17" y2="16"></line>
+                          </svg>
+                        </div>
+                        <strong class="cccd-step-name">Mặt sau CCCD</strong>
+                        <span class="cccd-hint-text">Nhấp để chụp hoặc tải ảnh</span>
+                      </div>
+                      <div class="cccd-preview-state hidden" id="cccdBackPreviewWrap">
+                        <img id="cccdBackPreviewImg" src="" alt="Mặt sau CCCD" class="cccd-thumb-img">
+                        <button type="button" class="cccd-btn-del" id="cccdBackDelBtn"
+                          title="Xóa ảnh và chọn lại">✕</button>
+                        <span class="cccd-badge-side back">Mặt sau ✓</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="cccd-secure-note">
+                    <span class="secure-icon">🔒</span>
+                    <span><strong>Bảo mật thông tin:</strong> Ảnh CCCD được lưu an toàn, chỉ dùng để đối chiếu xác minh
+                      khi nhận và trả đồ cosplay tại tiệm.</span>
+                  </div>
+                </div>
+
                 <div class="form-group">
                   <label class="booking-label" for="bookingNote">
                     <span>Ghi chú thêm:</span>
@@ -785,6 +904,10 @@
                       <span class="bill-label">📝 Ghi chú:</span>
                       <span class="bill-val" id="payNoteText">Không</span>
                     </div>
+                    <div class="bill-row" id="payCccdRow">
+                      <span class="bill-label">🪪 Ảnh CCCD cọc:</span>
+                      <span class="bill-val" id="payCccdStatus">Chưa đính kèm</span>
+                    </div>
                   </div>
 
                   <div class="bill-pricing-box">
@@ -816,8 +939,19 @@
 
                   <div class="qr-body">
                     <div class="qr-image-container">
-                      <!-- Mã QR VietQR Tự Động Điền Sẵn Tiền & Nội Dung -->
-                      <img id="vietQrImg" src="" alt="Mã QR Chuyển Khoản Tự Động" class="vietqr-img">
+                      <!-- Khung ảnh Rem Anime bao quanh VietQR vẽ bằng HTML5 Canvas siêu chuẩn xác -->
+                      <div class="rem-qr-canvas-box" id="remQrFrame" title="Khung Rem Anime - Quét mã thanh toán">
+                        <canvas id="remQrCanvas" width="1024" height="1024" class="rem-qr-canvas"></canvas>
+                        <div class="rem-qr-canvas-actions">
+                          <button type="button" class="btn-qr-action" id="btnDownloadQr"
+                            title="Tải ảnh QR Rem Anime về máy">📥 Tải mã QR</button>
+                          <button type="button" class="btn-qr-action" id="btnToggleQrStyle"
+                            title="Chuyển đổi kiểu nền (Nền sáng / Trong suốt)">🎨 Đổi kiểu nền</button>
+                        </div>
+                        <!-- Thẻ ảnh phụ ẩn giữ tương thích -->
+                        <img id="vietQrImg" src="assets/qr_snowy_shoppu.jpg" alt="Mã QR Chuyển Khoản Tự Động"
+                          class="vietqr-img hidden" style="display:none;">
+                      </div>
                       <span class="qr-scan-hint" id="qrScanHint">⚡ Quét mã VietQR tự động điền sẵn số tiền và nội
                         dung</span>
                     </div>
@@ -1397,12 +1531,6 @@
           </div>
         </div>
 
-        <div class="admin-login-hint-box">
-          <span class="hint-bulb">💡</span>
-          <div class="hint-text">
-            Tài khoản mặc định: <strong>admin</strong> • Mật khẩu: <strong>admin123</strong>
-          </div>
-        </div>
 
         <div class="admin-login-alert hidden" id="adminLoginAlert"></div>
 
@@ -1507,6 +1635,150 @@
           <span>🔒 Dữ liệu thông tin khách hàng được bảo mật nội bộ và lưu trữ tại tiệm Mochimoon.</span>
         </div>
         <button type="button" class="primary-btn" id="closeAdminDashBtn2">Đóng Bảng Quản Trị</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MOBILE NAVIGATION DRAWER & BACKDROP (Gộp 4 trang vào menu 3 gạch)
+       ======================================================== -->
+  <div class="mobile-drawer-backdrop" id="mobileDrawerBackdrop" aria-hidden="true"></div>
+  <aside class="mobile-drawer" id="mobileDrawer" aria-label="Menu điều hướng điện thoại">
+    <div class="mobile-drawer-header">
+      <div class="mobile-drawer-brand">
+        <div class="drawer-logo-badge">🌸</div>
+        <div class="drawer-brand-text">
+          <span class="drawer-brand-title">mochimoon</span>
+          <span class="drawer-brand-sub">Tiệm Thuê Đồ Cosplay</span>
+        </div>
+      </div>
+      <button type="button" class="icon-btn mobile-drawer-close" id="mobileDrawerClose" aria-label="Đóng menu"
+        title="Đóng menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-divider"></div>
+
+    <div class="drawer-nav-section-label">
+      <span>DANH MỤC TRANG</span>
+      <span class="drawer-nav-badge">4 trang</span>
+    </div>
+
+    <!-- 4 trang gộp vào đây -->
+    <nav class="mobile-drawer-nav" id="mobileDrawerNav">
+      <button type="button" class="mobile-nav-item active" data-tab="tracker" id="mobNavTracker">
+        <div class="mob-nav-icon-wrap tracker-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="mob-nav-content">
+          <span class="mob-nav-title">Welcome to mochimoon</span>
+          <span class="mob-nav-desc">Lời chào, thời gian & giới thiệu</span>
+        </div>
+        <span class="mob-nav-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </span>
+      </button>
+
+      <button type="button" class="mobile-nav-item" data-tab="wardrobe" id="mobNavWardrobe">
+        <div class="mob-nav-icon-wrap wardrobe-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+        </div>
+        <div class="mob-nav-content">
+          <span class="mob-nav-title">Lưu ý & Quy định</span>
+          <span class="mob-nav-desc">Điều khoản thuê, cọc & hoàn trả</span>
+        </div>
+        <span class="mob-nav-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </span>
+      </button>
+
+      <button type="button" class="mobile-nav-item" data-tab="hobbies" id="mobNavHobbies">
+        <div class="mob-nav-icon-wrap hobbies-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z">
+            </path>
+          </svg>
+        </div>
+        <div class="mob-nav-content">
+          <span class="mob-nav-title">Mẫu đồ & Bảng giá</span>
+          <span class="mob-nav-desc">Catalog trang phục & phụ kiện</span>
+        </div>
+        <span class="mob-nav-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </span>
+      </button>
+
+      <button type="button" class="mobile-nav-item" data-tab="health" id="mobNavHealth">
+        <div class="mob-nav-icon-wrap health-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+            <path d="M9 16l2 2 4-4"></path>
+          </svg>
+        </div>
+        <div class="mob-nav-content">
+          <span class="mob-nav-title">Đặt lịch thuê đồ</span>
+          <span class="mob-nav-desc">Chọn ngày thuê, thanh toán & cọc</span>
+        </div>
+        <span class="mob-nav-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </span>
+      </button>
+    </nav>
+
+    <!-- Footer các nút phụ -->
+    <div class="drawer-footer">
+      <button type="button" class="drawer-footer-btn" id="mobSettingsBtn" title="Cài đặt giao diện & hiệu ứng">
+        <span class="drawer-btn-icon">🌸</span>
+        <span class="drawer-btn-text">Cài đặt giao diện</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Modal Xem Chi Tiết Ảnh CCCD (Lightbox) -->
+  <div class="modal-overlay hidden" id="cccdLightboxModal" style="z-index: 9999;">
+    <div class="modal-card cccd-lightbox-card"
+      style="max-width: 680px; text-align: center; position: relative; padding: 20px;">
+      <button type="button" class="modal-close-btn" id="closeCccdLightboxBtn" title="Đóng">✕</button>
+      <h3 id="cccdLightboxTitle"
+        style="font-family:'Quicksand',sans-serif; margin-bottom: 14px; font-size: 18px; color: var(--text-heading); font-weight: 800;">
+        🪪 Ảnh Căn Cước Công Dân (CCCD)</h3>
+      <div
+        style="width: 100%; border-radius: 14px; overflow: hidden; background: #0f172a; box-shadow: 0 8px 30px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; min-height: 200px;">
+        <img id="cccdLightboxImg" src="" alt="CCCD Zoom"
+          style="max-width: 100%; max-height: 72vh; object-fit: contain; display: block;">
       </div>
     </div>
   </div>

@@ -216,36 +216,67 @@ body {
 
 /* mochimoon Pill Header */
 .brand-pill {
-  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+  background-image: url('assets/brand_sakura_bg.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
   border-radius: var(--radius-md);
   padding: 12px 18px;
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 6px 18px rgba(160, 165, 215, 0.14);
-  border: 1.5px solid rgba(255, 255, 255, 0.95);
-  cursor: pointer;
+  cursor: default;
   user-select: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 16px rgba(247, 141, 167, 0.25);
   transition: var(--transition-smooth);
+}
+
+.brand-pill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(0.5px);
+  -webkit-backdrop-filter: blur(0.5px);
+  z-index: 1;
+  pointer-events: none;
+  transition: background 0.3s ease;
 }
 
 .brand-pill:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(150, 160, 225, 0.22);
+  box-shadow: 0 8px 24px rgba(247, 141, 167, 0.35);
+  border-color: #ffffff;
+}
+
+.brand-pill:hover::before {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .brand-icon {
-  color: #9da2c5;
+  position: relative;
+  z-index: 2;
+  color: #1a234b;
   display: flex;
   align-items: center;
+  filter: drop-shadow(0 1px 3px rgba(255, 255, 255, 0.95));
 }
 
 .brand-title {
+  position: relative;
+  z-index: 2;
   font-family: 'Quicksand', sans-serif;
   font-weight: 800;
   font-size: 20px;
-  color: var(--text-heading);
+  color: #1a234b;
   letter-spacing: 0.3px;
+  text-shadow: 0 0 10px #ffffff, 0 0 18px #ffffff, 0 1px 3px rgba(255, 255, 255, 0.95);
 }
 
 /* Sidebar Navigation */
@@ -1386,21 +1417,33 @@ body {
   flex-shrink: 0;
 }
 
+.track-info,
 .track-meta {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .track-name {
   font-size: 13.5px;
   font-weight: 700;
   color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 }
 
+.track-desc,
 .track-meta small {
   font-size: 11.5px;
   color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 }
 
 .track-check {
@@ -1579,6 +1622,7 @@ body {
   user-select: none;
   opacity: 0.75;
   pointer-events: none;
+  z-index: 3;
   transition: transform 0.3s ease;
 }
 
@@ -1600,31 +1644,103 @@ body {
 .flower-calendar {
   top: 22px;
   left: 24px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
 }
 
 /* ========================================================
    CARD 1: CLOCK CARD
    ======================================================== */
 .clock-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 44px 32px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.92);
+  background: transparent;
   min-height: 400px;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 14px 40px rgba(120, 130, 190, 0.25);
+}
+
+.clock-video-bg-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.clock-video-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 1;
+  transform: scale(1.01);
+  transition: transform 0.5s ease;
+}
+
+.clock-card:hover .clock-video-bg {
+  transform: scale(1.04);
+}
+
+.clock-video-overlay {
+  display: none;
+}
+
+.clock-video-toggle-btn {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  z-index: 4;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: var(--transition-smooth);
+}
+
+.clock-video-toggle-btn:hover {
+  opacity: 1;
+  transform: scale(1.12);
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(150, 160, 220, 0.3);
+}
+
+.clock-content-wrap {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .clock-display {
   font-family: 'Quicksand', sans-serif;
-  font-size: 68px;
-  font-weight: 700;
-  color: #51547e;
+  font-size: 72px;
+  font-weight: 800;
+  color: #ffffff;
   line-height: 1;
   letter-spacing: 2px;
   margin-bottom: 14px;
-  text-shadow: 0 2px 10px rgba(160, 170, 220, 0.15);
+  text-shadow: 0 3px 14px rgba(20, 20, 45, 0.8), 0 1px 4px rgba(0, 0, 0, 0.95);
 }
 
 .clock-label {
@@ -1632,8 +1748,9 @@ body {
   align-items: center;
   gap: 8px;
   font-size: 16px;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
 .clock-date-badge {
@@ -1932,18 +2049,53 @@ body {
    CARD 3: CALENDAR CARD
    ======================================================== */
 .calendar-card {
+  position: relative;
+  overflow: hidden;
   padding: 36px 32px 30px 32px;
   min-height: 400px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 14px 40px rgba(120, 130, 190, 0.25);
+}
+
+.calendar-video-bg-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.calendar-video-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 1;
+  transform: scale(1.01);
+  transition: transform 0.5s ease;
+}
+
+.calendar-card:hover .calendar-video-bg {
+  transform: scale(1.04);
+}
+
+.calendar-video-overlay {
+  display: none;
 }
 
 .calendar-header {
+  position: relative;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
   margin-bottom: 22px;
 }
 
@@ -1953,9 +2105,11 @@ body {
 
 .calendar-month-year {
   font-family: 'Quicksand', sans-serif;
-  font-size: 21px;
-  font-weight: 700;
-  color: var(--text-heading);
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(15, 18, 38, 0.85), 0 1px 4px rgba(0, 0, 0, 0.95);
+  letter-spacing: 0.5px;
 }
 
 .calendar-nav-buttons {
@@ -1964,40 +2118,55 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  z-index: 3;
 }
 
 .cal-nav-btn {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: transparent;
-  border: none;
-  color: #7d82a6;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   transition: var(--transition-smooth);
 }
 
 .cal-nav-btn:hover {
-  background: #f0f3ff;
-  color: var(--pastel-blue-dark);
+  background: rgba(255, 255, 255, 0.9);
+  color: #2b3352;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transform: scale(1.08);
+}
+
+.cal-video-toggle-btn {
+  font-size: 13px;
 }
 
 /* Weekday Labels */
 .calendar-weekdays {
+  position: relative;
+  z-index: 3;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: #7b80a4;
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #ffffff;
   margin-bottom: 14px;
+  text-shadow: 0 2px 8px rgba(15, 18, 38, 0.85), 0 1px 3px rgba(0, 0, 0, 0.95);
 }
 
 /* Calendar Days Grid */
 .calendar-days {
+  position: relative;
+  z-index: 3;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 10px 4px;
@@ -2012,34 +2181,45 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-full);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-main);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #ffffff;
   cursor: pointer;
   user-select: none;
   transition: var(--transition-smooth);
+  text-shadow: 0 2px 8px rgba(15, 18, 38, 0.9), 0 1px 3px rgba(0, 0, 0, 0.95);
 }
 
 .cal-day:hover:not(.empty):not(.active) {
-  background: #f0f3ff;
-  color: var(--pastel-blue-dark);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transform: scale(1.12);
 }
 
 .cal-day.active {
-  background: var(--pastel-blue);
-  color: #ffffff;
-  font-weight: 700;
-  box-shadow: 0 4px 14px rgba(158, 182, 250, 0.45);
+  background: linear-gradient(135deg, #6c95fa 0%, #4772ea 100%);
+  color: #ffffff !important;
+  font-weight: 800;
+  box-shadow: 0 4px 18px rgba(71, 114, 234, 0.8), 0 2px 6px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
 .cal-day.today:not(.active) {
-  border: 1.5px solid var(--pastel-pink);
-  color: var(--pastel-pink-dark);
+  border: 2px solid #ff7597;
+  color: #ffffff;
+  background: rgba(255, 117, 151, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  font-weight: 800;
+  box-shadow: 0 0 14px rgba(255, 117, 151, 0.6);
 }
 
 .cal-day.empty {
   cursor: default;
-  opacity: 0.3;
+  opacity: 0.15;
 }
 
 /* ========================================================
@@ -2052,11 +2232,12 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 10px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 241, 248, 0.94) 38%, rgba(243, 241, 255, 0.94) 72%, rgba(255, 255, 255, 0.98) 100%);
-  border: 2px solid rgba(248, 180, 205, 0.7);
+  padding: 18px 16px;
+  min-height: 250px;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.65);
   border-radius: 28px;
-  box-shadow: 0 16px 45px rgba(220, 175, 215, 0.25), 0 0 35px rgba(254, 215, 230, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  box-shadow: 0 16px 45px rgba(200, 160, 200, 0.28);
   position: relative;
   overflow: hidden;
   transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -2064,8 +2245,41 @@ body {
 
 .mochimoon-intro-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 20px 55px rgba(220, 165, 215, 0.35), 0 0 45px rgba(255, 205, 225, 0.5);
-  border-color: rgba(244, 114, 182, 0.9);
+  box-shadow: 0 20px 55px rgba(200, 150, 200, 0.35);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Nền ảnh hoa anh đào / cửa sổ biển tự nhiên */
+.intro-card-bg-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.intro-card-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 36%;
+  opacity: 1;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: auto;
+  transform: scale(1.01);
+  transition: transform 0.6s ease;
+}
+
+.mochimoon-intro-card:hover .intro-card-bg-img {
+  transform: scale(1.04);
+}
+
+.intro-card-bg-overlay {
+  display: none;
 }
 
 /* Shimmer Top Rainbow Bar */
@@ -2094,40 +2308,20 @@ body {
 
 /* Nền ánh sáng pastel hào quang tỏa rạng */
 .intro-card-aura {
-  position: absolute;
-  inset: -20px;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(circle at 15% 20%, rgba(255, 182, 218, 0.25) 0%, transparent 45%),
-    radial-gradient(circle at 85% 80%, rgba(216, 180, 254, 0.25) 0%, transparent 45%),
-    radial-gradient(circle at 50% 50%, rgba(186, 230, 253, 0.15) 0%, transparent 55%);
-  filter: blur(25px);
-  animation: introAuraBreath 6s ease-in-out infinite alternate;
+  display: none;
 }
 
-@keyframes introAuraBreath {
-  0% {
-    opacity: 0.65;
-    transform: scale(0.98);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1.02);
-  }
-}
-
-/* Khung viền nét đứt pastel bên trong (Inner decorative frame) */
+/* Khung viền nét đứt bên trong (Inner decorative frame) - Trong suốt đè trực tiếp lên ảnh */
 .intro-card-inner-frame {
   position: relative;
   width: 100%;
-  border: 1.5px dashed rgba(248, 160, 190, 0.6);
-  border-radius: 20px;
+  border: none;
+  border-radius: 22px;
   padding: 30px 42px;
-  background: rgba(255, 255, 255, 0.52);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: inset 0 0 25px rgba(255, 240, 248, 0.7);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2138,9 +2332,9 @@ body {
 }
 
 .mochimoon-intro-card:hover .intro-card-inner-frame {
-  border-color: rgba(244, 114, 182, 0.85);
-  background: rgba(255, 255, 255, 0.68);
-  box-shadow: inset 0 0 30px rgba(255, 235, 246, 0.85);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
 }
 
 /* Cụm hoa & trăng sao 4 góc */
@@ -2177,21 +2371,22 @@ body {
 
 .corner-item-main {
   font-size: 24px;
-  filter: drop-shadow(0 2px 5px rgba(247, 141, 167, 0.35));
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
   display: inline-block;
   animation: cornerDrift 3.5s ease-in-out infinite alternate;
 }
 
 .corner-item-sparkle {
   font-size: 17px;
-  filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.35));
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
   display: inline-block;
   animation: cornerGlint 2.2s infinite alternate;
 }
 
 .corner-item-mini {
   font-size: 16px;
-  opacity: 0.8;
+  opacity: 0.9;
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.3));
   display: inline-block;
   animation: cornerFloatSub 4s infinite alternate;
 }
@@ -2260,20 +2455,21 @@ body {
 /* Tiêu đề chính */
 .intro-title {
   font-family: 'Quicksand', sans-serif;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
-  color: #41456d;
+  color: #1a234b;
   line-height: 1.45;
-  margin-bottom: 10px;
-  letter-spacing: 0.25px;
+  margin-bottom: 12px;
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 12px #ffffff, 0 0 24px #ffffff, 0 1px 4px rgba(255, 255, 255, 0.95);
 }
 
 .intro-brand-name {
-  background: linear-gradient(135deg, #e11d48 0%, #db2777 45%, #9333ea 100%);
+  background: linear-gradient(135deg, #be185d 0%, #a21caf 50%, #2563eb 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 900;
-  filter: drop-shadow(0 2px 6px rgba(225, 29, 72, 0.2));
+  filter: drop-shadow(0 0 12px #ffffff) drop-shadow(0 2px 4px rgba(190, 24, 93, 0.3));
 }
 
 .intro-title-sparkle {
@@ -2296,55 +2492,61 @@ body {
 .divider-line {
   flex: 1;
   height: 1.5px;
-  background: linear-gradient(90deg, transparent, rgba(244, 114, 182, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(219, 39, 119, 0.6), transparent);
 }
 
 .divider-icon {
   font-size: 13px;
-  color: #ec4899;
+  color: #db2777;
   letter-spacing: 3px;
-  opacity: 0.85;
+  opacity: 0.95;
+  text-shadow: 0 0 10px #ffffff, 0 0 16px #ffffff;
 }
 
 /* Đoạn văn mô tả */
 .intro-desc {
   font-family: var(--font-family);
-  font-size: 15.5px;
-  line-height: 1.9;
-  color: #4e5379;
-  font-weight: 500;
+  font-size: 16px;
+  line-height: 2.1;
+  color: #1c2650;
+  font-weight: 700;
   margin: 0;
   text-wrap: pretty;
+  text-shadow: 0 0 12px #ffffff, 0 0 24px #ffffff, 0 1px 4px rgba(255, 255, 255, 0.95);
 }
 
-/* Điểm nhấn chữ mềm mại trong đoạn văn */
+/* Điểm nhấn chữ mềm mại trong đoạn văn - Trong suốt đè trực tiếp lên ảnh */
 .highlight-soft {
-  color: #c92461;
-  font-weight: 700;
-  background: linear-gradient(180deg, transparent 58%, rgba(254, 226, 236, 0.95) 58%);
-  padding: 0 4px;
-  border-radius: 3px;
+  color: #c026d3;
+  font-weight: 800;
+  background: transparent;
+  padding: 0 2px;
+  border: none;
+  text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff;
 }
 
 .highlight-pill {
-  color: #6d28d9;
-  font-weight: 700;
-  background: rgba(243, 232, 255, 0.75);
-  border: 1px solid rgba(216, 180, 254, 0.5);
-  padding: 1px 7px;
-  border-radius: 6px;
+  color: #1d4ed8;
+  font-weight: 800;
+  background: transparent;
+  border: none;
+  padding: 0 2px;
+  text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff;
 }
 
 .highlight-glow {
-  color: #db2777;
+  color: #e11d48;
   font-weight: 800;
-  text-shadow: 0 1px 8px rgba(244, 114, 182, 0.3);
+  background: transparent;
+  padding: 0 2px;
+  border: none;
+  text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff;
 }
 
 .intro-ending-icons {
   display: inline-block;
   font-size: 16px;
-  margin-left: 2px;
+  margin-left: 3px;
   animation: cornerDrift 3s ease-in-out infinite alternate;
 }
 
@@ -2509,16 +2711,20 @@ body {
 .form-row {
   display: flex;
   gap: 16px;
+  width: 100%;
+  min-width: 0;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .form-group.flex-1 {
   flex: 1;
+  min-width: 0;
 }
 
 .booking-label {
@@ -2653,6 +2859,16 @@ body {
   border: 1.5px solid rgba(220, 228, 250, 0.85);
   border-radius: var(--radius-full);
   box-shadow: 0 4px 14px rgba(180, 190, 225, 0.08);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.step-text-full {
+  display: inline;
+}
+
+.step-text-short {
+  display: none;
 }
 
 .step-pill {
@@ -2896,14 +3112,15 @@ body {
 
 /* Payment QR & Bank Transfer Card */
 .payment-qr-card {
-  padding: 20px 22px;
+  position: relative;
+  padding: 22px 24px;
   background: #ffffff;
-  border-radius: var(--radius-md);
-  border: 1.5px solid #e5e9fa;
-  box-shadow: 0 6px 18px rgba(180, 190, 225, 0.08);
+  border-radius: 20px;
+  border: 1.5px solid #e2e8f8;
+  box-shadow: 0 8px 24px rgba(180, 190, 225, 0.12);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .qr-header {
@@ -2940,27 +3157,82 @@ body {
 }
 
 .qr-image-container {
-  width: 170px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
-.vietqr-img {
-  width: 165px;
-  height: 165px;
-  border-radius: 12px;
-  border: 1.5px solid #fecdd3;
-  box-shadow: 0 4px 12px rgba(247, 142, 169, 0.2);
-  object-fit: contain;
-  background: #fff;
-  transition: transform 0.2s ease;
+/* Khung ảnh Rem Anime bao quanh VietQR bằng HTML5 Canvas */
+.rem-qr-canvas-box {
+  position: relative;
+  width: 290px;
+  max-width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.22), 0 0 0 2px rgba(147, 197, 253, 0.85);
+  background: #dbeafe;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.vietqr-img:hover {
-  transform: scale(1.03);
+.rem-qr-canvas-box:hover {
+  transform: translateY(-2px) scale(1.015);
+  box-shadow: 0 16px 36px rgba(59, 130, 246, 0.32), 0 0 0 2px #60a5fa;
+}
+
+.rem-qr-canvas {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  display: block;
+  image-rendering: auto;
+  border-radius: 20px 20px 0 0;
+  cursor: pointer;
+}
+
+.rem-qr-canvas-actions {
+  width: 100%;
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-top: 1px solid rgba(147, 197, 253, 0.6);
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.btn-qr-action {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1e40af;
+  background: #ffffff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.btn-qr-action:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+}
+
+.vietqr-img {
+  display: none;
 }
 
 .qr-scan-hint {
@@ -2968,6 +3240,7 @@ body {
   font-weight: 700;
   color: #64748b;
   text-align: center;
+  max-width: 280px;
 }
 
 .bank-info-list {
@@ -2984,6 +3257,8 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .info-lbl {
@@ -2999,6 +3274,7 @@ body {
 .info-val.highlight-pink {
   color: #e11d48;
   font-size: 15px;
+  font-weight: 800;
 }
 
 .info-val.code-highlight {
@@ -4420,61 +4696,71 @@ body {
   flex-wrap: wrap;
 }
 
-.catalog-badge-pill {
-  padding: 6px 16px;
-  background: linear-gradient(135deg, #fff0f5 0%, #eef2ff 100%);
-  border: 1.5px solid rgba(247, 142, 169, 0.4);
-  border-radius: var(--radius-full);
-  font-family: 'Quicksand', sans-serif;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--pastel-pink-dark);
-  box-shadow: 0 4px 12px rgba(247, 141, 167, 0.12);
+/* Thanh Tìm Kiếm Mẫu Đồ Cosplay Đặt Ngay Dưới Tiêu Đề */
+.catalog-search-bar-wrap {
+  margin-top: 14px;
+  width: 100%;
 }
 
-/* Khung cuộn mẫu đồ cosplay có thanh kéo lên xuống riêng (Scrollbar) */
+.catalog-search-bar-wrap .search-bar {
+  max-width: 100%;
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.catalog-search-bar-wrap .search-bar input {
+  width: 100%;
+  height: 48px;
+  padding: 0 46px 0 50px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1.5px solid rgba(248, 180, 205, 0.6);
+  border-radius: var(--radius-full);
+  font-family: var(--font-family);
+  font-size: 15px;
+  color: var(--text-heading);
+  outline: none;
+  box-shadow: 0 4px 16px rgba(180, 160, 215, 0.12), inset 0 2px 4px rgba(255, 255, 255, 0.9);
+  transition: var(--transition-smooth);
+}
+
+.catalog-search-bar-wrap .search-bar input:focus {
+  background: #ffffff;
+  border-color: #f472b6;
+  box-shadow: 0 6px 22px rgba(244, 114, 182, 0.28), 0 0 0 3px rgba(244, 114, 182, 0.15);
+}
+
+.catalog-search-bar-wrap .search-icon {
+  position: absolute;
+  left: 18px;
+  color: #f472b6;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.catalog-search-bar-wrap .search-clear-btn {
+  position: absolute;
+  right: 14px;
+  z-index: 5;
+}
+
+/* Khung hiển thị mẫu đồ cosplay tự nhiên, không chia thanh cuộn phụ */
 .costumes-scroll-wrapper {
-  max-height: clamp(500px, 68vh, 640px);
-  overflow-y: scroll;
-  /* Luôn hiển thị thanh kéo lên xuống rõ ràng */
-  overflow-x: hidden;
-  padding-right: 14px;
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
   padding-bottom: 24px;
   padding-top: 4px;
   margin-top: 14px;
-  scroll-behavior: smooth;
   border-radius: var(--radius-lg);
-  scrollbar-width: thin;
-  scrollbar-color: #fba1ba rgba(235, 240, 255, 0.7);
+  scrollbar-width: none;
 }
 
-/* Thanh kéo lên xuống pastel chuẩn theo ảnh chụp của người dùng */
 .costumes-scroll-wrapper::-webkit-scrollbar {
-  width: 10px;
-}
-
-.costumes-scroll-wrapper::-webkit-scrollbar-track {
-  background: rgba(235, 240, 255, 0.65);
-  border-radius: 12px;
-  border: 1px solid rgba(220, 228, 250, 0.85);
-}
-
-.costumes-scroll-wrapper::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #fba1ba 0%, #f07b9d 100%);
-  border-radius: 12px;
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 8px rgba(240, 123, 157, 0.35);
-  cursor: grab;
-}
-
-.costumes-scroll-wrapper::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #f07b9d 0%, #e25881 100%);
-  box-shadow: 0 3px 10px rgba(240, 123, 157, 0.5);
-}
-
-.costumes-scroll-wrapper::-webkit-scrollbar-thumb:active {
-  cursor: grabbing;
-  background: linear-gradient(180deg, #e25881 0%, #cf3d66 100%);
+  display: none;
 }
 
 .costumes-gallery-grid {
@@ -6093,20 +6379,9 @@ body {
   color: #8b90b2;
 }
 
-/* Public Booking Card - Secret Admin Banner */
+/* Public Booking Card - Secret Admin Banner (Hidden) */
 .booked-admin-secret-bar {
-  margin-top: 8px;
-  padding: 6px 12px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  border: 1px dashed #f59e0b;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #78350f;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  display: none !important;
 }
 
 @media (max-width: 768px) {
@@ -6126,120 +6401,1448 @@ body {
 }
 
 /* ========================================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN & MOBILE DRAWER SYSTEM
+   ======================================================== */
+
+/* Desktop Specific Rules (> 960px) */
+@media (min-width: 961px) {
+
+  .mobile-drawer,
+  .mobile-drawer-backdrop {
+    display: none !important;
+  }
+
+  /* Collapsible Sidebar on Desktop */
+  .sidebar.collapsed {
+    width: 86px;
+    padding: 24px 12px;
+  }
+
+  .sidebar.collapsed .brand-pill {
+    padding: 10px;
+    justify-content: center;
+  }
+
+  .sidebar.collapsed .brand-title {
+    display: none;
+  }
+
+  .sidebar.collapsed .nav-label {
+    display: none;
+  }
+
+  .sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 12px;
+  }
+
+  .sidebar.collapsed .sidebar-bottom {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+/* ========================================================
+   MOBILE DRAWER (MENU 3 GẠCH GỘP 4 TRANG)
+   ======================================================== */
+.mobile-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(40, 35, 75, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mobile-drawer-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 330px;
+  max-width: 86vw;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border-right: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 18px 0 50px rgba(120, 115, 185, 0.32);
+  border-top-right-radius: 28px;
+  border-bottom-right-radius: 28px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 18px;
+  transform: translateX(-105%);
+  transition: transform 0.36s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-drawer.open {
+  transform: translateX(0);
+}
+
+body.drawer-locked {
+  overflow: hidden !important;
+}
+
+.mobile-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.mobile-drawer-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.drawer-logo-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ffd4e5 0%, #ffeaf1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 14px rgba(255, 175, 200, 0.38);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  flex-shrink: 0;
+}
+
+.drawer-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-brand-title {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  color: #494b72;
+  line-height: 1.2;
+  letter-spacing: 0.3px;
+}
+
+.drawer-brand-sub {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #8e93b5;
+  margin-top: 1px;
+}
+
+.mobile-drawer-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: #6d7296;
+}
+
+.drawer-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(230, 230, 250, 0.6), rgba(255, 195, 220, 0.8), rgba(230, 230, 250, 0.6));
+  margin: 8px 0 16px 0;
+}
+
+.drawer-nav-section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.9px;
+  color: #9da2c5;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.drawer-nav-badge {
+  background: rgba(158, 182, 250, 0.18);
+  color: #6074c7;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+/* Danh mục 4 trang trong Drawer */
+.mobile-drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-grow: 1;
+}
+
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 14px;
+  border-radius: 18px;
+  border: 1.5px solid rgba(240, 243, 255, 0.95);
+  background: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  font-family: var(--font-family);
+  width: 100%;
+  box-shadow: 0 3px 10px rgba(160, 165, 215, 0.08);
+}
+
+.mobile-nav-item:hover {
+  background: #ffffff;
+  border-color: rgba(200, 215, 255, 0.95);
+  transform: translateX(3px);
+  box-shadow: 0 6px 18px rgba(150, 160, 225, 0.18);
+}
+
+.mobile-nav-item.active {
+  background: linear-gradient(135deg, #e4ecff 0%, #fdeaf2 100%);
+  border-color: rgba(180, 200, 255, 0.95);
+  box-shadow: 0 8px 22px rgba(160, 175, 235, 0.24);
+}
+
+.mob-nav-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+}
+
+.tracker-wrap {
+  background: #edf1fe;
+  color: #6e84d6;
+}
+
+.wardrobe-wrap {
+  background: #fdeaf2;
+  color: #e85d88;
+}
+
+.hobbies-wrap {
+  background: #fff0e8;
+  color: #f27244;
+}
+
+.health-wrap {
+  background: #e6f9fa;
+  color: #26a69a;
+}
+
+.mob-nav-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.mob-nav-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #494b72;
+  line-height: 1.25;
+}
+
+.mob-nav-desc {
+  font-size: 11px;
+  font-weight: 500;
+  color: #8e93b5;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mob-nav-arrow {
+  color: #b5badb;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease, color 0.2s ease;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+.mobile-nav-item.active .mob-nav-title {
+  color: #3f477c;
+  font-weight: 800;
+}
+
+.mobile-nav-item.active .mob-nav-arrow {
+  color: #6e84d6;
+  transform: translateX(3px);
+}
+
+/* Footer Drawer */
+.drawer-footer {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(230, 230, 250, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.drawer-footer-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(240, 240, 255, 0.95);
+  background: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-family);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #51537b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.drawer-footer-btn:hover {
+  background: #ffffff;
+  color: var(--pastel-blue-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(160, 165, 210, 0.15);
+}
+
+.drawer-btn-icon {
+  font-size: 16px;
+}
+
+.drawer-hotline-pill {
+  background: rgba(245, 247, 255, 0.92);
+  border-radius: 12px;
+  padding: 9px 12px;
+  font-size: 11.5px;
+  color: #727699;
+  text-align: center;
+  border: 1px dashed rgba(200, 210, 245, 0.9);
+  margin-top: 2px;
+}
+
+/* ========================================================
+   TABLET & MOBILE VIEWPORT RULES (<= 960px)
    ======================================================== */
 @media (max-width: 960px) {
+  body {
+    padding: 10px 8px;
+  }
+
   .app-window {
     flex-direction: column;
     min-height: auto;
+    width: 100%;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(135, 125, 195, 0.22);
   }
 
+  /* Header Top Bar on Mobile */
   .sidebar {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.45);
-    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+    padding: 12px 16px;
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 95;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 4px 20px rgba(160, 165, 215, 0.12);
   }
 
   .sidebar-top {
     flex-direction: row;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
   }
 
-  .sidebar-nav {
-    flex-direction: row;
-    margin-top: 0;
-    gap: 6px;
-    overflow-x: auto;
+  .brand-pill {
+    padding: 8px 14px;
+    border-radius: 14px;
+    gap: 8px;
+  }
+
+  .brand-title {
+    font-size: 17px;
+  }
+
+  /* QUAN TRỌNG: Ẩn hoàn toàn 4 icon ngoài thanh ngang khi ở màn hình điện thoại/tablet (đã gộp vào menu 3 gạch) */
+  .sidebar .sidebar-nav {
+    display: none !important;
   }
 
   .sidebar-bottom {
     padding-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  .nav-label {
-    display: none;
+  .main-content {
+    padding: 20px 16px;
+  }
+
+  .top-header {
+    margin-bottom: 18px;
+    gap: 12px;
   }
 
   .dashboard-grid,
   .booking-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .rules-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .costumes-gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  /* Đặt lịch thuê đồ Responsive trên Tablet/Mobile */
+  .booking-card {
+    padding: 24px 18px !important;
+    border-radius: 20px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .booking-card-header {
+    margin-bottom: 20px !important;
+    padding-bottom: 14px !important;
+  }
+
+  .booking-main-title {
+    font-size: 22px !important;
+  }
+
+  .booking-left-col,
+  .booking-preview-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .form-row {
+    flex-direction: column !important;
+    gap: 14px !important;
+    width: 100% !important;
+  }
+
+  .form-group {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .booking-select,
+  .booking-input {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 15px !important;
+    padding: 12px 14px !important;
+  }
+
+  /* Thanh tiến trình 3 bước: co giãn vừa khít 100% chiều ngang */
+  .booking-steps-bar {
+    padding: 8px 12px !important;
+    gap: 6px !important;
+    border-radius: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    justify-content: space-between !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  .step-text-full {
+    display: none !important;
+  }
+
+  .step-text-short {
+    display: inline !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+  }
+
+  .step-pill {
+    gap: 6px !important;
+    font-size: 12px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .step-badge-num {
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 11px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .step-connector {
+    width: auto !important;
+    flex: 1 !important;
+    min-width: 8px !important;
+  }
+
+  .booking-submit-btn {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 14px 16px !important;
+    font-size: 15px !important;
+    white-space: normal !important;
+    text-align: center !important;
+    line-height: 1.35 !important;
+    word-break: break-word !important;
+  }
+
+  /* ========================================================
+     RESPONSIVE MUSIC & NOTIFICATION MODAL PANELS (<= 960px)
+     ======================================================== */
+  .music-dropdown,
+  .notif-dropdown {
+    position: fixed !important;
+    top: 68px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: min(440px, calc(100vw - 24px)) !important;
+    margin: 0 auto !important;
+    max-height: calc(88vh - 72px) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    z-index: 10005 !important;
+    border-radius: 20px !important;
+    padding: 18px 16px !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1.5px solid rgba(220, 226, 255, 0.95) !important;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35), 0 0 0 100vmax rgba(15, 23, 42, 0.42) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    backdrop-filter: blur(16px) !important;
+    animation: mobileModalSlideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  @keyframes mobileModalSlideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-12px) scale(0.97);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Header inside modals */
+  .music-header,
+  .notif-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 12px !important;
+    border-bottom: 1px solid #eef2fa !important;
+  }
+
+  .music-title-wrap {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .music-title-text {
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    color: var(--text-heading) !important;
+  }
+
+  .music-close-btn,
+  .notif-close-btn {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 50% !important;
+    background: #f1f4fb !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+    color: #64748b !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .music-close-btn:hover,
+  .notif-close-btn:hover {
+    background: #fee2e2 !important;
+    color: #ef4444 !important;
+  }
+
+  /* Now Playing Card */
+  .now-playing-card {
+    padding: 12px 14px !important;
+    border-radius: 14px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .np-info-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 8px !important;
+  }
+
+  .np-track-details {
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  .np-title {
+    max-width: 100% !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: var(--text-heading) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    margin-top: 2px !important;
+  }
+
+  .np-controls-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .np-btn-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .music-ctrl-icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 11px !important;
+  }
+
+  .music-play-toggle-btn {
+    padding: 7px 12px !important;
+    font-size: 12.5px !important;
+    white-space: nowrap !important;
+  }
+
+  .volume-control-wrap {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex: 1 !important;
+    min-width: 80px !important;
+    max-width: 130px !important;
+  }
+
+  .vol-icon {
+    font-size: 13px !important;
+  }
+
+  .volume-slider {
+    height: 5px !important;
+  }
+
+  /* Playlist */
+  .music-tabs-row {
+    margin-bottom: 10px !important;
+    padding: 3px !important;
+  }
+
+  .music-tab-btn {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+
+  .music-playlist {
+    max-height: 220px !important;
+    gap: 6px !important;
+    padding-right: 2px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .music-track-item {
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    gap: 8px !important;
+  }
+
+  .track-icon {
+    font-size: 16px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .track-fav-btn {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 14px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Notification List */
+  .notif-list {
+    max-height: calc(85vh - 200px) !important;
+    gap: 8px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .notif-item {
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    gap: 10px !important;
+  }
+
+  .notif-badge-icon {
+    font-size: 18px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .notif-text {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .notif-char-name {
+    font-size: 12.5px !important;
+    line-height: 1.35 !important;
+  }
+
+  .notif-bottom-row {
+    font-size: 11.5px !important;
+    margin-top: 4px !important;
+  }
+
+  .notif-footer-toggle {
+    padding-top: 10px !important;
+    margin-top: 10px !important;
+    font-size: 12.5px !important;
   }
 }
 
+/* ========================================================
+   PHONE VIEWPORT RULES (<= 640px)
+   ======================================================== */
 @media (max-width: 640px) {
   body {
-    padding: 12px 8px;
+    padding: 6px 4px;
+  }
+
+  .app-window {
+    border-radius: 16px;
+    border-width: 1px;
+  }
+
+  .sidebar {
+    padding: 10px 14px;
+  }
+
+  .menu-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .brand-pill {
+    padding: 7px 12px;
+  }
+
+  .brand-title {
+    font-size: 16px;
   }
 
   .main-content {
-    padding: 18px 16px;
+    padding: 14px 10px;
   }
 
   .clock-display {
-    font-size: 44px;
+    font-size: 38px;
+    letter-spacing: -0.5px;
   }
 
   .greeting-text {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .search-bar {
     max-width: 100%;
+    width: 100%;
   }
 
   .top-header {
-    flex-wrap: wrap;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin-bottom: 16px !important;
   }
 
   .header-actions {
-    margin-left: auto;
+    margin: 0 auto !important;
+    justify-content: center !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
   }
 
-  .music-dropdown {
-    right: -20px;
-    width: 320px;
-    max-width: 92vw;
+  /* Căn giữa toàn bộ tiêu đề & mô tả kho đồ cosplay trên mobile */
+  #tabHobbies .subpage-header {
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin: 0 auto !important;
   }
 
+  #tabHobbies .subpage-title-row {
+    text-align: center !important;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  #tabHobbies .subpage-title-row h2 {
+    text-align: center !important;
+    font-size: 22px !important;
+    margin-bottom: 6px !important;
+  }
+
+  #tabHobbies .subpage-title-row p {
+    text-align: center !important;
+    margin: 0 auto !important;
+    max-width: 96% !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Tinh chỉnh lề và khoảng cách cho màn hình điện thoại nhỏ */
+  .music-dropdown,
+  .notif-dropdown {
+    top: 64px !important;
+    left: 8px !important;
+    right: 8px !important;
+    max-width: calc(100vw - 16px) !important;
+    padding: 14px 12px !important;
+    border-radius: 18px !important;
+  }
+
+  @media (max-width: 380px) {
+    .np-controls-row {
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+    }
+
+    .np-btn-group {
+      width: 100% !important;
+      justify-content: center !important;
+    }
+
+    .volume-control-wrap {
+      width: 100% !important;
+      max-width: 100% !important;
+      justify-content: center !important;
+    }
+  }
+
+  /* Thanh tìm kiếm mẫu đồ cosplay trên điện thoại: Căn giữa */
+  .catalog-search-bar-wrap {
+    width: 100% !important;
+    max-width: 440px !important;
+    margin: 14px auto 0 auto !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  .catalog-search-bar-wrap .search-bar {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  .catalog-search-bar-wrap .search-bar input {
+    height: 44px;
+    font-size: 13.5px;
+    padding: 0 40px 0 44px;
+  }
+
+  .catalog-search-bar-wrap .search-icon {
+    left: 15px;
+  }
+
+  /* Bỏ khung cuộn riêng, lướt trang một mạch và căn giữa thẻ */
+  .costumes-scroll-wrapper {
+    max-height: none !important;
+    overflow: visible !important;
+    padding-right: 0 !important;
+    margin-top: 16px !important;
+    scrollbar-width: none !important;
+  }
+
+  .costumes-scroll-wrapper::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .costumes-gallery-grid {
+    grid-template-columns: 1fr !important;
+    max-width: 440px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    padding: 0 !important;
+    gap: 16px !important;
+  }
+
+  .costume-catalog-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  .catalog-header-row {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .catalog-char-name {
+    text-align: center !important;
+    width: 100% !important;
+    font-size: 18px !important;
+  }
+
+  .catalog-price-row {
+    justify-content: center !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .price-pill {
+    flex: 1 !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .catalog-btn-row {
+    justify-content: center !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .catalog-info-btn,
+  .catalog-rent-btn {
+    flex: 1 !important;
+    justify-content: center !important;
+  }
+
+  /* Đặt lịch thuê đồ trên màn hình điện thoại nhỏ */
+  .booking-card {
+    padding: 18px 12px !important;
+    border-radius: 16px !important;
+  }
+
+  .booking-card-header {
+    margin-bottom: 14px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .booking-main-title {
+    font-size: 19px !important;
+  }
+
+  .booking-subtitle {
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+  }
+
+  .booking-steps-bar {
+    padding: 6px 8px !important;
+    gap: 4px !important;
+    border-radius: 14px !important;
+  }
+
+  .step-text-short {
+    font-size: 11px !important;
+  }
+
+  .step-pill {
+    gap: 4px !important;
+  }
+
+  .step-badge-num {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 10.5px !important;
+  }
+
+  .step-connector {
+    min-width: 6px !important;
+  }
+
+  .costume-preview-img {
+    height: 190px !important;
+  }
+
+  /* Bước 2: Thanh toán & QR */
+  .payment-bill-card,
+  .payment-qr-card {
+    padding: 14px 10px !important;
+    border-radius: 14px !important;
+  }
+
+  .bill-row {
+    font-size: 12.5px !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+
+  .bill-val {
+    text-align: left !important;
+  }
+
+  .qr-body {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 14px !important;
+  }
+
+  .qr-image-container {
+    width: 100% !important;
+    align-items: center !important;
+  }
+
+  .vietqr-img {
+    width: 175px !important;
+    height: 175px !important;
+  }
+
+  .bank-info-list {
+    width: 100% !important;
+  }
+
+  .bank-info-item {
+    font-size: 12.5px !important;
+  }
+
+  .copyable-val {
+    flex-wrap: wrap !important;
+  }
+
+  /* Bước 3: Hóa đơn */
+  .invoice-paper-sheet {
+    padding: 14px 10px !important;
+  }
+
+  .invoice-meta-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .customer-info-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .invoice-table-wrap {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Intro card trên điện thoại */
   .mochimoon-intro-card {
     padding: 6px;
-    border-radius: 20px;
+    border-radius: 18px;
   }
 
   .intro-card-inner-frame {
-    padding: 22px 14px 18px 14px;
-    border-radius: 16px;
+    padding: 20px 14px 16px 14px;
+    border-radius: 14px;
   }
 
   .corner-tl {
-    top: 8px;
-    left: 10px;
+    top: 6px;
+    left: 8px;
   }
 
   .corner-tr {
-    top: 8px;
-    right: 10px;
+    top: 6px;
+    right: 8px;
   }
 
   .corner-item-main {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   .intro-title {
-    font-size: 17.5px;
+    font-size: 17px;
   }
 
   .intro-divider {
-    max-width: 240px;
-    margin-bottom: 12px;
+    max-width: 220px;
+    margin-bottom: 10px;
   }
 
   .intro-desc {
-    font-size: 13.5px;
-    line-height: 1.7;
+    font-size: 13px;
+    line-height: 1.65;
   }
+
+  /* Modal tối ưu cho màn hình cảm ứng điện thoại */
+  .modal-dialog,
+  .detail-modal-dialog,
+  .admin-dashboard-modal {
+    max-width: 95vw !important;
+    max-height: 92vh !important;
+    margin: 12px auto !important;
+    padding: 18px 14px !important;
+  }
+
+  .detail-modal-body {
+    flex-direction: column !important;
+  }
+
+  .detail-modal-img {
+    max-height: 260px !important;
+    object-fit: cover !important;
+  }
+}
+
+/* ========================================================
+   CCCD UPLOAD & LIGHTBOX STYLES
+   ======================================================== */
+.cccd-upload-group {
+  margin-top: 4px;
+}
+
+.cccd-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.cccd-optional-tag {
+  font-size: 12px;
+  font-weight: 700;
+  color: #db2777;
+  background: rgba(253, 242, 248, 0.95);
+  border: 1px solid rgba(244, 114, 182, 0.4);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.cccd-required-tag {
+  font-size: 12px;
+  font-weight: 800;
+  color: #e11d48;
+  background: rgba(255, 241, 242, 0.95);
+  border: 1px solid rgba(244, 63, 94, 0.45);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(225, 29, 72, 0.12);
+}
+
+.cccd-card.is-invalid {
+  border-color: #f43f5e !important;
+  background: #fff1f2 !important;
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.25) !important;
+  animation: cccdShake 0.4s ease-in-out;
+}
+
+@keyframes cccdShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.cccd-error-alert {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #fff1f2;
+  border: 1px solid #fda4af;
+  border-radius: var(--radius-md);
+  color: #e11d48;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cccd-error-alert.hidden {
+  display: none !important;
+}
+
+.cccd-upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 600px) {
+  .cccd-upload-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cccd-card {
+  position: relative;
+  background: #fbfdff;
+  border: 2px dashed #cbd5e1;
+  border-radius: var(--radius-md);
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  overflow: hidden;
+  text-align: center;
+}
+
+.cccd-card:hover {
+  border-color: var(--pastel-pink);
+  background: #fffbfe;
+  box-shadow: 0 4px 14px rgba(247, 141, 167, 0.18);
+  transform: translateY(-1px);
+}
+
+.cccd-card.has-file {
+  border-style: solid;
+  border-color: #a7f3d0;
+  background: #ffffff;
+  padding: 0;
+}
+
+.cccd-hidden-input {
+  display: none;
+}
+
+.cccd-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.cccd-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+  transition: transform 0.2s ease;
+}
+
+.cccd-card:hover .cccd-icon-circle {
+  transform: scale(1.1);
+  background: #fdf2f8;
+  color: #db2777;
+}
+
+.cccd-step-name {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.cccd-hint-text {
+  font-size: 11.5px;
+  color: #8c93b7;
+}
+
+.cccd-preview-state {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cccd-preview-state.hidden {
+  display: none !important;
+}
+
+.cccd-thumb-img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: calc(var(--radius-md) - 2px);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  display: block;
+}
+
+.cccd-thumb-img:hover {
+  transform: scale(1.02);
+}
+
+.cccd-btn-del {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.75);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 3;
+  transition: all 0.2s ease;
+}
+
+.cccd-btn-del:hover {
+  background: #e11d48;
+  transform: scale(1.1);
+}
+
+.cccd-badge-side {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(16, 185, 129, 0.92);
+  color: #ffffff;
+  backdrop-filter: blur(4px);
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.cccd-secure-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
+  background: #f8fafc;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid #38bdf8;
+  margin-top: 8px;
+}
+
+.cccd-secure-note .secure-icon {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+/* Admin CCCD Thumbnails in Order Card */
+.admin-cccd-section {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px dashed #cbd5e1;
+}
+
+.admin-cccd-thumbs {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-cccd-thumb-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  border: 1.5px solid #ffffff;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.admin-cccd-thumb-item:hover {
+  transform: scale(1.06);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.admin-cccd-thumb-img {
+  width: 130px;
+  height: 85px;
+  object-fit: cover;
+  display: block;
+}
+
+.admin-cccd-thumb-tag {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  background: rgba(15, 23, 42, 0.8);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.admin-no-cccd {
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+  display: inline-block;
+  margin-top: 4px;
 }
