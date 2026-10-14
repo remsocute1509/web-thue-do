@@ -128,14 +128,21 @@ def verify_token(token):
     except Exception:
         return False
 
+DEFAULT_SYSTEM_USER = 'admin'
+DEFAULT_SYSTEM_PASS = 'admin123'
+
 def validate_credentials(username, password):
-    admin_user = get_env('ADMIN_USERNAME', 'mochimoon_admin')
-    admin_pass = get_env('ADMIN_PASSWORD', 'namphong1509')
+    admin_user = get_env('ADMIN_USERNAME', '')
+    admin_pass = get_env('ADMIN_PASSWORD', '')
     u = str(username or '').strip()
     p = str(password or '').strip()
-    is_user = (u == admin_user) or (u == 'admin') or (u == 'mochimoon') or (u == 'mochimoon_admin')
-    is_pass = (p == admin_pass) or (p == 'namphong1509')
-    return bool(is_user and is_pass)
+
+    # 1. Ưu tiên kiểm tra tài khoản cấu hình trong .env
+    if admin_user and admin_pass:
+        return (u == admin_user) and (p == admin_pass)
+
+    # 2. Mật khẩu mặc định hệ thống khi chưa thiết lập .env (hoàn toàn tách biệt)
+    return (u == DEFAULT_SYSTEM_USER) and (p == DEFAULT_SYSTEM_PASS)
 
 def get_token_from_headers(headers):
     auth = headers.get('Authorization', '') or headers.get('authorization', '')

@@ -4,10 +4,12 @@
 
 import crypto from 'crypto';
 
-const SESSION_SECRET = process.env.SESSION_SECRET || 'MochymoonSecretKey_Pl3ase_Change_Th1s_Now_2026!';
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'mochimoon_admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'namphong1509';
+const SESSION_SECRET = process.env.SESSION_SECRET || 'mochimoon_default_session_secret_2026_key';
 const TOKEN_TTL_MS = 8 * 60 * 60 * 1000; // 8 giờ
+
+// Mật khẩu mặc định của hệ thống khi chưa cấu hình .env (không trùng với tài khoản riêng trong .env)
+const DEFAULT_SYSTEM_USER = 'admin';
+const DEFAULT_SYSTEM_PASS = 'admin123';
 
 /**
  * Tạo HMAC-SHA256 token với payload + timestamp
@@ -15,7 +17,7 @@ const TOKEN_TTL_MS = 8 * 60 * 60 * 1000; // 8 giờ
 export function createToken(username) {
   const expires = Date.now() + TOKEN_TTL_MS;
   const payload = `${username}:${expires}`;
-  const secret = process.env.SESSION_SECRET || 'MochymoonSecretKey_Pl3ase_Change_Th1s_Now_2026!';
+  const secret = process.env.SESSION_SECRET || SESSION_SECRET;
   const sig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
   // Format: base64(username:expires:signature)
   return Buffer.from(`${payload}:${sig}`).toString('base64url');
@@ -40,7 +42,7 @@ export function verifyToken(token) {
     }
 
     const payload = `${username}:${expires}`;
-    const secret = process.env.SESSION_SECRET || 'MochymoonSecretKey_Pl3ase_Change_Th1s_Now_2026!';
+    const secret = process.env.SESSION_SECRET || SESSION_SECRET;
     const expectedSig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
     const sigBuffer = Buffer.from(sig, 'hex');
@@ -59,18 +61,23 @@ export function verifyToken(token) {
 }
 
 /**
- * Xác thực username/password từ .env hoặc fallback dự phòng
+ * Xác thực username/password:
+ * 1. Ưu tiên kiểm tra theo biến môi trường .env (nếu có cấu hình)
+ * 2. Fallback theo tài khoản mặc định độc lập của hệ thống (admin / admin123)
  */
 export function validateCredentials(username, password) {
-  const envUser = process.env.ADMIN_USERNAME || 'mochimoon_admin';
-  const envPass = process.env.ADMIN_PASSWORD || 'namphong1509';
+  const envUser = process.env.ADMIN_USERNAME;
+  const envPass = process.env.ADMIN_PASSWORD;
   const u = String(username || '').trim();
   const p = String(password || '').trim();
 
-  const isUserValid = (u === envUser) || (u === 'admin') || (u === 'mochimoon') || (u === 'mochimoon_admin');
-  const isPassValid = (p === envPass) || (p === 'namphong1509');
+  // 1. Nếu đã cấu hình tài khoản trong .env thì BẮT BUỘC phải dùng tài khoản .env
+  if (envUser && envPass) {
+    return u === envUser.trim() && p === envPass.trim();
+  }
 
-  return Boolean(isUserValid && isPassValid);
+  // 2. Mật khẩu mặc định hệ thống chỉ kích hoạt khi CHƯA thiết lập .env (hoàn toàn độc lập)
+  return u === DEFAULT_SYSTEM_USER && p === DEFAULT_SYSTEM_PASS;
 }
 
 /**
