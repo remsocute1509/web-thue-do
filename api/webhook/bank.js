@@ -2,6 +2,7 @@
 // SePay Webhook handler
 // Nhận thông báo thanh toán -> lưu Supabase -> gửi Discord
 
+import crypto from 'crypto';
 import { query } from '../_lib/db.js';
 import { sendPaymentNotification } from '../_lib/discord.js';
 
@@ -23,12 +24,35 @@ async function parseBody(req) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Api-Key');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method !== 'POST') {
     return res.status(200).json({ success: true, message: 'SePay Webhook endpoint ready' });
+  }
+
+  // 1. Xác thực Webhook từ SePay (chống giả mạo thanh toán)
+  const expectedApiKey = process.env.SEPAY_API_KEY || '';
+  if (expectedApiKey) {
+    const rawAuth = req.headers['authorization'] || req.headers['x-api-key'] || req.headers['x-sepay-key'] || '';
+    let providedKey = '';
+    if (rawAuth.toLowerCase().startsWith('apikey ')) {
+      providedKey = rawAuth.slice(7).trim();
+    } else if (rawAuth.toLowerCase().startsWith('bearer ')) {
+      providedKey = rawAuth.slice(7).trim();
+    } else {
+      providedKey = rawAuth.trim();
+    }
+
+    const expectedBuf = Buffer.from(expectedApiKey);
+    const providedBuf = Buffer.from(providedKey);
+    const isValid = expectedBuf.length === providedBuf.length && crypto.timingSafeEqual(expectedBuf, providedBuf);
+
+    if (!isValid) {
+      console.warn('[WEBHOOK AUTH] Rejected unauthorized webhook call. Invalid API Key.');
+      return res.status(401).json({ error: 'Unauthorized: Invalid SePay API Key' });
+    }
   }
 
   try {

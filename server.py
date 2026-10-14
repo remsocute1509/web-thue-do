@@ -97,8 +97,11 @@ def db_query(sql, params=(), fetchall=False, fetchone=False):
 # ── Admin Auth ────────────────────────────────────────────────────────────────
 TOKEN_TTL = 8 * 3600  # 8 giờ
 
+_RUNTIME_SECRET = secrets.token_hex(32)
+_LOGIN_ATTEMPTS = {}
+
 def get_session_secret():
-    return get_env('SESSION_SECRET', 'MochymoonSecretKey_Pl3ase_Change_Th1s_Now_2026!')
+    return get_env('SESSION_SECRET', _RUNTIME_SECRET)
 
 def create_token(username):
     expires = int(time.time()) + TOKEN_TTL
@@ -117,11 +120,13 @@ def verify_token(token):
         if len(parts) < 3:
             return False
         sig = parts.pop()
-        expires = int(parts.pop())
+        raw_expires = int(parts.pop())
         username = ':'.join(parts)
-        if time.time() > expires:
+        # Hỗ trợ cả timestamp dạng giây và mili-giây
+        expires_sec = raw_expires // 1000 if raw_expires > 10000000000 else raw_expires
+        if time.time() > expires_sec:
             return False
-        payload = f"{username}:{expires}"
+        payload = f"{username}:{raw_expires}"
         secret = get_session_secret()
         expected = hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
         return hmac.compare_digest(sig, expected)
@@ -137,12 +142,11 @@ def validate_credentials(username, password):
     u = str(username or '').strip()
     p = str(password or '').strip()
 
-    # 1. Ưu tiên kiểm tra tài khoản cấu hình trong .env
+    # So sánh an toàn chống timing attacks
     if admin_user and admin_pass:
-        return (u == admin_user) and (p == admin_pass)
+        return hmac.compare_digest(u, admin_user) and hmac.compare_digest(p, admin_pass)
 
-    # 2. Mật khẩu mặc định hệ thống khi chưa thiết lập .env (hoàn toàn tách biệt)
-    return (u == DEFAULT_SYSTEM_USER) and (p == DEFAULT_SYSTEM_PASS)
+    return hmac.compare_digest(u, DEFAULT_SYSTEM_USER) and hmac.compare_digest(p, DEFAULT_SYSTEM_PASS)
 
 def get_token_from_headers(headers):
     auth = headers.get('Authorization', '') or headers.get('authorization', '')
@@ -297,6 +301,12 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
             )
             return self.json_response(200, rows or [])
 
+        # ── /api/admin-login GET (Verify token) ────────────────────
+        elif path == '/api/admin-login':
+            if not self.is_admin():
+                return self.json_response(401, {'error': 'Unauthorized'})
+            return self.json_response(200, {'valid': True, 'admin': True})
+
         # ── /api/bookings (ADMIN ONLY) ──────────────────────────────
         elif path == '/api/bookings':
             if not self.is_admin():
@@ -305,6 +315,8 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
                 "SELECT * FROM bookings ORDER BY created_at DESC LIMIT 500",
                 fetchall=True
             )
+            return self.json_response(200, rows or [])
+
         # ── /api/vietqr-proxy ───────────────────────────────────────
         elif path == '/api/vietqr-proxy':
             query = urllib.parse.parse_qs(parsed.query)
@@ -335,12 +347,26 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
 
         # ── /api/admin-login ────────────────────────────────────────
         if path == '/api/admin-login':
+            client_ip = self.client_address[0] if self.client_address else '127.0.0.1'
+            now = time.time()
+            attempt = _LOGIN_ATTEMPTS.get(client_ip, {'count': 0, 'locked_until': 0})
+            if attempt['locked_until'] > now:
+                remaining_min = int((attempt['locked_until'] - now) // 60) + 1
+                return self.json_response(429, {'error': f'Quá nhiều lần thử sai. Khóa tạm thời {remaining_min} phút.'})
+
             body = self.read_body()
             time.sleep(0.25)
             if validate_credentials(body.get('username'), body.get('password')):
+                _LOGIN_ATTEMPTS.pop(client_ip, None)
                 token = create_token(body['username'])
                 return self.json_response(200, {'success': True, 'token': token, 'expiresIn': '8h'})
-            print(f"[AUTH] Failed login: {str(body.get('username',''))[:20]}")
+
+            attempt['count'] += 1
+            if attempt['count'] >= 5:
+                attempt['locked_until'] = now + (15 * 60)
+                print(f"[AUTH] IP {client_ip} locked out for 15m")
+            _LOGIN_ATTEMPTS[client_ip] = attempt
+            print(f"[AUTH] Failed login: {str(body.get('username',''))[:20]} from {client_ip}")
             return self.json_response(401, {'error': 'Invalid credentials'})
 
         # ── /api/admin-approve (ADMIN ONLY) ────────────────────────
@@ -373,6 +399,20 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
 
         # ── /api/webhook/bank ────────────────────────────────────────
         elif path in ('/api/webhook/bank', '/api/webhook/sepay', '/api/webhook'):
+            expected_key = get_env('SEPAY_API_KEY', '')
+            if expected_key:
+                auth_hdr = self.headers.get('Authorization', '') or self.headers.get('authorization', '') or self.headers.get('X-Api-Key', '') or self.headers.get('x-api-key', '')
+                provided_key = ''
+                if auth_hdr.lower().startswith('apikey '):
+                    provided_key = auth_hdr[7:].strip()
+                elif auth_hdr.lower().startswith('bearer '):
+                    provided_key = auth_hdr[7:].strip()
+                else:
+                    provided_key = auth_hdr.strip()
+                if not hmac.compare_digest(provided_key, expected_key):
+                    print("[WEBHOOK AUTH] Rejected unauthorized webhook call. Invalid API Key.")
+                    return self.json_response(401, {'error': 'Unauthorized: Invalid SePay API Key'})
+
             body    = self.read_body()
             content = str(body.get('content') or body.get('description') or body.get('code') or '')
             amount  = body.get('amount') or body.get('transferAmount') or 0
@@ -429,6 +469,21 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
             order_id = body.get('orderId')
             if not order_id:
                 return self.json_response(400, {'error': 'orderId required'})
+
+            # Chống chiếm đoạt / ghi đè đơn hàng
+            existing = db_query(
+                "SELECT status, email FROM bookings WHERE LOWER(REPLACE(order_id,'#',''))=LOWER(REPLACE(%s,'#','')) LIMIT 1",
+                (order_id,), fetchone=True
+            )
+            if existing:
+                st = str(existing.get('status') or '').lower()
+                if 'paid' in st or 'đã' in st or 'duyệt' in st:
+                    return self.json_response(403, {'error': 'Đơn hàng này đã được xác nhận/thanh toán, không thể sửa.'})
+                ex_email = str(existing.get('email') or '').strip().lower()
+                req_email = str(body.get('email') or '').strip().lower()
+                if ex_email and req_email and ex_email != req_email:
+                    return self.json_response(403, {'error': 'Không thể thay đổi email của đơn hàng đã tạo.'})
+
             db_query(
                 """INSERT INTO bookings (order_id,customer_name,email,phone,cccd,
                      costume_id,costume_name,rental_date,return_date,deposit,total,status,notes)

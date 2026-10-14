@@ -122,13 +122,44 @@ async function syncCloudBookings() {
         if (b.orderId && !mergedMap.has(b.orderId)) mergedMap.set(b.orderId, b);
       });
       appState.bookings = Array.from(mergedMap.values());
-      try { localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings)); } catch (e) { }
+      // Bảo mật dữ liệu: Lược bỏ CCCD và thông tin riêng tư của khách hàng trước khi lưu vào localStorage
+      try {
+        const sanitizedBookings = appState.bookings.map(b => {
+          if (isMyOrder(b.orderId)) return b;
+          const { cccd, cccdFront, cccdBack, email, phone, ...safeFields } = b;
+          return {
+            ...safeFields,
+            customerName: b.customerName ? (b.customerName.charAt(0) + '***') : 'Khách hàng',
+          };
+        });
+        localStorage.setItem('mochimoon_bookings', JSON.stringify(sanitizedBookings));
+      } catch (e) { }
       renderBookedList();
       refreshAvailabilityUI();
       renderInvoiceNotifications();
       if (typeof renderAdminOrders === 'function' && appState.isAdmin) renderAdminOrders();
     }
   } catch (e) { }
+}
+
+async function verifySavedAdminToken(token) {
+  try {
+    const res = await fetch('/api/admin-login', {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      appState.isAdmin = true;
+      updateAdminUIState();
+      syncCloudBookings();
+    } else {
+      setAdminToken(null);
+      appState.isAdmin = false;
+      updateAdminUIState();
+    }
+  } catch (e) {
+    appState.isAdmin = false;
+  }
 }
 
 async function saveCloudBookings(bookingsList) {
@@ -142,9 +173,12 @@ async function saveCloudBookings(bookingsList) {
 }
 
 function loadSavedState() {
-  // Kiểm tra admin token thay vì flag boolean đơn giản
+  // Xác thực token với server thay vì tin tưởng mù quáng vào chuỗi trong localStorage
   const savedToken = getAdminToken();
-  appState.isAdmin = !!savedToken;
+  appState.isAdmin = false;
+  if (savedToken) {
+    verifySavedAdminToken(savedToken);
+  }
 
   const savedTasks = localStorage.getItem('jiu_tasks');
   if (savedTasks) {
@@ -1242,7 +1276,7 @@ function playLofiMelody() {
 }
 
 function escapeHtml(str) {
-  return str.replace(/[&<>'"]/g,
+  return String(str || '').replace(/[&<>'"]/g,
     tag => ({
       '&': '&amp;',
       '<': '&lt;',
@@ -2224,6 +2258,12 @@ function showInvoiceStep(booking, txData) {
 
   if (!invoicePanel || !booking) return;
 
+  // Bảo vệ riêng tư khách hàng: Chỉ cho phép xem nếu là đơn của chính khách hoặc là Admin
+  if (!isMyOrder(booking.orderId) && !appState.isAdmin) {
+    alert('🌸 Bạn chỉ có thể xem hóa đơn của đơn hàng do chính bạn đặt nhé!');
+    return;
+  }
+
   appState.currentPaymentBooking = booking;
 
   // 1. Điền toàn bộ thông tin chi tiết vào hóa đơn
@@ -2561,14 +2601,19 @@ function initPaymentActions() {
 
   document.getElementById('stepPill3')?.addEventListener('click', () => {
     const current = appState.currentPaymentBooking;
-    if (current && (current.status || '').includes('Đã')) {
+    if (current && isMyOrder(current.orderId) && (current.status || '').includes('Đã')) {
       showInvoiceStep(current);
     } else {
-      const paid = (appState.bookings || []).find(b => (b.status || '').includes('Đã') || (b.status || '').includes('duyệt'));
-      if (paid) {
-        showInvoiceStep(paid);
+      // Chỉ tìm đơn ĐÃ THANH TOÁN do chính người dùng này đặt (isMyOrder)
+      const myPaid = (appState.bookings || []).find(b =>
+        isMyOrder(b.orderId) && ((b.status || '').includes('Đã') || (b.status || '').includes('duyệt'))
+      );
+      if (myPaid) {
+        showInvoiceStep(myPaid);
+      } else if (appState.isAdmin && appState.bookings && appState.bookings.length > 0) {
+        showInvoiceStep(appState.bookings[0]);
       } else {
-        alert('Đơn hàng cần hoàn tất thanh toán trước khi xem hóa đơn & thông tin nhé! 🌸');
+        alert('Bạn chưa có đơn hàng nào hoàn tất thanh toán để xem hóa đơn nhé! 🌸');
       }
     }
   });
@@ -2878,7 +2923,7 @@ function renderBookedList() {
           </button>
         </div>
       ` : ''}
-      ${isPaid ? `
+      ${(isPaid && (isMine || appState.isAdmin)) ? `
         <div class="booked-invoice-row" style="margin-top: 6px; display:flex; justify-content: flex-end;">
           <button type="button" class="btn-view-invoice" data-id="${b.id}" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border:none; border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(16,185,129,0.25);">
             🧾 Xem Hóa Đơn ➔
@@ -2895,7 +2940,7 @@ function renderBookedList() {
         appState.currentPaymentBooking = b;
         showPaymentStep(b);
       });
-    } else if (isPaid) {
+    } else if (isPaid && (isMine || appState.isAdmin)) {
       item.style.cursor = 'pointer';
       item.title = 'Bấm để xem hóa đơn & thông tin đơn hàng này';
       item.addEventListener('click', (e) => {

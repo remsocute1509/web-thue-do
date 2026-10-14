@@ -90,6 +90,25 @@ export default async function handler(req, res) {
 
       if (!orderId) return res.status(400).json({ error: 'orderId is required' });
 
+      // Bảo vệ chống ghi đè / chiếm đoạt đơn hàng của người khác
+      const existing = await query(
+        `SELECT id, status, email, phone FROM bookings WHERE LOWER(REPLACE(order_id, '#', '')) = LOWER(REPLACE($1, '#', '')) LIMIT 1`,
+        [orderId]
+      );
+
+      if (existing.rows.length > 0) {
+        const currentOrder = existing.rows[0];
+        const st = (currentOrder.status || '').toLowerCase();
+        // Không cho phép ghi đè đơn hàng đã thanh toán hoặc đã duyệt
+        if (st.includes('paid') || st.includes('đã') || st.includes('duyệt')) {
+          return res.status(403).json({ error: 'Đơn hàng này đã được xác nhận/thanh toán, không thể thay đổi thông tin.' });
+        }
+        // Nếu đơn đang chờ nhưng người gửi khác email/phone ban đầu -> chặn giả mạo
+        if (currentOrder.email && currentOrder.email.trim() && email && currentOrder.email.trim().toLowerCase() !== email.trim().toLowerCase()) {
+          return res.status(403).json({ error: 'Không thể thay đổi email của đơn hàng đã tạo.' });
+        }
+      }
+
       await query(
         `INSERT INTO bookings (order_id, customer_name, email, phone, cccd,
           costume_id, costume_name, rental_date, return_date, deposit, total, status, notes)
