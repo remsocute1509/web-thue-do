@@ -80,9 +80,16 @@ document.addEventListener('DOMContentLoaded', () => {
   initBackgroundMusicPlayer();
   initAdminPortal();
   checkExpiredBookings();
-  setInterval(checkExpiredBookings, 30000);
+  setInterval(checkExpiredBookings, 60000); // 1 phút kiểm tra đơn quá hạn một lần
   syncCloudBookings();
-  setInterval(syncCloudBookings, 4000);
+  // Đồng bộ lịch đặt cloud định kỳ cho Admin:
+  // - 30s một lần khi đang mở ứng dụng
+  // - Tự động tạm dừng nếu người dùng chuyển tab hoặc ẩn trình duyệt để tối ưu tài nguyên
+  setInterval(() => {
+    if (appState.isAdmin && !document.hidden) {
+      syncCloudBookings();
+    }
+  }, 30000);
 });
 
 function getAdminToken() {
@@ -101,6 +108,7 @@ function getAdminHeaders() {
 
 async function syncCloudBookings() {
   if (!appState.isAdmin) return; // Chỉ sync khi đã đăng nhập admin
+  if (document.hidden) return;   // Tiết kiệm request khi tab đang ở chế độ nền
   try {
     const res = await fetch('/api/bookings', { headers: getAdminHeaders() });
     if (!res.ok) return;
@@ -4316,6 +4324,7 @@ function openAdminDashboard() {
   if (modal) {
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
+    syncCloudBookings(); // Tự động kéo dữ liệu mới nhất từ cloud ngay khi mở dashboard
     renderAdminDashboard();
     playChime(540);
   }
