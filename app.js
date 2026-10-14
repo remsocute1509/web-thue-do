@@ -105,35 +105,51 @@ async function syncCloudBookings() {
     const res = await fetch('/api/bookings', { headers: getAdminHeaders() });
     if (!res.ok) return;
     const cloudList = await res.json();
-    if (Array.isArray(cloudList) && cloudList.length > 0) {
+    if (Array.isArray(cloudList)) {
       const mergedMap = new Map();
       cloudList.forEach(b => {
-        const key = b.order_id || b.orderId;
-        if (key) mergedMap.set(key, {
+        const orderId = b.order_id || b.orderId || ('#MC-' + (b.id || Date.now()));
+        const costumeName = b.costume_name || b.costumeName || b.character || 'Trang phục Cosplay';
+        const rentalDate = b.rental_date || b.rentalDate || b.date || '';
+        const returnDate = b.return_date || b.returnDate || '';
+        const duration = b.duration || '3 ngày (fes/shoot)';
+        const customerName = b.customer_name || b.customerName || 'Khách hàng';
+        const total = Number(b.total || b.total_amount || b.totalAmount || 0);
+        const deposit = Number(b.deposit || 0);
+        const rentPrice = Math.max(0, total - deposit);
+
+        mergedMap.set(orderId, {
           ...b,
-          orderId: b.order_id || b.orderId,
-          customerName: b.customer_name || b.customerName,
-          costumeName: b.costume_name || b.costumeName,
-          rentalDate: b.rental_date || b.rentalDate,
-          returnDate: b.return_date || b.returnDate,
+          id: b.id || (typeof orderId === 'string' ? parseInt(orderId.replace(/\D/g, ''), 10) || Date.now() : Date.now()),
+          orderId: orderId,
+          character: costumeName,
+          costumeName: costumeName,
+          customerName: customerName,
+          rentalDate: rentalDate,
+          date: rentalDate,
+          returnDate: returnDate,
+          duration: duration,
+          status: b.status || 'Chờ xác nhận cọc ⏳',
+          deposit: deposit,
+          total: total,
+          notes: b.notes || b.note || '',
+          pricing: b.pricing || {
+            rentPrice: rentPrice,
+            rentPriceFormatted: rentPrice.toLocaleString('vi-VN') + 'đ',
+            deposit: deposit,
+            depositFormatted: deposit.toLocaleString('vi-VN') + 'đ',
+            totalToPay: total,
+            totalToPayFormatted: total.toLocaleString('vi-VN') + 'đ'
+          }
         });
       });
-      (appState.bookings || []).forEach(b => {
-        if (b.orderId && !mergedMap.has(b.orderId)) mergedMap.set(b.orderId, b);
-      });
+
+      // Đối với admin, Cloud Database (Supabase PostgreSQL) là nguồn chuẩn xác thực
       appState.bookings = Array.from(mergedMap.values());
-      // Bảo mật dữ liệu: Lược bỏ CCCD và thông tin riêng tư của khách hàng trước khi lưu vào localStorage
       try {
-        const sanitizedBookings = appState.bookings.map(b => {
-          if (isMyOrder(b.orderId)) return b;
-          const { cccd, cccdFront, cccdBack, email, phone, ...safeFields } = b;
-          return {
-            ...safeFields,
-            customerName: b.customerName ? (b.customerName.charAt(0) + '***') : 'Khách hàng',
-          };
-        });
-        localStorage.setItem('mochimoon_bookings', JSON.stringify(sanitizedBookings));
+        localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings));
       } catch (e) { }
+
       renderBookedList();
       refreshAvailabilityUI();
       renderInvoiceNotifications();
@@ -163,6 +179,7 @@ async function verifySavedAdminToken(token) {
 }
 
 async function saveCloudBookings(bookingsList) {
+  if (!appState.isAdmin) return;
   try {
     fetch('/api/bookings', {
       method: 'POST',
@@ -170,6 +187,31 @@ async function saveCloudBookings(bookingsList) {
       body: JSON.stringify(bookingsList)
     });
   } catch (e) { }
+}
+
+async function saveCloudNewBooking(newBooking) {
+  if (!newBooking || !newBooking.orderId) return;
+  try {
+    await fetch('/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: newBooking.orderId,
+        customerName: newBooking.customerName || 'Khách hàng',
+        email: newBooking.email || '',
+        phone: newBooking.phone || '',
+        cccd: newBooking.cccd || '',
+        costumeName: newBooking.character || newBooking.costumeName || 'Trang phục Cosplay',
+        rentalDate: newBooking.date || newBooking.rentalDate || '',
+        returnDate: newBooking.returnDate || '',
+        deposit: (newBooking.pricing && newBooking.pricing.deposit) || 0,
+        total: (newBooking.pricing && newBooking.pricing.totalToPay) || 0,
+        notes: newBooking.note || newBooking.notes || ''
+      })
+    });
+  } catch (e) {
+    console.error('Lỗi khi lưu đơn mới lên cloud:', e);
+  }
 }
 
 function loadSavedState() {
@@ -1432,15 +1474,16 @@ function checkExpiredBookings() {
 
 function isCostumeBooked(characterName) {
   if (!characterName) return false;
-  const targetClean = characterName.toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
+  const targetClean = String(characterName).toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
   if (!targetClean || targetClean.length < 2) return false;
   return appState.bookings.some(b => {
-    if (!b.character) return false;
+    const raw = b.character || b.costume_name || b.costumeName;
+    if (!raw) return false;
     const st = (b.status || '').toLowerCase();
     if (st.includes('trả') || st.includes('hoàn tất') || st.includes('hủy') || st.includes('huỷ')) {
       return false;
     }
-    const bookedClean = b.character.toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
+    const bookedClean = String(raw).toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
     return bookedClean.includes(targetClean) || targetClean.includes(bookedClean);
   });
 }
@@ -1524,9 +1567,10 @@ function updateCostumePreview(characterName) {
     if (isBooked) {
       stockWarning.classList.remove('hidden');
       const pendingBooking = (appState.bookings || []).find(b => {
-        if (!b.character || !b.status || !b.status.includes('Chờ')) return false;
-        const bookedClean = b.character.toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
-        const targetClean = (characterName || '').toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
+        const raw = b.character || b.costume_name || b.costumeName;
+        if (!raw || !b.status || !b.status.includes('Chờ')) return false;
+        const bookedClean = String(raw).toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
+        const targetClean = String(characterName || '').toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
         return bookedClean.includes(targetClean) || targetClean.includes(bookedClean);
       });
 
@@ -1953,7 +1997,7 @@ function initCosplayBooking() {
         console.warn('Booking save error', err);
       }
 
-      saveCloudBookings(appState.bookings);
+      saveCloudNewBooking(newBooking);
 
       renderBookedList();
       refreshAvailabilityUI();
@@ -2895,26 +2939,29 @@ function renderBookedList() {
 
   activeBookings.forEach(b => {
     const item = document.createElement('div');
-    const returnDate = b.returnDate || calculateReturnDate(b.date, b.duration);
+    const rentDate = b.date || b.rentalDate || '';
+    const returnDate = b.returnDate || calculateReturnDate(rentDate, b.duration);
     const st = b.status || 'Đang có người thuê 🌸';
     const isPending = st.includes('Chờ');
     const isPaid = st.includes('Đã') || st.includes('✅') || st.includes('duyệt');
     const isMine = isMyOrder(b.orderId);
+    const rawChar = String(b.character || b.costume_name || b.costumeName || 'Trang phục Cosplay');
+    const charShort = rawChar.split('(')[0].trim() || rawChar;
 
     item.className = `booked-card-item ${isPending ? 'is-pending' : ''}`;
 
     item.innerHTML = `
       <div class="booked-card-title-row">
-        <span class="booked-card-char">👘 ${escapeHtml(b.character.split('(')[0].trim())}</span>
+        <span class="booked-card-char">👘 ${escapeHtml(charShort)}</span>
         <span class="booked-card-status ${isPaid ? 'paid' : (isPending ? 'pending' : '')}">
           ${isMine && isPending ? '⏳ Đơn của bạn (Chờ cọc)' : escapeHtml(st)}
         </span>
       </div>
       <div class="booked-card-meta">
-        <span class="booked-meta-tag">🗓️ Thuê: <strong>${escapeHtml(b.date)}</strong></span>
+        <span class="booked-meta-tag">🗓️ Thuê: <strong>${escapeHtml(rentDate || 'Chưa định')}</strong></span>
         <span class="booked-meta-tag">➔</span>
         <span class="booked-meta-tag booked-return-highlight">🔄 Ngày trả: <strong>${escapeHtml(returnDate)}</strong></span>
-        <span class="booked-meta-tag"><em>(${escapeHtml(b.duration)})</em></span>
+        <span class="booked-meta-tag"><em>(${escapeHtml(b.duration || '3 ngày')})</em></span>
       </div>
       ${isPending && isMine ? `
         <div class="booked-resume-row" style="margin-top: 6px; display:flex; justify-content: flex-end;">
@@ -2977,7 +3024,7 @@ function renderInvoiceNotifications(isNewAlert = false) {
 
   // Lọc chỉ lấy các đơn chưa bị xóa/hủy
   const relevantBookings = bookings.filter(b => {
-    if (!b || !b.character) return false;
+    if (!b || (!b.character && !b.costume_name && !b.costumeName)) return false;
     const st = (b.status || '').toLowerCase();
     return !st.includes('hủy') && !st.includes('huỷ');
   });
@@ -3025,7 +3072,7 @@ function renderInvoiceNotifications(isNewAlert = false) {
     li.setAttribute('data-order-id', orderKey);
     li.title = isPaid ? 'Bấm để mở xem hóa đơn thanh toán' : 'Bấm để tiếp tục thanh toán đơn này';
 
-    const charShort = (b.character || 'Trang phục').split('(')[0].trim();
+    const charShort = String(b.character || b.costume_name || b.costumeName || 'Trang phục').split('(')[0].trim();
     const statusText = isPaid
       ? 'Đã duyệt thanh toán 100%'
       : (isPending ? 'Chờ thanh toán cọc' : (b.status || 'Đang thuê'));
@@ -4482,13 +4529,13 @@ function renderAdminDashboard() {
       <div class="admin-order-bottom-bar">
         <div class="admin-quick-actions">
           <span style="font-size:12px; font-weight:700; color:#64748b; margin-right:4px;">Chuyển trạng thái:</span>
-          <button type="button" class="btn-status-change ${st.includes('Chờ') ? 'active' : ''}" data-id="${b.id}" data-status="Chờ thanh toán cọc ⏳">⏳ Chờ Cọc</button>
-          <button type="button" class="btn-status-change ${st.includes('Đã cọc') ? 'active' : ''}" data-id="${b.id}" data-status="Đã cọc thành công ✅">✅ Đã Cọc</button>
-          <button type="button" class="btn-status-change ${st.includes('thuê') && !st.includes('Chờ') ? 'active' : ''}" data-id="${b.id}" data-status="Đang thuê đồ 👘">👘 Đang Thuê</button>
-          <button type="button" class="btn-status-change ${st.includes('trả') ? 'active' : ''}" data-id="${b.id}" data-status="Đã hoàn tất / Đã trả 🌸">🌸 Đã Trả</button>
+          <button type="button" class="btn-status-change ${st.includes('Chờ') ? 'active' : ''}" data-id="${b.id || ''}" data-order-id="${escapeHtml(b.orderId || '')}" data-status="Chờ thanh toán cọc ⏳">⏳ Chờ Cọc</button>
+          <button type="button" class="btn-status-change ${st.includes('Đã cọc') ? 'active' : ''}" data-id="${b.id || ''}" data-order-id="${escapeHtml(b.orderId || '')}" data-status="Đã cọc thành công ✅">✅ Đã Cọc</button>
+          <button type="button" class="btn-status-change ${st.includes('thuê') && !st.includes('Chờ') ? 'active' : ''}" data-id="${b.id || ''}" data-order-id="${escapeHtml(b.orderId || '')}" data-status="Đang thuê đồ 👘">👘 Đang Thuê</button>
+          <button type="button" class="btn-status-change ${st.includes('trả') ? 'active' : ''}" data-id="${b.id || ''}" data-order-id="${escapeHtml(b.orderId || '')}" data-status="Đã hoàn tất / Đã trả 🌸">🌸 Đã Trả</button>
         </div>
         <div>
-          <button type="button" class="btn-delete-order" data-id="${b.id}" title="Xóa đơn hàng này">🗑️ Xóa đơn</button>
+          <button type="button" class="btn-delete-order" data-id="${b.id || ''}" data-order-id="${escapeHtml(b.orderId || '')}" title="Xóa đơn hàng này">🗑️ Xóa đơn</button>
         </div>
       </div>
     `;
@@ -4528,25 +4575,31 @@ function renderAdminDashboard() {
   container.querySelectorAll('.btn-status-change').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const bId = Number(btn.getAttribute('data-id'));
+      const bId = btn.getAttribute('data-id');
+      const orderId = btn.getAttribute('data-order-id');
       const newStatus = btn.getAttribute('data-status');
-      updateAdminBookingStatus(bId, newStatus);
+      updateAdminBookingStatus(orderId || bId, newStatus);
     });
   });
 
   container.querySelectorAll('.btn-delete-order').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const bId = Number(btn.getAttribute('data-id'));
-      if (confirm('Bạn có chắc chắn muốn xóa đơn đặt này khỏi danh sách không? 🌸')) {
-        deleteAdminBooking(bId);
+      const bId = btn.getAttribute('data-id');
+      const orderId = btn.getAttribute('data-order-id');
+      if (confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn đơn đặt ${orderId || ''} khỏi hệ thống không? 🌸`)) {
+        deleteAdminBooking(orderId || bId);
       }
     });
   });
 }
 
-function updateAdminBookingStatus(bookingId, newStatus) {
-  const target = appState.bookings.find(b => b.id === bookingId);
+async function updateAdminBookingStatus(targetId, newStatus) {
+  const target = (appState.bookings || []).find(b =>
+    (b.orderId && String(b.orderId).toLowerCase() === String(targetId).toLowerCase()) ||
+    (b.id && String(b.id) === String(targetId))
+  );
+
   if (target) {
     target.status = newStatus;
     try {
@@ -4557,18 +4610,40 @@ function updateAdminBookingStatus(bookingId, newStatus) {
     renderBookedList();
     refreshAvailabilityUI();
     renderInvoiceNotifications();
-    saveCloudBookings(appState.bookings);
+
+    if (target.orderId) {
+      try {
+        await fetch('/api/bookings', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
+          body: JSON.stringify({ orderId: target.orderId, status: newStatus })
+        });
+      } catch (err) {
+        console.error('Lỗi khi PATCH đơn hàng:', err);
+      }
+    }
+
     playSuccessChime();
 
-    const stLower = newStatus.toLowerCase();
+    const stLower = (newStatus || '').toLowerCase();
     if (stLower.includes('trả') || stLower.includes('hoàn tất')) {
-      alert(`🎉 Đã xác nhận khách trả đồ thành công!\n\n✨ Lịch thuê đơn "${target.character}" (${target.orderId || ''}) đã được TỰ ĐỘNG XÓA khỏi danh sách "Lịch Thuê Gần Đây", và trang phục đã SẴN SÀNG để khách khác tiếp tục thuê! 🌸`);
+      alert(`🎉 Đã xác nhận khách trả đồ thành công!\n\n✨ Lịch thuê đơn "${target.character || target.costumeName || target.orderId}" (${target.orderId || ''}) đã được TỰ ĐỘNG XÓA khỏi danh sách "Lịch Thuê Gần Đây", và trang phục đã SẴN SÀNG để khách khác tiếp tục thuê! 🌸`);
     }
   }
 }
 
-function deleteAdminBooking(bookingId) {
-  appState.bookings = appState.bookings.filter(b => b.id !== bookingId);
+async function deleteAdminBooking(targetId) {
+  const target = (appState.bookings || []).find(b =>
+    (b.orderId && String(b.orderId).toLowerCase() === String(targetId).toLowerCase()) ||
+    (b.id && String(b.id) === String(targetId))
+  );
+  const orderId = target ? target.orderId : (typeof targetId === 'string' ? targetId : null);
+
+  appState.bookings = (appState.bookings || []).filter(b =>
+    !(b.orderId && String(b.orderId).toLowerCase() === String(targetId).toLowerCase()) &&
+    !(b.id && String(b.id) === String(targetId))
+  );
+
   try {
     localStorage.setItem('mochimoon_bookings', JSON.stringify(appState.bookings));
   } catch (err) { }
@@ -4577,6 +4652,19 @@ function deleteAdminBooking(bookingId) {
   renderBookedList();
   refreshAvailabilityUI();
   renderInvoiceNotifications();
-  saveCloudBookings(appState.bookings);
   playChime(380);
+
+  if (orderId) {
+    try {
+      const res = await fetch(`/api/bookings?orderId=${encodeURIComponent(orderId)}`, {
+        method: 'DELETE',
+        headers: getAdminHeaders()
+      });
+      if (!res.ok) {
+        console.error('Lỗi khi xóa đơn hàng trên cloud:', res.status);
+      }
+    } catch (err) {
+      console.error('Lỗi khi gọi DELETE /api/bookings:', err);
+    }
+  }
 }

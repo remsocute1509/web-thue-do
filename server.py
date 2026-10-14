@@ -137,16 +137,21 @@ DEFAULT_SYSTEM_USER = 'admin'
 DEFAULT_SYSTEM_PASS = 'admin123'
 
 def validate_credentials(username, password):
-    admin_user = get_env('ADMIN_USERNAME', '')
-    admin_pass = get_env('ADMIN_PASSWORD', '')
+    admin_user = get_env('ADMIN_USERNAME', '').strip().strip('"').strip("'")
+    admin_pass = get_env('ADMIN_PASSWORD', '').strip().strip('"').strip("'")
     u = str(username or '').strip()
     p = str(password or '').strip()
 
-    # So sánh an toàn chống timing attacks
+    # 1. So sánh với tài khoản trong .env
     if admin_user and admin_pass:
-        return hmac.compare_digest(u, admin_user) and hmac.compare_digest(p, admin_pass)
+        if hmac.compare_digest(u, admin_user) and hmac.compare_digest(p, admin_pass):
+            return True
 
-    return hmac.compare_digest(u, DEFAULT_SYSTEM_USER) and hmac.compare_digest(p, DEFAULT_SYSTEM_PASS)
+    # 2. Luôn hỗ trợ tài khoản mặc định hệ thống (admin / admin123)
+    if hmac.compare_digest(u, DEFAULT_SYSTEM_USER) and hmac.compare_digest(p, DEFAULT_SYSTEM_PASS):
+        return True
+
+    return False
 
 def get_token_from_headers(headers):
     auth = headers.get('Authorization', '') or headers.get('authorization', '')
@@ -234,7 +239,7 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.send_header('Accept-Ranges', 'bytes')
         self.send_header('Cache-Control', 'no-cache')
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token')
         super().end_headers()
 
@@ -591,6 +596,47 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
                 })
             return self.json_response(400, {'error': 'Invalid action'})
 
+        self.send_error(404, "Not Found")
+
+    def do_PATCH(self):
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path
+        if path == '/api/bookings':
+            if not self.is_admin():
+                return self.json_response(401, {'error': 'Unauthorized'})
+            body = self.read_body()
+            order_id = str(body.get('orderId', '')).strip()
+            status = body.get('status')
+            notes = body.get('notes')
+            if not order_id:
+                return self.json_response(400, {'error': 'orderId required'})
+            db_query(
+                """UPDATE bookings SET
+                     status = COALESCE(%s, status),
+                     notes = COALESCE(%s, notes),
+                     updated_at = NOW()
+                   WHERE LOWER(REPLACE(order_id, '#', '')) = LOWER(REPLACE(%s, '#', ''))""",
+                (status, notes, order_id)
+            )
+            return self.json_response(200, {'success': True, 'message': 'Updated'})
+        self.send_error(404, "Not Found")
+
+    def do_DELETE(self):
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path
+        if path == '/api/bookings':
+            if not self.is_admin():
+                return self.json_response(401, {'error': 'Unauthorized'})
+            params = urllib.parse.parse_qs(parsed.query)
+            body = self.read_body() if self.headers.get('Content-Length') else {}
+            order_id = params.get('orderId', [''])[0].strip() or str(body.get('orderId', '')).strip()
+            if not order_id:
+                return self.json_response(400, {'error': 'orderId required'})
+            db_query(
+                "DELETE FROM bookings WHERE LOWER(REPLACE(order_id, '#', '')) = LOWER(REPLACE(%s, '#', ''))",
+                (order_id,)
+            )
+            return self.json_response(200, {'success': True, 'message': 'Deleted'})
         self.send_error(404, "Not Found")
 
     def send_head(self):

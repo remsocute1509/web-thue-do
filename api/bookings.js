@@ -23,7 +23,7 @@ async function parseBody(req) {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -124,6 +124,48 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, orderId });
     } catch (err) {
       console.error('[bookings POST]', err.message);
+      return res.status(500).json({ error: 'Database error' });
+    }
+  }
+
+  // PATCH - Admin cập nhật trạng thái đơn hàng trực tiếp
+  if (req.method === 'PATCH') {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const payload = await parseBody(req);
+      const { orderId, status, notes } = payload || {};
+      if (!orderId) return res.status(400).json({ error: 'orderId is required' });
+
+      await query(
+        `UPDATE bookings
+         SET status = COALESCE($1, status),
+             notes = COALESCE($2, notes),
+             updated_at = NOW()
+         WHERE LOWER(REPLACE(order_id, '#', '')) = LOWER(REPLACE($3, '#', ''))`,
+        [status, notes, orderId]
+      );
+      return res.status(200).json({ success: true, message: 'Đã cập nhật đơn hàng' });
+    } catch (err) {
+      console.error('[bookings PATCH]', err.message);
+      return res.status(500).json({ error: 'Database error' });
+    }
+  }
+
+  // DELETE - Admin xóa hoàn toàn đơn hàng khỏi cơ sở dữ liệu
+  if (req.method === 'DELETE') {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const payload = await parseBody(req) || {};
+      const orderId = String(req.query.orderId || payload.orderId || '').trim();
+      if (!orderId) return res.status(400).json({ error: 'orderId is required' });
+
+      await query(
+        `DELETE FROM bookings WHERE LOWER(REPLACE(order_id, '#', '')) = LOWER(REPLACE($1, '#', ''))`,
+        [orderId]
+      );
+      return res.status(200).json({ success: true, message: 'Đã xóa đơn hàng vĩnh viễn khỏi hệ thống' });
+    } catch (err) {
+      console.error('[bookings DELETE]', err.message);
       return res.status(500).json({ error: 'Database error' });
     }
   }
