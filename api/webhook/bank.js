@@ -2,8 +2,8 @@
 // SePay Webhook handler
 // Nhận thông báo thanh toán -> lưu Supabase -> gửi Discord
 
-import { query } from '../lib/db.js';
-import { sendPaymentNotification } from '../lib/discord.js';
+import { query } from '../_lib/db.js';
+import { sendPaymentNotification } from '../_lib/discord.js';
 
 async function parseBody(req) {
   if (req.body && typeof req.body === 'object') return req.body;

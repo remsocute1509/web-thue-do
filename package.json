@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "python server.py 3001",
-    "init-db": "node api/scripts/init-db.js"
+    "init-db": "node scripts/init-db.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

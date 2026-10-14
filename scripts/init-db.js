@@ -1,9 +1,9 @@
-// api/scripts/init-db.js
+// scripts/init-db.js
 // Chạy một lần để tạo tables trong Supabase
 // npm run init-db
 
 import 'dotenv/config';
-import { initSchema } from '../lib/db.js';
+import { initSchema } from '../api/_lib/db.js';
 
 console.log('Initializing Supabase database schema...');
 initSchema()

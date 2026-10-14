@@ -3,8 +3,8 @@
 // Xác thực 4 yếu tố: email + CCCD + SĐT + mã đơn hàng
 // Anti-enumeration: luôn báo "đã gửi OTP", không tiết lộ dữ liệu tồn tại hay không
 
-import { query } from './lib/db.js';
-import { sendOtpEmail, sendNotFoundEmail } from './lib/mailer.js';
+import { query } from './_lib/db.js';
+import { sendOtpEmail, sendNotFoundEmail } from './_lib/mailer.js';
 import crypto from 'crypto';
 
 async function parseBody(req) {

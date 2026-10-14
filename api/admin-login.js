@@ -2,7 +2,7 @@
 // Admin login endpoint - xác thực qua .env credentials
 // Trả về HMAC-SHA256 session token
 
-import { validateCredentials, createToken } from './lib/auth.js';
+import { validateCredentials, createToken } from './_lib/auth.js';
 
 async function parseBody(req) {
   if (req.body && typeof req.body === 'object') return req.body;

@@ -2,8 +2,8 @@
 // Danh sách đơn đã thanh toán - chỉ admin mới truy cập được
 // Không còn public endpoint - bảo mật dữ liệu khách hàng
 
-import { query } from './lib/db.js';
-import { requireAdmin } from './lib/auth.js';
+import { query } from './_lib/db.js';
+import { requireAdmin } from './_lib/auth.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

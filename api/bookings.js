@@ -3,8 +3,8 @@
 // GET: chỉ admin mới xem được toàn bộ danh sách
 // POST: khách hàng gửi đơn thuê mới
 
-import { query } from './lib/db.js';
-import { requireAdmin } from './lib/auth.js';
+import { query } from './_lib/db.js';
+import { requireAdmin } from './_lib/auth.js';
 
 async function parseBody(req) {
   if (req.body && typeof req.body === 'object') return req.body;

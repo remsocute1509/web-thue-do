@@ -2,7 +2,7 @@
 // Kiểm tra trạng thái thanh toán - Public (không lộ dữ liệu cá nhân)
 // Chỉ trả về trạng thái paid/unpaid + thông tin giao dịch cơ bản
 
-import { query } from './lib/db.js';
+import { query } from './_lib/db.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
