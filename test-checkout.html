@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh Toán Thử Nghiệm 10.000đ - Cổng SePay</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #fdf2f8 0%, #ede9fe 50%, #e0f2fe 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      max-width: 480px;
+      width: 100%;
+      padding: 32px 28px;
+      text-align: center;
+      box-sizing: border-box;
+      border: 1px solid rgba(236, 72, 153, 0.2);
+    }
+    .badge {
+      display: inline-block;
+      background: #fce7f3;
+      color: #be185d;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 22px;
+      color: #1e293b;
+      margin: 0 0 10px;
+      font-weight: 800;
+    }
+    p {
+      color: #64748b;
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0 0 24px;
+    }
+    .order-box {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .order-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .order-row:last-child {
+      margin-bottom: 0;
+      padding-top: 8px;
+      border-top: 1px solid #e2e8f0;
+      font-weight: 700;
+      font-size: 16px;
+      color: #0284c7;
+    }
+    .order-label {
+      color: #64748b;
+    }
+    .order-val {
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .btn-pay {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-pay:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45);
+    }
+    .note {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">🌸 CỔNG THANH TOÁN SEPAY</div>
+    <h1>Thử Nghiệm Chuyển Khoản 10k</h1>
+    <p>Trang thanh toán thử nghiệm đơn hàng 10.000 VNĐ qua cổng SePay chính thức (pay.sepay.vn).</p>
+
+    <div class="order-box">
+      <div class="order-row">
+        <span class="order-label">Mã đơn hàng:</span>
+        <span class="order-val" id="dispOrderId">#MC-TEST6875</span>
+      </div>
+      <div class="order-row">
+        <span class="order-label">Mã đơn vị SePay:</span>
+        <span class="order-val">SP-LIVE-DP8865B4</span>
+      </div>
+      <div class="order-row">
+        <span class="order-label">Chủ tài khoản:</span>
+        <span class="order-val">dương phongdz</span>
+      </div>
+      <div class="order-row">
+        <span class="order-label">Số tiền thử nghiệm:</span>
+        <span class="order-val">10.000 VNĐ</span>
+      </div>
+    </div>
+
+    <!-- Form POST chính thức gửi sang Cổng thanh toán SePay -->
+    <form id="sepayForm" action="https://pay.sepay.vn/v1/checkout/init" method="POST">
+      <input type="hidden" name="merchant" value="SP-LIVE-DP8865B4">
+      <input type="hidden" name="currency" value="VND">
+      <input type="hidden" name="order_amount" value="10000">
+      <input type="hidden" name="operation" value="PURCHASE">
+      <input type="hidden" name="order_description" value="Thanh toan test 10k #MC-TEST6875">
+      <input type="hidden" name="order_invoice_number" value="MCTEST6875">
+      <input type="hidden" name="success_url" value="https://mochicosplay.vercel.app/?payment=success&orderId=MCTEST6875">
+      <input type="hidden" name="error_url" value="https://mochicosplay.vercel.app/?payment=error&orderId=MCTEST6875">
+      <input type="hidden" name="cancel_url" value="https://mochicosplay.vercel.app/?payment=cancel&orderId=MCTEST6875">
+      <input type="hidden" name="signature" value="pWW4Gz4DsEFPaCvXxTIkNPqXJsZUBo9yC9YOW7hlQJk=">
+
+      <button type="submit" class="btn-pay" id="btnSubmit">
+        🚀 Chuyển Sang Trang Thanh Toán SePay (10.000đ)
+      </button>
+    </form>
+
+    <div class="note">
+      Sau khi bấm, bạn sẽ được chuyển sang <strong>pay.sepay.vn</strong> để quét mã VietQR ngân hàng.
+    </div>
+  </div>
+
+  <script>
+    // Nếu có tham số ?auto=1, tự động submit form luôn
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auto') === '1') {
+      document.getElementById('btnSubmit').textContent = '⏳ Đang chuyển sang SePay...';
+      document.getElementById('sepayForm').submit();
+    }
+  </script>
+</body>
+</html>

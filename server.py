@@ -478,6 +478,53 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
         path   = parsed.path
         params = urllib.parse.parse_qs(parsed.query)
 
+        # ── Test Pay 10k Route ─────────────────────────────────────
+        if path in ('/test-pay', '/api/test-pay'):
+            suffix = str(secrets.randbelow(9000) + 1000)
+            clean_invoice = f"MCTEST{suffix}"
+            order_id = f"#MC-TEST{suffix}"
+            amount = 10000
+            db_query("""
+                INSERT INTO bookings (order_id, customer_name, email, phone, costume_name, rental_date, return_date, deposit, total, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (order_id) DO NOTHING
+            """, (order_id, 'Khách Test SePay 10k', 'test@mochicosplay.com', '0377193835', 'Test Cổng SePay 10k', 'Hôm nay', 'Ngày mai', 0, amount, 'pending'))
+
+            host = self.headers.get('Host', 'localhost:3000')
+            proto = 'https' if ('vercel' in host or 'ngrok' in host) else 'http'
+            base_url = f"{proto}://{host}"
+            data = create_sepay_checkout_data(
+                order_amount=amount,
+                order_invoice_number=clean_invoice,
+                order_description=f"Thanh toan test 10k {order_id}",
+                success_url=f"{base_url}/?payment=success&orderId={clean_invoice}",
+                error_url=f"{base_url}/?payment=error&orderId={clean_invoice}",
+                cancel_url=f"{base_url}/?payment=cancel&orderId={clean_invoice}"
+            )
+            if not data:
+                return self.json_response(500, {'error': 'SePay credentials missing in .env'})
+
+            fields_html = "\n    ".join([f'<input type="hidden" name="{k}" value="{v}">' for k, v in data['fields'].items()])
+            html = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Đang mở Cổng SePay 10k...</title></head>
+<body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
+  <h2>Đang chuyển hướng sang Cổng SePay (10.000đ)...</h2>
+  <p>Đơn hàng: <strong>{order_id}</strong></p>
+  <form id="sepayForm" action="{data['checkoutUrl']}" method="POST">
+    {fields_html}
+  </form>
+  <script>document.getElementById('sepayForm').submit();</script>
+</body>
+</html>"""
+            body_bytes = html.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(body_bytes)))
+            self.end_headers()
+            self.wfile.write(body_bytes)
+            return
+
         # ── Health Check (Docker & Load Balancers) ──────────────────
         if path in ('/health', '/api/health'):
             return self.json_response(200, {
