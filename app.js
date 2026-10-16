@@ -2543,7 +2543,7 @@ function showBookingFormStep() {
 }
 
 function initPaymentActions() {
-  // 1. Nút "Tôi Đã Chuyển Khoản Thành Công"
+  // 1. Nút "Tôi Đã Chuyển Khoản" - BẮT BUỘC ĐỐI SOÁT GIAO DỊCH THẬT TỪ NGÂN HÀNG
   const btnConfirmPaid = document.getElementById('btnConfirmPaid');
   if (btnConfirmPaid) {
     btnConfirmPaid.addEventListener('click', async () => {
@@ -2551,7 +2551,8 @@ function initPaymentActions() {
       if (!current) return;
 
       btnConfirmPaid.disabled = true;
-      btnConfirmPaid.innerHTML = '<span>⏳ Đang kiểm tra giao dịch...</span>';
+      const originalHtml = btnConfirmPaid.innerHTML;
+      btnConfirmPaid.innerHTML = '<span>⏳ Đang đối soát giao dịch với MB Bank / SePay...</span>';
 
       const cleanCode = (current.orderId || ('MC' + current.id)).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
       try {
@@ -2559,6 +2560,7 @@ function initPaymentActions() {
         if (res.ok) {
           const data = await res.json();
           if (data && data.paid) {
+            showToast('🎉 Đã xác minh nhận tiền thành công từ tài khoản ngân hàng!', 'success');
             onBankPaymentApproved(current, data.transaction);
             return;
           }
@@ -2567,8 +2569,10 @@ function initPaymentActions() {
         console.warn('Check payment error:', e);
       }
 
-      // Khách xác nhận đã chuyển khoản
-      onBankPaymentApproved(current, { time: new Date().toLocaleString('vi-VN'), gateway: 'MBBank (Khách xác nhận)' });
+      // 🛡️ BẢO VỆ CHỐNG GIAN LẬN: TUYỆT ĐỐI KHÔNG DUYỆT NẾU TÀI KHOẢN CHƯA THỰC NHẬN ĐƯỢC TIỀN!
+      btnConfirmPaid.disabled = false;
+      btnConfirmPaid.innerHTML = originalHtml;
+      showToast('❌ Hệ thống chưa tìm thấy giao dịch chuyển khoản cho đơn ' + (current.orderId || cleanCode) + '. Vui lòng kiểm tra lại bạn đã chuyển khoản đúng số tiền và nội dung chưa, hoặc đợi 5-10 giây để ngân hàng gửi thông báo nhé!', 'warning');
     });
   }
 
