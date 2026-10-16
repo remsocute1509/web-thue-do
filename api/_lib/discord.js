@@ -41,7 +41,10 @@ export async function sendPaymentNotification(orderData) {
   try {
     const res = await fetch(DISCORD_WEBHOOK_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MochymoonBot/1.0'
+      },
       body: JSON.stringify({ embeds: [embed] }),
     });
 

@@ -245,12 +245,70 @@ def send_discord(order_data):
 
     body = json.dumps({"embeds": [embed]}).encode('utf-8')
     try:
-        req = urllib.request.Request(discord_url, data=body,
-                                     headers={'Content-Type': 'application/json'}, method='POST')
+        req = urllib.request.Request(
+            discord_url,
+            data=body,
+            headers={
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MochymoonBot/1.0'
+            },
+            method='POST'
+        )
         with urllib.request.urlopen(req, timeout=5) as r:
             print(f"[DISCORD] Sent: {r.status}")
     except Exception as e:
         print(f"[DISCORD] Error: {e}")
+
+# ── SePay Payment Gateway Checkout Builder ─────────────────────────────────────
+def create_sepay_checkout_data(order_amount, order_invoice_number, order_description='', success_url='', error_url='', cancel_url=''):
+    merchant_id = get_env('SEPAY_MERCHANT_ID', '')
+    secret_key = get_env('SEPAY_SECRET_KEY', '')
+    if not merchant_id or not secret_key:
+        return None
+
+    fields = {
+        'order_amount': int(order_amount),
+        'merchant': merchant_id,
+        'currency': 'VND',
+        'operation': 'PURCHASE',
+        'order_description': order_description or f"Thue do cosplay {order_invoice_number}",
+        'order_invoice_number': order_invoice_number,
+        'success_url': success_url,
+        'error_url': error_url,
+        'cancel_url': cancel_url
+    }
+
+    ordered_keys = [
+        'order_amount',
+        'merchant',
+        'currency',
+        'operation',
+        'order_description',
+        'order_invoice_number',
+        'customer_id',
+        'payment_method',
+        'success_url',
+        'error_url',
+        'cancel_url'
+    ]
+
+    parts = []
+    for k in ordered_keys:
+        val = fields.get(k)
+        if val is not None and str(val) != '':
+            parts.append(f"{k}={val}")
+
+    signed_string = ','.join(parts)
+    sig = base64.b64encode(hmac.new(secret_key.encode('utf-8'), signed_string.encode('utf-8'), hashlib.sha256).digest()).decode('utf-8')
+
+    form_fields = {k: str(v) for k, v in fields.items() if v is not None and str(v) != ''}
+    form_fields['signature'] = sig
+
+    return {
+        'checkoutUrl': 'https://pay.sepay.vn/v1/checkout/init',
+        'signedString': signed_string,
+        'fields': form_fields
+    }
 
 # ── SePay Real-time Sync ─────────────────────────────────────────────────────
 _sepay_cache = {'time': 0, 'data': []}
@@ -566,11 +624,47 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
             send_discord({'orderId': full_id, 'amount': amount, 'content': note, 'gateway': 'Manual', **customer})
             return self.json_response(200, {'success': True, 'orderId': full_id})
 
+        # ── /api/sepay-checkout ──────────────────────────────────────
+        elif path == '/api/sepay-checkout':
+            body = self.read_body()
+            order_id = str(body.get('orderId', '')).strip()
+            clean_invoice = re.sub(r'[^a-zA-Z0-9]', '', order_id).upper() or f"MC{int(time.time())}"
+            amount = int(float(body.get('amount') or 150000))
+            desc = str(body.get('description') or f"Thue do cosplay {order_id or clean_invoice}")[:250]
+            host = self.headers.get('Host', 'localhost:3000')
+            proto = 'https' if ('vercel' in host or 'ngrok' in host) else 'http'
+            base_url = f"{proto}://{host}"
+            success_url = body.get('successUrl') or f"{base_url}/?payment=success&orderId={clean_invoice}"
+            error_url = body.get('errorUrl') or f"{base_url}/?payment=error&orderId={clean_invoice}"
+            cancel_url = body.get('cancelUrl') or f"{base_url}/?payment=cancel&orderId={clean_invoice}"
+
+            data = create_sepay_checkout_data(
+                order_amount=amount,
+                order_invoice_number=clean_invoice,
+                order_description=desc,
+                success_url=success_url,
+                error_url=error_url,
+                cancel_url=cancel_url
+            )
+            if not data:
+                return self.json_response(500, {'error': 'SePay Payment Gateway chưa được cấu hình SEPAY_MERCHANT_ID hoặc SEPAY_SECRET_KEY trong .env'})
+            return self.json_response(200, {'success': True, **data})
+
         # ── /api/webhook/bank ────────────────────────────────────────
         elif path in ('/api/webhook/bank', '/api/webhook/sepay', '/api/webhook'):
             body = self.read_body()
+            is_ipn = bool(body.get('notification_type') or body.get('order'))
             expected_key = get_env('SEPAY_API_KEY', '')
-            if expected_key:
+            expected_secret = get_env('SEPAY_SECRET_KEY', '')
+            raw_secret = self.headers.get('X-Secret-Key', '') or self.headers.get('x-secret-key', '')
+
+            is_authorized = False
+            if is_ipn:
+                if not expected_secret or not raw_secret:
+                    is_authorized = True
+                else:
+                    is_authorized = bool(hmac.compare_digest(raw_secret.strip(), expected_secret.strip()))
+            elif expected_key:
                 auth_hdr = self.headers.get('Authorization', '') or self.headers.get('authorization', '') or self.headers.get('X-Api-Key', '') or self.headers.get('x-api-key', '')
                 provided_key = ''
                 if auth_hdr.lower().startswith('apikey '):
@@ -602,15 +696,29 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
                 if not is_authorized:
                     print("[WEBHOOK AUTH] Rejected unauthorized or unverified webhook call.")
                     return self.json_response(200, {'success': False, 'message': 'Unverified webhook'})
-            content = str(body.get('content') or body.get('description') or body.get('code') or '')
-            amount  = body.get('amount') or body.get('transferAmount') or 0
-            gateway = body.get('gateway') or body.get('subAccount') or 'MBBank'
-            date    = body.get('transactionDate') or body.get('when') or time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+            else:
+                is_authorized = True
 
-            match = re.search(r'MC[-_]?\d+', content, re.IGNORECASE)
-            matched = match.group(0).upper().replace('_','-') if match else ''
-            if not matched and 'orderId' in body:
-                matched = str(body['orderId']).upper().replace('_','-')
+            if is_ipn:
+                order_obj = body.get('order') or {}
+                tx_obj = body.get('transaction') or {}
+                matched = str(order_obj.get('order_invoice_number') or order_obj.get('order_id') or '').upper().replace('_', '-')
+                amount = int(float(order_obj.get('order_amount') or tx_obj.get('transaction_amount') or 0))
+                gateway = f"Cổng SePay ({tx_obj.get('payment_method')})" if tx_obj.get('payment_method') else 'Cổng SePay'
+                date = tx_obj.get('transaction_date') or time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+                content = str(order_obj.get('order_description') or tx_obj.get('transaction_id') or f"Thanh toán SePay {matched}")
+                is_gateway = True
+                print(f"[SEPAY IPN] Received IPN for order {matched}, amount {amount} VND")
+            else:
+                is_gateway = False
+                content = str(body.get('content') or body.get('description') or body.get('code') or '')
+                amount  = body.get('amount') or body.get('transferAmount') or 0
+                gateway = body.get('gateway') or body.get('subAccount') or 'MBBank'
+                date    = body.get('transactionDate') or body.get('when') or time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+                match = re.search(r'MC[-_]?\d+', content, re.IGNORECASE)
+                matched = match.group(0).upper().replace('_','-') if match else ''
+                if not matched and 'orderId' in body:
+                    matched = str(body['orderId']).upper().replace('_','-')
 
             if matched:
                 clean_key = re.sub(r'[^a-zA-Z0-9]', '', matched)
@@ -629,11 +737,12 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
                          gateway=EXCLUDED.gateway, paid_at=EXCLUDED.paid_at, raw_payload=EXCLUDED.raw_payload""",
                     (order_id, amount, content, gateway, date, json.dumps(body))
                 )
+                status_text = 'Đã thanh toán (Cổng SePay Gateway) 🌸' if is_gateway else 'Đã thanh toán (Tự động duyệt qua MB Bank) 🌸'
                 db_query(
                     """UPDATE bookings
-                       SET status = 'Đã thanh toán (Tự động duyệt qua MB Bank) 🌸', updated_at = NOW()
+                       SET status = %s, updated_at = NOW()
                        WHERE LOWER(REPLACE(REPLACE(order_id, '#', ''), '-', '')) = LOWER(%s)""",
-                    (clean_key,)
+                    (status_text, clean_key)
                 )
                 customer = {
                     'customerName': b_row.get('customer_name') if b_row else '',

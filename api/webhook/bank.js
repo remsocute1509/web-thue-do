@@ -36,8 +36,22 @@ export default async function handler(req, res) {
   console.log('[SEPAY WEBHOOK]:', JSON.stringify(payload));
 
   // 1. Xác thực Webhook từ SePay (chống giả mạo thanh toán)
+  const isSepayIpn = Boolean(payload.notification_type || payload.order);
+  const expectedSecretKey = process.env.SEPAY_SECRET_KEY || '';
   const expectedApiKey = process.env.SEPAY_API_KEY || '';
-  if (expectedApiKey) {
+
+  const rawSecretKey = req.headers['x-secret-key'] || req.headers['x-sepay-secret-key'] || '';
+  let isAuthorized = false;
+
+  // Nếu là IPN và có cấu hình Secret Key
+  if (isSepayIpn) {
+    if (!expectedSecretKey || !rawSecretKey) {
+      // Nếu merchant cấu hình auth type = Không có (như trong giao diện SePay)
+      isAuthorized = true;
+    } else {
+      isAuthorized = (rawSecretKey.trim() === expectedSecretKey.trim());
+    }
+  } else if (expectedApiKey) {
     const rawAuth = req.headers['authorization'] || req.headers['x-api-key'] || req.headers['x-sepay-key'] || '';
     let providedKey = '';
     if (rawAuth.toLowerCase().startsWith('apikey ')) {
@@ -48,7 +62,6 @@ export default async function handler(req, res) {
       providedKey = rawAuth.trim();
     }
 
-    let isAuthorized = false;
     if (providedKey) {
       const expectedBuf = Buffer.from(expectedApiKey);
       const providedBuf = Buffer.from(providedKey);
@@ -87,20 +100,42 @@ export default async function handler(req, res) {
       console.warn('[WEBHOOK AUTH] Rejected unauthorized or unverified webhook call.');
       return res.status(200).json({ success: false, message: 'Webhook unverified' });
     }
+  } else {
+    isAuthorized = true;
   }
 
   try {
+    let content = '';
+    let amount = 0;
+    let gateway = 'MBBank';
+    let date = new Date().toISOString();
+    let matchedOrder = '';
+    let isGateway = false;
 
-    const content = String(payload.content || payload.description || payload.code || '');
-    const amount  = payload.transferAmount || payload.amount || 0;
-    const gateway = payload.gateway || payload.subAccount || 'MBBank';
-    const date    = payload.transactionDate || payload.when || new Date().toISOString();
+    // A. Xử lý IPN từ Cổng thanh toán SePay (Payment Gateway)
+    if (isSepayIpn) {
+      isGateway = true;
+      const orderObj = payload.order || {};
+      const txObj = payload.transaction || {};
+      matchedOrder = String(orderObj.order_invoice_number || orderObj.order_id || '').toUpperCase();
+      amount = Math.round(Number(orderObj.order_amount || txObj.transaction_amount || 0));
+      gateway = txObj.payment_method ? `Cổng SePay (${txObj.payment_method})` : 'Cổng SePay';
+      date = txObj.transaction_date || new Date().toISOString();
+      content = orderObj.order_description || txObj.transaction_id || `Thanh toán cổng SePay đơn ${matchedOrder}`;
+      console.log(`[SEPAY IPN] Received IPN for order ${matchedOrder}, amount: ${amount}`);
+    } else {
+      // B. Xử lý Webhook Biến động số dư Bank Hub thông thường
+      content = String(payload.content || payload.description || payload.code || '');
+      amount  = payload.transferAmount || payload.amount || 0;
+      gateway = payload.gateway || payload.subAccount || 'MBBank';
+      date    = payload.transactionDate || payload.when || new Date().toISOString();
 
-    // Tìm mã đơn hàng từ nội dung chuyển khoản (MC29138 hoặc MC-29138)
-    const match = content.match(/MC[-_]?\d+/i);
-    let matchedOrder = match ? match[0].toUpperCase().replace('_', '-') : '';
-    if (!matchedOrder && payload.orderId) {
-      matchedOrder = String(payload.orderId).toUpperCase().replace('_', '-');
+      // Tìm mã đơn hàng từ nội dung chuyển khoản (MC29138 hoặc MC-29138)
+      const match = content.match(/MC[-_]?\d+/i);
+      matchedOrder = match ? match[0].toUpperCase().replace('_', '-') : '';
+      if (!matchedOrder && payload.orderId) {
+        matchedOrder = String(payload.orderId).toUpperCase().replace('_', '-');
+      }
     }
 
     if (matchedOrder) {
@@ -120,11 +155,14 @@ export default async function handler(req, res) {
 
       // Cập nhật trạng thái sang Đã thanh toán trong bảng bookings
       try {
+        const statusText = isGateway
+          ? 'Đã thanh toán (Cổng SePay Gateway) 🌸'
+          : 'Đã thanh toán (Tự động duyệt qua MB Bank) 🌸';
         await query(
           `UPDATE bookings
-           SET status = 'Đã thanh toán (Tự động duyệt qua MB Bank) 🌸', updated_at = NOW()
-           WHERE LOWER(REPLACE(REPLACE(order_id, '#', ''), '-', '')) = LOWER($1)`,
-          [orderKey]
+           SET status = $1, updated_at = NOW()
+           WHERE LOWER(REPLACE(REPLACE(order_id, '#', ''), '-', '')) = LOWER($2)`,
+          [statusText, orderKey]
         );
       } catch (e) { /* bỏ qua nếu cập nhật bookings lỗi */ }
 

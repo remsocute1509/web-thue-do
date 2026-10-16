@@ -90,7 +90,40 @@ document.addEventListener('DOMContentLoaded', () => {
       syncCloudBookings();
     }
   }, 30000);
+  checkUrlPaymentStatus();
 });
+
+function checkUrlPaymentStatus() {
+  const params = new URLSearchParams(window.location.search);
+  const payment = params.get('payment');
+  const orderId = params.get('orderId');
+
+  if (payment === 'success') {
+    showToast(`🎉 Cổng SePay đã xử lý thanh toán cho đơn ${orderId || ''}!`, 'success');
+    window.history.replaceState({}, document.title, window.location.pathname);
+    if (orderId) {
+      setTimeout(async () => {
+        try {
+          const cleanCode = orderId.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+          const res = await fetch(`/api/check-payment?orderId=${encodeURIComponent(cleanCode)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.paid) {
+              const b = (appState.bookings || []).find(x => (x.orderId || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanCode);
+              if (b) onBankPaymentApproved(b, data.transaction);
+            }
+          }
+        } catch (e) {}
+      }, 1000);
+    }
+  } else if (payment === 'cancel') {
+    showToast('Đã hủy thanh toán trên cổng SePay', 'info');
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } else if (payment === 'error') {
+    showToast('Thanh toán qua cổng SePay chưa hoàn tất', 'warning');
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}
 
 function getAdminToken() {
   return localStorage.getItem('mochimoon_admin_token') || '';
@@ -2581,6 +2614,66 @@ function initPaymentActions() {
           btnSimulate.disabled = false;
           btnSimulate.innerHTML = originalText;
         }, 1500);
+      }
+    });
+  }
+
+  // 2.5 Nút "Mở Trang Thanh Toán Cổng SePay (pay.sepay.vn)"
+  const btnPayGateway = document.getElementById('btnPayWithSepayGateway');
+  if (btnPayGateway) {
+    btnPayGateway.addEventListener('click', async () => {
+      const current = appState.currentPaymentBooking;
+      if (!current) {
+        showToast('Vui lòng tạo một đơn thuê trước!', 'warning');
+        return;
+      }
+
+      btnPayGateway.disabled = true;
+      const originalText = btnPayGateway.innerHTML;
+      btnPayGateway.innerHTML = '<span>⏳ Đang tạo phiên thanh toán SePay...</span>';
+
+      try {
+        const cleanCode = (current.orderId || ('MC' + current.id)).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        const res = await fetch('/api/sepay-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: current.orderId || ('#MC-' + cleanCode),
+            amount: current.pricing?.totalToPay || 150000,
+            description: `Thue do cosplay ${current.character || ''} ${current.orderId || cleanCode}`.trim()
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || 'Lỗi kết nối cổng SePay');
+        }
+
+        const data = await res.json();
+        if (data.checkoutUrl && data.fields) {
+          showToast('Đang chuyển hướng sang cổng thanh toán SePay...', 'success');
+          // Tạo hidden form và submit POST sang https://pay.sepay.vn/v1/checkout/init
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = data.checkoutUrl;
+          for (const [key, val] of Object.entries(data.fields)) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = val;
+            form.appendChild(input);
+          }
+          document.body.appendChild(form);
+          form.submit();
+          return;
+        } else {
+          throw new Error('Dữ liệu phiên thanh toán không hợp lệ');
+        }
+      } catch (err) {
+        console.error('SePay gateway error:', err);
+        showToast('Không thể mở cổng SePay: ' + err.message, 'error');
+        btnPayGateway.disabled = false;
+        btnPayGateway.innerHTML = originalText;
       }
     });
   }
