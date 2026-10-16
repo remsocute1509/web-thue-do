@@ -1374,6 +1374,15 @@ function escapeHtml(str) {
 // 9. COSPLAY RENTAL BOOKING (MOCHIMOON)
 // ========================================================
 const costumeCatalog = {
+  'Gói Test Cổng SePay 10k': {
+    title: 'Gói Test Cổng SePay (10.000đ)',
+    price: '10.000đ (Thử nghiệm thanh toán)',
+    desc: 'Gói đồ test dùng để kiểm tra chuyển khoản ngân hàng và khớp lệnh Cổng SePay.',
+    image: '',
+    sizes: [
+      { value: 'Freesize', label: 'Freesize (10k)' }
+    ]
+  },
   'Himmel': {
     title: 'Himmel (Sousou no Frieren)',
     price: '150.000đ (Fes/Shoot) • 80.000đ (Test)',
@@ -1440,6 +1449,9 @@ costumeCatalog['himmel'] = costumeCatalog['Himmel'];
 costumeCatalog['frieren'] = costumeCatalog['Frieren'];
 costumeCatalog['kaito kid'] = costumeCatalog['Kaito Kid'];
 costumeCatalog['flins'] = costumeCatalog['Flins'];
+costumeCatalog['gói test cổng sepay 10k'] = costumeCatalog['Gói Test Cổng SePay 10k'];
+costumeCatalog['test 10k'] = costumeCatalog['Gói Test Cổng SePay 10k'];
+costumeCatalog['test'] = costumeCatalog['Gói Test Cổng SePay 10k'];
 
 function findCostumeData(name) {
   if (!name) return null;
@@ -2064,7 +2076,9 @@ function getRentalPricing(characterName, duration, size) {
   let rentPrice = 150000;
   const nameLower = (characterName || '').toLowerCase();
 
-  if (nameLower.includes('himmel') || nameLower.includes('frieren')) {
+  if (nameLower.includes('test') || nameLower.includes('10k') || nameLower.includes('gói test')) {
+    rentPrice = 10000;
+  } else if (nameLower.includes('himmel') || nameLower.includes('frieren')) {
     rentPrice = isTest ? 80000 : 150000;
   } else if (nameLower.includes('kaito')) {
     rentPrice = isTest ? 80000 : 200000;
