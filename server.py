@@ -101,6 +101,57 @@ def db_query(sql, params=(), fetchall=False, fetchone=False):
         print(f"[DB] Query error: {e}")
         return [] if fetchall else None
 
+def init_db_schema():
+    if not HAS_PG or not get_env('SUPABASE_URL', ''):
+        return
+    try:
+        conn = get_db()
+        if not conn:
+            return
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS bookings (
+                  id           SERIAL PRIMARY KEY,
+                  order_id     TEXT UNIQUE NOT NULL,
+                  customer_name TEXT,
+                  email        TEXT,
+                  phone        TEXT,
+                  cccd         TEXT,
+                  costume_id   TEXT,
+                  costume_name TEXT,
+                  rental_date  TEXT,
+                  return_date  TEXT,
+                  deposit      BIGINT DEFAULT 0,
+                  total        BIGINT DEFAULT 0,
+                  status       TEXT DEFAULT 'pending',
+                  notes        TEXT,
+                  created_at   TIMESTAMPTZ DEFAULT NOW(),
+                  updated_at   TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE TABLE IF NOT EXISTS paid_orders (
+                  id           SERIAL PRIMARY KEY,
+                  order_id     TEXT UNIQUE NOT NULL,
+                  amount       BIGINT DEFAULT 0,
+                  content      TEXT,
+                  gateway      TEXT,
+                  paid_at      TIMESTAMPTZ DEFAULT NOW(),
+                  discord_sent BOOLEAN DEFAULT FALSE,
+                  raw_payload  JSONB
+                );
+                CREATE TABLE IF NOT EXISTS otp_requests (
+                  id         SERIAL PRIMARY KEY,
+                  email      TEXT NOT NULL,
+                  otp_hash   TEXT NOT NULL,
+                  order_id   TEXT,
+                  expires_at TIMESTAMPTZ NOT NULL,
+                  used       BOOLEAN DEFAULT FALSE,
+                  created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+            """)
+        print("[DB] Schema initialized & ready")
+    except Exception as e:
+        print(f"[DB] Schema init notice: {e}")
+
 # ── Admin Auth ────────────────────────────────────────────────────────────────
 TOKEN_TTL = 8 * 3600  # 8 giờ
 
@@ -368,6 +419,15 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path   = parsed.path
         params = urllib.parse.parse_qs(parsed.query)
+
+        # ── Health Check (Docker & Load Balancers) ──────────────────
+        if path in ('/health', '/api/health'):
+            return self.json_response(200, {
+                'status': 'healthy',
+                'service': 'mochymoon-cosplay',
+                'time': int(time.time()),
+                'database': 'connected' if (HAS_PG and get_db()) else 'standby'
+            })
 
         # ── /api/check-payment ──────────────────────────────────────
         if path == '/api/check-payment':
@@ -840,9 +900,14 @@ if __name__ == '__main__':
     if not HAS_PG:
         print("[WARN] Install psycopg2: pip install psycopg2-binary")
     else:
-        print("[DB] Supabase PostgreSQL connected" if get_db() else "[DB] Connection failed - check .env")
+        if get_db():
+            print("[DB] Supabase PostgreSQL connected")
+            init_db_schema()
+        else:
+            print("[DB] Connection failed - check .env")
 
-    default_port = int(sys.argv[1]) if len(sys.argv) > 1 else 3000
+    env_port = os.environ.get('PORT')
+    default_port = int(env_port) if env_port else (int(sys.argv[1]) if len(sys.argv) > 1 else 3000)
     server, port = None, default_port
     while port < default_port + 10:
         try:

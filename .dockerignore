@@ -1,0 +1,30 @@
+# Git
+.git
+.gitignore
+.github
+
+# Environment variables & secrets (CRITICAL)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dependencies & build caches
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# IDE & system files
+.gemini/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+scratch/

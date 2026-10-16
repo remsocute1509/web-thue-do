@@ -7,8 +7,11 @@
     "node": ">=18.0.0"
   },
   "scripts": {
+    "start": "python server.py 3000",
     "dev": "python server.py 3001",
-    "init-db": "node scripts/init-db.js"
+    "init-db": "node scripts/init-db.js",
+    "docker:build": "docker build -t mochymoon-cosplay .",
+    "docker:run": "docker compose up -d"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
