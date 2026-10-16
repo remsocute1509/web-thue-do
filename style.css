@@ -2467,6 +2467,7 @@ body {
 .intro-brand-name {
   background: linear-gradient(135deg, #be185d 0%, #a21caf 50%, #2563eb 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 900;
   filter: drop-shadow(0 0 12px #ffffff) drop-shadow(0 2px 4px rgba(190, 24, 93, 0.3));
@@ -3962,6 +3963,7 @@ body {
   margin-top: 2px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;

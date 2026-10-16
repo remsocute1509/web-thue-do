@@ -32,6 +32,9 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, message: 'SePay Webhook endpoint ready' });
   }
 
+  const payload = await parseBody(req);
+  console.log('[SEPAY WEBHOOK]:', JSON.stringify(payload));
+
   // 1. Xác thực Webhook từ SePay (chống giả mạo thanh toán)
   const expectedApiKey = process.env.SEPAY_API_KEY || '';
   if (expectedApiKey) {
@@ -45,19 +48,48 @@ export default async function handler(req, res) {
       providedKey = rawAuth.trim();
     }
 
-    const expectedBuf = Buffer.from(expectedApiKey);
-    const providedBuf = Buffer.from(providedKey);
-    const isValid = expectedBuf.length === providedBuf.length && crypto.timingSafeEqual(expectedBuf, providedBuf);
+    let isAuthorized = false;
+    if (providedKey) {
+      const expectedBuf = Buffer.from(expectedApiKey);
+      const providedBuf = Buffer.from(providedKey);
+      isAuthorized = expectedBuf.length === providedBuf.length && crypto.timingSafeEqual(expectedBuf, providedBuf);
+    }
 
-    if (!isValid) {
-      console.warn('[WEBHOOK AUTH] Rejected unauthorized webhook call. Invalid API Key.');
-      return res.status(401).json({ error: 'Unauthorized: Invalid SePay API Key' });
+    // Nếu SePay chưa cấu hình API Key ở Header, đối soát trực tiếp với SePay API để chống gian lận
+    if (!isAuthorized) {
+      try {
+        const verifyResp = await fetch('https://my.sepay.vn/userapi/transactions/list', {
+          headers: {
+            Authorization: `Bearer ${expectedApiKey}`,
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0'
+          }
+        });
+        if (verifyResp.ok) {
+          const vData = await verifyResp.json();
+          const txs = vData.transactions || [];
+          const payloadId = String(payload.id || payload.referenceCode || '');
+          const payloadContent = String(payload.content || payload.description || payload.code || '');
+          const found = txs.some(tx => 
+            (payloadId && (String(tx.id) === payloadId || String(tx.reference_number) === payloadId)) ||
+            (payloadContent && String(tx.transaction_content || '').includes(payloadContent.slice(0, 15)))
+          );
+          if (found) {
+            isAuthorized = true;
+          }
+        }
+      } catch (err) {
+        console.warn('[WEBHOOK VERIFY] Error verifying with SePay API:', err.message);
+      }
+    }
+
+    if (!isAuthorized) {
+      console.warn('[WEBHOOK AUTH] Rejected unauthorized or unverified webhook call.');
+      return res.status(200).json({ success: false, message: 'Webhook unverified' });
     }
   }
 
   try {
-    const payload = await parseBody(req);
-    console.log('[SEPAY WEBHOOK]:', JSON.stringify(payload));
 
     const content = String(payload.content || payload.description || payload.code || '');
     const amount  = payload.transferAmount || payload.amount || 0;
@@ -86,12 +118,22 @@ export default async function handler(req, res) {
         [orderId, amount, content, gateway, date, JSON.stringify(payload)]
       );
 
+      // Cập nhật trạng thái sang Đã thanh toán trong bảng bookings
+      try {
+        await query(
+          `UPDATE bookings
+           SET status = 'Đã thanh toán (Tự động duyệt qua MB Bank) 🌸', updated_at = NOW()
+           WHERE LOWER(REPLACE(REPLACE(order_id, '#', ''), '-', '')) = LOWER($1)`,
+          [orderKey]
+        );
+      } catch (e) { /* bỏ qua nếu cập nhật bookings lỗi */ }
+
       // Lấy thông tin khách hàng từ bookings để bổ sung Discord embed
       let customerInfo = {};
       try {
         const bookingRes = await query(
-          `SELECT customer_name, email, phone FROM bookings
-           WHERE LOWER(REPLACE(order_id, '#', '')) = LOWER($1) LIMIT 1`,
+          `SELECT order_id, customer_name, email, phone FROM bookings
+           WHERE LOWER(REPLACE(REPLACE(order_id, '#', ''), '-', '')) = LOWER($1) LIMIT 1`,
           [orderKey]
         );
         if (bookingRes.rows.length > 0) {

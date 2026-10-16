@@ -2499,58 +2499,89 @@ function initPaymentActions() {
   // 1. Nút "Tôi Đã Chuyển Khoản Thành Công"
   const btnConfirmPaid = document.getElementById('btnConfirmPaid');
   if (btnConfirmPaid) {
-    btnConfirmPaid.addEventListener('click', () => {
-      if (appState.currentPaymentBooking) {
-        onBankPaymentApproved(appState.currentPaymentBooking, { time: 'Khách xác nhận', gateway: 'MBBank' });
-      } else {
-        btnConfirmPaid.disabled = true;
-        btnConfirmPaid.innerHTML = '<span>✅ Đã Ghi Nhận Thanh Toán</span>';
-        playSuccessChime();
+    btnConfirmPaid.addEventListener('click', async () => {
+      const current = appState.currentPaymentBooking;
+      if (!current) return;
+
+      btnConfirmPaid.disabled = true;
+      btnConfirmPaid.innerHTML = '<span>⏳ Đang kiểm tra giao dịch...</span>';
+
+      const cleanCode = (current.orderId || ('MC' + current.id)).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      try {
+        const res = await fetch(`/api/check-payment?orderId=${encodeURIComponent(cleanCode)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.paid) {
+            onBankPaymentApproved(current, data.transaction);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Check payment error:', e);
       }
+
+      // Khách xác nhận đã chuyển khoản
+      onBankPaymentApproved(current, { time: new Date().toLocaleString('vi-VN'), gateway: 'MBBank (Khách xác nhận)' });
     });
   }
 
-  // 2. Nút "Admin: Duyệt Thanh Toán Thủ Công" (chỉ admin mới thấy)
+  // 2. Nút "⚡ Kiểm Tra Lại Giao Dịch Ngay (Khớp Lệnh Tự Động)"
   const btnSimulate = document.getElementById('btnSimulatePayment');
   if (btnSimulate) {
     btnSimulate.addEventListener('click', async () => {
       const current = appState.currentPaymentBooking;
       if (!current) {
-        alert('Vui lòng tạo một đơn thuê trước!');
+        showToast('Vui lòng tạo một đơn thuê trước!', 'warning');
         return;
       }
-      if (!appState.isAdmin) {
-        alert('Chỉ admin mới có thể duyệt thủ công!');
-        return;
-      }
+
       btnSimulate.disabled = true;
-      btnSimulate.textContent = '⏳ Đang duyệt...';
+      const originalText = btnSimulate.innerHTML;
+      btnSimulate.innerHTML = '⏳ Đang quét SePay...';
 
+      const cleanCode = (current.orderId || ('MC' + current.id)).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
       try {
-        const res = await fetch('/api/admin-approve', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
-          body: JSON.stringify({
-            orderId: current.orderId,
-            amount: current.pricing?.totalToPay || 200000,
-            note: 'Admin manual approval'
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          onBankPaymentApproved(current, { time: new Date().toLocaleString('vi-VN'), gateway: 'Admin' });
-        } else {
-          alert('Lỗi: ' + (data.error || 'Unknown'));
+        const res = await fetch(`/api/check-payment?orderId=${encodeURIComponent(cleanCode)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.paid) {
+            showToast('🎉 Đã tìm thấy giao dịch ngân hàng khớp lệnh!', 'success');
+            onBankPaymentApproved(current, data.transaction);
+            return;
+          }
         }
-      } catch (err) {
-        console.warn('Approve error:', err);
-        onBankPaymentApproved(current, { time: 'Admin approve', gateway: 'Manual' });
-      }
 
-      setTimeout(() => {
-        btnSimulate.disabled = false;
-        btnSimulate.textContent = '⚡ Admin: Duyệt Thủ Công';
-      }, 1500);
+        // Nếu admin đang đăng nhập và chưa tìm thấy giao dịch thật, cho phép duyệt thủ công
+        if (appState.isAdmin) {
+          const confirmAdmin = confirm('Chưa thấy giao dịch từ SePay. Bạn có muốn duyệt thủ công với quyền Admin?');
+          if (confirmAdmin) {
+            const approveRes = await fetch('/api/admin-approve', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
+              body: JSON.stringify({
+                orderId: current.orderId,
+                amount: current.pricing?.totalToPay || 150000,
+                note: 'Admin manual approval'
+              })
+            });
+            const approveData = await approveRes.json();
+            if (approveData.success) {
+              onBankPaymentApproved(current, { time: new Date().toLocaleString('vi-VN'), gateway: 'Admin' });
+              return;
+            }
+          }
+        }
+
+        showToast('⏳ Chưa thấy giao dịch mới trên ngân hàng MB Bank. Nếu bạn vừa chuyển, hãy đợi khoảng 5-10 giây rồi bấm lại nhé!', 'info');
+      } catch (err) {
+        console.warn('Simulate/check error:', err);
+        showToast('Không thể kết nối đến máy chủ kiểm tra thanh toán', 'error');
+      } finally {
+        setTimeout(() => {
+          btnSimulate.disabled = false;
+          btnSimulate.innerHTML = originalText;
+        }, 1500);
+      }
     });
   }
 

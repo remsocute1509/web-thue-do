@@ -20,6 +20,13 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from ssl import create_default_context
 
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 # ── Load .env ────────────────────────────────────────────────────────────────
 _last_env_mtime = 0
 
@@ -194,6 +201,96 @@ def send_discord(order_data):
     except Exception as e:
         print(f"[DISCORD] Error: {e}")
 
+# ── SePay Real-time Sync ─────────────────────────────────────────────────────
+_sepay_cache = {'time': 0, 'data': []}
+
+def check_sepay_direct(order_code):
+    """
+    Chủ động kiểm tra SePay API để khớp lệnh ngay lập tức
+    khi Webhook bị chậm hoặc chạy trên localhost.
+    """
+    global _sepay_cache
+    api_key = get_env('SEPAY_API_KEY', '')
+    if not api_key:
+        return None
+
+    clean_target = re.sub(r'[^a-zA-Z0-9]', '', str(order_code)).upper()
+    if not clean_target:
+        return None
+
+    now = time.time()
+    # Cache transactions trong 3s để tối ưu tốc độ và không spam API
+    if now - _sepay_cache['time'] < 3 and _sepay_cache['data']:
+        transactions = _sepay_cache['data']
+    else:
+        try:
+            req = urllib.request.Request(
+                'https://my.sepay.vn/userapi/transactions/list',
+                headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0'}
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                transactions = data.get('transactions', [])
+                _sepay_cache['time'] = now
+                _sepay_cache['data'] = transactions
+        except Exception as e:
+            print(f"[SEPAY SYNC ERROR] {e}")
+            transactions = _sepay_cache.get('data', [])
+
+    for tx in transactions:
+        content = str(tx.get('transaction_content', ''))
+        clean_content = re.sub(r'[^a-zA-Z0-9]', '', content).upper()
+        if clean_target in clean_content:
+            try:
+                amount = int(float(tx.get('amount_in') or 0))
+            except Exception:
+                amount = 0
+            gateway = tx.get('bank_brand_name') or 'MBBank'
+            date_str = tx.get('transaction_date') or time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+
+            # Tìm mã đơn gốc từ bookings
+            b_row = db_query(
+                """SELECT order_id, customer_name, email, phone FROM bookings
+                   WHERE LOWER(REPLACE(REPLACE(order_id, '#', ''), '-', '')) = LOWER(%s) LIMIT 1""",
+                (clean_target,), fetchone=True
+            )
+            matched_id = b_row['order_id'] if (b_row and b_row.get('order_id')) else (f"#{order_code}" if not str(order_code).startswith('#') else str(order_code))
+
+            # Lưu vào paid_orders
+            db_query(
+                """INSERT INTO paid_orders (order_id, amount, content, gateway, paid_at, raw_payload)
+                   VALUES (%s, %s, %s, %s, %s, %s)
+                   ON CONFLICT (order_id) DO UPDATE SET
+                     amount=EXCLUDED.amount, content=EXCLUDED.content,
+                     gateway=EXCLUDED.gateway, paid_at=EXCLUDED.paid_at, raw_payload=EXCLUDED.raw_payload""",
+                (matched_id, amount, content, gateway, date_str, json.dumps(tx))
+            )
+
+            # Cập nhật trạng thái trong bookings
+            db_query(
+                """UPDATE bookings
+                   SET status = 'Đã thanh toán (Tự động duyệt qua MB Bank) 🌸', updated_at = NOW()
+                   WHERE LOWER(REPLACE(REPLACE(order_id, '#', ''), '-', '')) = LOWER(%s)""",
+                (clean_target,)
+            )
+
+            # Gửi thông báo Discord
+            customer = {
+                'customerName': b_row.get('customer_name') if b_row else '',
+                'email': b_row.get('email') if b_row else '',
+                'phone': b_row.get('phone') if b_row else '',
+            }
+            send_discord({'orderId': matched_id, 'amount': amount, 'content': content, 'gateway': gateway, 'time': date_str, **customer})
+            print(f"[SEPAY AUTO-MATCH] Approved order {matched_id} ({amount} VND) via SePay Sync")
+
+            return {
+                'order_id': matched_id,
+                'amount': amount,
+                'gateway': gateway,
+                'paid_at': date_str
+            }
+    return None
+
 # ── SMTP Mailer ───────────────────────────────────────────────────────────────
 def send_email(to, subject, html_body):
     smtp_host = get_env('SMTP_HOST', '')
@@ -274,24 +371,31 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
 
         # ── /api/check-payment ──────────────────────────────────────
         if path == '/api/check-payment':
-            order_id = params.get('orderId', [''])[0].strip().replace('#', '')
-            if not order_id:
+            raw_id = params.get('orderId', [''])[0].strip()
+            clean_id = re.sub(r'[^a-zA-Z0-9]', '', raw_id).lower()
+            if not clean_id:
                 return self.json_response(400, {'error': 'orderId required'})
 
+            # 1. Tra cứu trong bảng paid_orders
             row = db_query(
                 """SELECT order_id, amount, gateway, paid_at FROM paid_orders
-                   WHERE LOWER(REPLACE(order_id,'#',''))=LOWER(%s) LIMIT 1""",
-                (order_id,), fetchone=True
+                   WHERE LOWER(REPLACE(REPLACE(order_id,'#',''),'-',''))=%s LIMIT 1""",
+                (clean_id,), fetchone=True
             )
+
+            # 2. Nếu chưa có trong DB, tự động kiểm tra trực tiếp SePay API
+            if not row:
+                row = check_sepay_direct(clean_id)
+
             if row:
                 return self.json_response(200, {
-                    'orderId': order_id, 'paid': True,
+                    'orderId': row.get('order_id', raw_id), 'paid': True,
                     'transaction': {
                         'orderId': row['order_id'], 'amount': row['amount'],
                         'gateway': row['gateway'], 'time': str(row.get('paid_at',''))
                     }
                 })
-            return self.json_response(200, {'orderId': order_id, 'paid': False, 'transaction': None})
+            return self.json_response(200, {'orderId': raw_id, 'paid': False, 'transaction': None})
 
         # ── /api/paid-list  (ADMIN ONLY) ────────────────────────────
         elif path == '/api/paid-list':
@@ -300,7 +404,7 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
             rows = db_query(
                 """SELECT p.*, b.customer_name, b.email, b.phone, b.costume_name
                    FROM paid_orders p
-                   LEFT JOIN bookings b ON LOWER(REPLACE(b.order_id,'#',''))=LOWER(REPLACE(p.order_id,'#',''))
+                   LEFT JOIN bookings b ON LOWER(REPLACE(REPLACE(b.order_id,'#',''),'-',''))=LOWER(REPLACE(REPLACE(p.order_id,'#',''),'-',''))
                    ORDER BY p.paid_at DESC LIMIT 500""",
                 fetchall=True
             )
@@ -404,6 +508,7 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
 
         # ── /api/webhook/bank ────────────────────────────────────────
         elif path in ('/api/webhook/bank', '/api/webhook/sepay', '/api/webhook'):
+            body = self.read_body()
             expected_key = get_env('SEPAY_API_KEY', '')
             if expected_key:
                 auth_hdr = self.headers.get('Authorization', '') or self.headers.get('authorization', '') or self.headers.get('X-Api-Key', '') or self.headers.get('x-api-key', '')
@@ -414,11 +519,29 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
                     provided_key = auth_hdr[7:].strip()
                 else:
                     provided_key = auth_hdr.strip()
-                if not hmac.compare_digest(provided_key, expected_key):
-                    print("[WEBHOOK AUTH] Rejected unauthorized webhook call. Invalid API Key.")
-                    return self.json_response(401, {'error': 'Unauthorized: Invalid SePay API Key'})
 
-            body    = self.read_body()
+                is_authorized = bool(provided_key and hmac.compare_digest(provided_key, expected_key))
+                if not is_authorized:
+                    # Đối soát trực tiếp với SePay API
+                    try:
+                        req = urllib.request.Request(
+                            'https://my.sepay.vn/userapi/transactions/list',
+                            headers={'Authorization': f'Bearer {expected_key}', 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0'}
+                        )
+                        with urllib.request.urlopen(req, timeout=5) as resp:
+                            data = json.loads(resp.read().decode('utf-8'))
+                            tx_id = str(body.get('id') or body.get('referenceCode') or '')
+                            content_sub = str(body.get('content') or body.get('description') or body.get('code') or '')[:15]
+                            for tx in data.get('transactions', []):
+                                if (tx_id and (str(tx.get('id')) == tx_id or str(tx.get('reference_number')) == tx_id)) or (content_sub and content_sub in str(tx.get('transaction_content', ''))):
+                                    is_authorized = True
+                                    break
+                    except Exception as e:
+                        print(f"[WEBHOOK VERIFY ERROR] {e}")
+
+                if not is_authorized:
+                    print("[WEBHOOK AUTH] Rejected unauthorized or unverified webhook call.")
+                    return self.json_response(200, {'success': False, 'message': 'Unverified webhook'})
             content = str(body.get('content') or body.get('description') or body.get('code') or '')
             amount  = body.get('amount') or body.get('transferAmount') or 0
             gateway = body.get('gateway') or body.get('subAccount') or 'MBBank'
@@ -430,22 +553,36 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
                 matched = str(body['orderId']).upper().replace('_','-')
 
             if matched:
-                order_id = f"#{matched}" if not matched.startswith('#') else matched
+                clean_key = re.sub(r'[^a-zA-Z0-9]', '', matched)
+                b_row = db_query(
+                    """SELECT order_id, customer_name, email, phone FROM bookings
+                       WHERE LOWER(REPLACE(REPLACE(order_id, '#', ''), '-', '')) = LOWER(%s) LIMIT 1""",
+                    (clean_key,), fetchone=True
+                )
+                order_id = b_row['order_id'] if (b_row and b_row.get('order_id')) else (f"#{matched}" if not matched.startswith('#') else matched)
+
                 db_query(
                     """INSERT INTO paid_orders (order_id, amount, content, gateway, paid_at, raw_payload)
                        VALUES (%s,%s,%s,%s,%s,%s)
                        ON CONFLICT (order_id) DO UPDATE SET
-                         amount=EXCLUDED.amount, content=EXCLUDED.content, paid_at=EXCLUDED.paid_at""",
+                         amount=EXCLUDED.amount, content=EXCLUDED.content,
+                         gateway=EXCLUDED.gateway, paid_at=EXCLUDED.paid_at, raw_payload=EXCLUDED.raw_payload""",
                     (order_id, amount, content, gateway, date, json.dumps(body))
                 )
-                clean_key = matched.replace('#','')
-                customer = db_query(
-                    "SELECT customer_name,email,phone FROM bookings WHERE LOWER(REPLACE(order_id,'#',''))=LOWER(%s) LIMIT 1",
-                    (clean_key,), fetchone=True
-                ) or {}
+                db_query(
+                    """UPDATE bookings
+                       SET status = 'Đã thanh toán (Tự động duyệt qua MB Bank) 🌸', updated_at = NOW()
+                       WHERE LOWER(REPLACE(REPLACE(order_id, '#', ''), '-', '')) = LOWER(%s)""",
+                    (clean_key,)
+                )
+                customer = {
+                    'customerName': b_row.get('customer_name') if b_row else '',
+                    'email': b_row.get('email') if b_row else '',
+                    'phone': b_row.get('phone') if b_row else '',
+                }
                 send_discord({'orderId': order_id, 'amount': amount, 'content': content, 'gateway': gateway,
                               'time': date, **customer})
-                print(f"[WEBHOOK] Approved: {order_id} - {amount}đ")
+                print(f"[WEBHOOK] Approved: {order_id} - {amount} VND")
 
             return self.json_response(200, {'success': True, 'matchedOrder': matched or None})
 
