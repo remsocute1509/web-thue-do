@@ -1,6 +1,83 @@
 /* ========================================================
-   MOCHIMOON - AESTHETIC DASHBOARD JAVASCRIPT LOGIC
-   ======================================================== */
+// TOAST NOTIFICATION SYSTEM (MOCHIMOON)
+// ======================================================== */
+function showToast(message, type = 'info') {
+  let container = document.getElementById('mochimoon-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'mochimoon-toast-container';
+    container.style.cssText = `
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 9999999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      pointer-events: none;
+      max-width: 90vw;
+      width: 400px;
+    `;
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `mochimoon-toast toast-${type}`;
+  toast.style.cssText = `
+    pointer-events: auto;
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.45;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+    cursor: pointer;
+    backdrop-filter: blur(16px);
+  `;
+
+  if (type === 'success') {
+    toast.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95))';
+    toast.style.color = '#ffffff';
+    toast.style.border = '1px solid rgba(255, 255, 255, 0.25)';
+  } else if (type === 'error') {
+    toast.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))';
+    toast.style.color = '#ffffff';
+    toast.style.border = '1px solid rgba(255, 255, 255, 0.25)';
+  } else if (type === 'warning') {
+    toast.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95))';
+    toast.style.color = '#ffffff';
+    toast.style.border = '1px solid rgba(255, 255, 255, 0.25)';
+  } else {
+    toast.style.background = 'linear-gradient(135deg, rgba(14, 165, 233, 0.95), rgba(2, 132, 199, 0.95))';
+    toast.style.color = '#ffffff';
+    toast.style.border = '1px solid rgba(255, 255, 255, 0.25)';
+  }
+
+  toast.innerHTML = `<span>${message}</span>`;
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.style.transform = 'translateY(0) scale(1)';
+    toast.style.opacity = '1';
+  });
+
+  const removeToast = () => {
+    toast.style.transform = 'translateY(-15px) scale(0.95)';
+    toast.style.opacity = '0';
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 300);
+  };
+
+  toast.addEventListener('click', removeToast);
+  setTimeout(removeToast, 4000);
+}
 
 // Default State synchronized with real current date and time
 const initialNow = new Date();
