@@ -49,7 +49,81 @@ export default async function handler(req, res) {
   }
 
   const body = await parseBody(req);
-  const { action } = body || {};
+  const { action, query: queryStr, phone, orderId } = body || {};
+  const searchKey = String(queryStr || orderId || phone || '').trim();
+
+  // ===== ACTION 0: Tra cứu nhanh bằng SĐT hoặc Mã đơn =====
+  if (action === 'quick-lookup' || (searchKey && action !== 'request-otp' && action !== 'verify-otp')) {
+    const cleanQ = searchKey.toLowerCase().replace(/[\s#\-]/g, '');
+    if (!cleanQ) {
+      return res.status(400).json({ error: 'Vui lòng nhập số điện thoại hoặc mã đơn hàng' });
+    }
+
+    try {
+      const result = await query(
+        `SELECT b.order_id, b.customer_name, b.costume_name, b.phone, b.email,
+                b.rental_date, b.return_date, b.deposit, b.total, b.status, b.notes,
+                p.amount as paid_amount, p.gateway, p.paid_at
+         FROM bookings b
+         LEFT JOIN paid_orders p ON LOWER(REPLACE(p.order_id,'#','')) = LOWER(REPLACE(b.order_id,'#',''))
+         WHERE LOWER(REPLACE(REPLACE(b.order_id,'#',''),'-','')) = $1
+            OR REPLACE(REPLACE(b.phone,' ',''),'-','') = $1
+         ORDER BY b.id DESC LIMIT 10`,
+        [cleanQ]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          error: 'Không tìm thấy đơn hàng nào khớp với thông tin. Vui lòng kiểm tra lại số điện thoại hoặc mã đơn (#MC-xxxxx) nhé!'
+        });
+      }
+
+      const formattedOrders = result.rows.map(b => {
+        const oid = b.order_id || '#MC-00000';
+        const statusRaw = String(b.status || 'Chờ tiệm duyệt ⏳');
+        const notesStr = String(b.notes || '');
+        const isApproved = ['duyệt', 'paid', 'đã', 'thành công', 'xác nhận'].some(k => statusRaw.toLowerCase().includes(k));
+
+        let trackingCode = '';
+        let shippingStatus = '';
+        const m = notesStr.match(/(?:mã vận đơn|mvd|tracking|spx|ghn|j&t)[\s:]*([A-Za-z0-9\-]+)/i);
+        if (m) trackingCode = m[1].toUpperCase();
+
+        if (trackingCode) {
+          shippingStatus = 'Đã đóng gói & Gửi shipper 🚚';
+        } else if (isApproved) {
+          shippingStatus = 'Đang đóng gói chuẩn bị hàng 📦';
+        } else {
+          shippingStatus = 'Chờ tiệm duyệt đơn trước khi đóng gói ⏳';
+        }
+
+        return {
+          orderId: oid,
+          customerName: b.customer_name || 'Khách hàng',
+          phone: b.phone || '',
+          costumeName: b.costume_name || 'Trang phục Cosplay',
+          rentalDate: b.rental_date || 'Chưa định',
+          returnDate: b.return_date || 'Chưa định',
+          status: statusRaw,
+          isApproved: isApproved,
+          shippingStatus: shippingStatus,
+          trackingCode: trackingCode || 'Tiệm đang chuẩn bị đóng gói...',
+          deposit: b.deposit || 0,
+          total: b.total || 0,
+          notes: notesStr,
+          paid: Boolean(b.paid_at || statusRaw.toLowerCase().includes('đã') || statusRaw.toLowerCase().includes('paid'))
+        };
+      });
+
+      return res.status(200).json({
+        success: true,
+        orders: formattedOrders
+      });
+    } catch (err) {
+      console.error('[order-lookup quick-lookup]', err.message);
+      return res.status(500).json({ error: 'Lỗi hệ thống khi tra cứu đơn hàng' });
+    }
+  }
 
   // ===== ACTION 1: Yêu cầu OTP =====
   if (action === 'request-otp') {

@@ -478,53 +478,6 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
         path   = parsed.path
         params = urllib.parse.parse_qs(parsed.query)
 
-        # ── Test Pay 10k Route ─────────────────────────────────────
-        if path in ('/test-pay', '/api/test-pay'):
-            suffix = str(secrets.randbelow(9000) + 1000)
-            clean_invoice = f"MCTEST{suffix}"
-            order_id = f"#MC-TEST{suffix}"
-            amount = 10000
-            db_query("""
-                INSERT INTO bookings (order_id, customer_name, email, phone, costume_name, rental_date, return_date, deposit, total, status)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (order_id) DO NOTHING
-            """, (order_id, 'Khách Test SePay 10k', 'test@mochicosplay.com', '0377193835', 'Test Cổng SePay 10k', 'Hôm nay', 'Ngày mai', 0, amount, 'pending'))
-
-            host = self.headers.get('Host', 'localhost:3000')
-            proto = 'https' if ('vercel' in host or 'ngrok' in host) else 'http'
-            base_url = f"{proto}://{host}"
-            data = create_sepay_checkout_data(
-                order_amount=amount,
-                order_invoice_number=clean_invoice,
-                order_description=f"Thanh toan test 10k {order_id}",
-                success_url=f"{base_url}/?payment=success&orderId={clean_invoice}",
-                error_url=f"{base_url}/?payment=error&orderId={clean_invoice}",
-                cancel_url=f"{base_url}/?payment=cancel&orderId={clean_invoice}"
-            )
-            if not data:
-                return self.json_response(500, {'error': 'SePay credentials missing in .env'})
-
-            fields_html = "\n    ".join([f'<input type="hidden" name="{k}" value="{v}">' for k, v in data['fields'].items()])
-            html = f"""<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>Đang mở Cổng SePay 10k...</title></head>
-<body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
-  <h2>Đang chuyển hướng sang Cổng SePay (10.000đ)...</h2>
-  <p>Đơn hàng: <strong>{order_id}</strong></p>
-  <form id="sepayForm" action="{data['checkoutUrl']}" method="POST">
-    {fields_html}
-  </form>
-  <script>document.getElementById('sepayForm').submit();</script>
-</body>
-</html>"""
-            body_bytes = html.encode('utf-8')
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html; charset=utf-8')
-            self.send_header('Content-Length', str(len(body_bytes)))
-            self.end_headers()
-            self.wfile.write(body_bytes)
-            return
-
         # ── Health Check (Docker & Load Balancers) ──────────────────
         if path in ('/health', '/api/health'):
             return self.json_response(200, {
@@ -860,6 +813,117 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
         elif path == '/api/order-lookup':
             body   = self.read_body()
             action = body.get('action')
+            query_str = str(body.get('query') or body.get('orderId') or body.get('phone') or '').strip()
+
+            # Hỗ trợ tra cứu nhanh trực tiếp cho khách bằng SĐT hoặc Mã đơn
+            if action == 'quick-lookup' or (query_str and action != 'request-otp' and action != 'verify-otp'):
+                clean_q = re.sub(r'[\s#\-]', '', query_str.lower())
+                if not clean_q:
+                    return self.json_response(400, {'error': 'Vui lòng nhập số điện thoại hoặc mã đơn hàng'})
+
+                results = []
+                # 1. Tìm trong PostgreSQL
+                try:
+                    rows = db_query(
+                        """SELECT b.order_id, b.customer_name, b.costume_name, b.phone, b.email,
+                                  b.rental_date, b.return_date, b.deposit, b.total, b.status, b.notes,
+                                  p.amount as paid_amount, p.gateway, p.paid_at
+                           FROM bookings b
+                           LEFT JOIN paid_orders p ON LOWER(REPLACE(p.order_id,'#',''))=LOWER(REPLACE(b.order_id,'#',''))
+                           WHERE LOWER(REPLACE(REPLACE(b.order_id,'#',''),'-','')) = %s
+                              OR REPLACE(REPLACE(b.phone,' ',''),'-','') = %s
+                           ORDER BY b.id DESC LIMIT 10""",
+                        (clean_q, clean_q), fetchall=True
+                    )
+                    if rows:
+                        results.extend(rows)
+                except Exception as e:
+                    print(f"[Order Lookup DB Error]: {e}")
+
+                # 2. Tìm trong data/bookings.json (dự phòng)
+                try:
+                    json_path = os.path.join(os.path.dirname(__file__), 'data', 'bookings.json')
+                    if os.path.exists(json_path):
+                        with open(json_path, 'r', encoding='utf-8') as f:
+                            local_bookings = json.load(f)
+                            for lb in local_bookings:
+                                oid = re.sub(r'[\s#\-]', '', str(lb.get('orderId') or '').lower())
+                                ph = re.sub(r'[\s#\-]', '', str(lb.get('phone') or ''))
+                                if clean_q in (oid, ph) or (len(clean_q) >= 4 and clean_q in oid):
+                                    if not any(r.get('order_id') == lb.get('orderId') for r in results):
+                                        results.append({
+                                            'order_id': lb.get('orderId'),
+                                            'customer_name': lb.get('customerName'),
+                                            'costume_name': lb.get('character') or lb.get('costumeName'),
+                                            'size': lb.get('size', ''),
+                                            'phone': lb.get('phone'),
+                                            'email': lb.get('email', ''),
+                                            'rental_date': lb.get('date') or lb.get('rentalDate'),
+                                            'return_date': lb.get('returnDate'),
+                                            'deposit': lb.get('pricing', {}).get('deposit', 0),
+                                            'total': lb.get('pricing', {}).get('totalToPay', 0),
+                                            'status': lb.get('status', 'Chờ tiệm duyệt ⏳'),
+                                            'notes': lb.get('note') or lb.get('notes', ''),
+                                            'shipping_status': lb.get('shippingStatus'),
+                                            'tracking_code': lb.get('trackingCode'),
+                                        })
+                except Exception as e:
+                    print(f"[Order Lookup JSON Error]: {e}")
+
+                if not results:
+                    return self.json_response(404, {
+                        'error': 'Không tìm thấy đơn hàng nào khớp với thông tin. Vui lòng kiểm tra lại số điện thoại hoặc mã đơn (#MC-xxxxx) nhé!'
+                    })
+
+                formatted_orders = []
+                for b in results:
+                    oid = b.get('order_id') or b.get('orderId') or '#MC-00000'
+                    status_raw = str(b.get('status') or 'Chờ tiệm duyệt ⏳')
+                    notes_str = str(b.get('notes') or '')
+                    
+                    # 1. Trạng thái duyệt
+                    is_approved = any(k in status_raw.lower() for k in ['duyệt', 'paid', 'đã', 'thành công', 'xác nhận'])
+                    
+                    # 2. Trạng thái đóng gói & Mã vận đơn
+                    tracking_code = b.get('tracking_code')
+                    shipping_status = b.get('shipping_status')
+
+                    if not tracking_code:
+                        m_mvd = re.search(r'(?:mã vận đơn|mvd|tracking|spx|ghn|j&t)[\s:]*([A-Za-z0-9\-]+)', notes_str, re.IGNORECASE)
+                        if m_mvd:
+                            tracking_code = m_mvd.group(1).upper()
+
+                    if not shipping_status:
+                        if tracking_code:
+                            shipping_status = 'Đã đóng gói & Gửi shipper 🚚'
+                        elif is_approved:
+                            shipping_status = 'Đang đóng gói chuẩn bị hàng 📦'
+                        else:
+                            shipping_status = 'Chờ tiệm duyệt đơn trước khi đóng gói ⏳'
+
+                    formatted_orders.append({
+                        'orderId': oid,
+                        'customerName': b.get('customer_name') or b.get('customerName') or 'Khách hàng',
+                        'phone': b.get('phone') or '',
+                        'costumeName': b.get('costume_name') or b.get('costumeName') or 'Trang phục Cosplay',
+                        'size': b.get('size', ''),
+                        'rentalDate': b.get('rental_date') or b.get('rentalDate') or 'Chưa định',
+                        'returnDate': b.get('return_date') or b.get('returnDate') or 'Chưa định',
+                        'status': status_raw,
+                        'isApproved': is_approved,
+                        'shippingStatus': shipping_status,
+                        'trackingCode': tracking_code or 'Tiệm đang chuẩn bị đóng gói...',
+                        'deposit': b.get('deposit', 0),
+                        'total': b.get('total', 0),
+                        'notes': notes_str,
+                        'paid': bool(b.get('paid_at') or 'đã' in status_raw.lower() or 'paid' in status_raw.lower())
+                    })
+
+                return self.json_response(200, {
+                    'success': True,
+                    'orders': formatted_orders
+                })
+
             time.sleep(0.3)
 
             if action == 'request-otp':

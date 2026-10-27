@@ -20,6 +20,61 @@
 </head>
 
 <body>
+  <!-- ========================================================
+       CUTE BLUE GINGHAM & BUNNY PRELOADER
+       ======================================================== -->
+  <div class="site-preloader" id="sitePreloader">
+    <!-- Nền caro Gingham bao phủ toàn bộ phía sau -->
+    <div class="preloader-gingham-bg"></div>
+
+    <!-- Dải banner xanh pastel lượn sóng viền vỏ sò scallop hai bên -->
+    <div class="preloader-sky-banner">
+      <div class="scallop-border-top"></div>
+
+      <div class="preloader-content">
+        <div class="preloader-title">loading</div>
+        <div class="preloader-track-wrap">
+          <div class="preloader-track-frame">
+            <div class="preloader-bar-fill" id="preloaderBar">
+              <!-- Mascot Chú thỏ cute trượt theo thanh loading -->
+              <div class="preloader-bunny-mascot" id="preloaderBunny">
+                <svg class="bunny-svg" viewBox="0 0 50 56" width="42" height="47">
+                  <!-- Tai thỏ trái: viền trắng dày, nền xanh theo màu banner, tai trong trắng -->
+                  <path d="M 16,22 C 12,13 13,2 18,2 C 22,2 22,13 20,22 Z" fill="#88aee8" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" />
+                  <path d="M 16.5,18 C 14.8,12 15.2,5 18,5 C 20.2,5 20.2,12 19.5,18 Z" fill="#ffffff" />
+
+                  <!-- Tai thỏ phải: viền trắng dày, nền xanh theo màu banner, tai trong trắng -->
+                  <path d="M 30,22 C 28,13 28,2 32,2 C 37,2 38,13 34,22 Z" fill="#88aee8" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" />
+                  <path d="M 30.5,18 C 29.8,12 29.8,5 32,5 C 34.8,5 35.2,12 33.5,18 Z" fill="#ffffff" />
+
+                  <!-- Đầu tròn thỏ: Viền trắng dày, nền xanh -->
+                  <circle cx="25" cy="33" r="17" fill="#88aee8" stroke="#ffffff" stroke-width="3" />
+
+                  <!-- Khuôn mặt tròn màu trắng bên trong -->
+                  <ellipse cx="25" cy="35" rx="11.5" ry="10" fill="#ffffff" />
+
+                  <!-- Hai mắt tròn nhỏ màu xanh than đậm -->
+                  <circle cx="21" cy="34" r="1.6" fill="#2d4a75" />
+                  <circle cx="29" cy="34" r="1.6" fill="#2d4a75" />
+
+                  <!-- Mũi miệng nhỏ xinh xắn -->
+                  <circle cx="25" cy="37" r="1.1" fill="#fca5a5" />
+                  <path d="M 23.6,38.5 Q 25,39.6 26.4,38.5" stroke="#2d4a75" stroke-width="1.1" stroke-linecap="round" fill="none" />
+
+                  <!-- Má hồng pastel -->
+                  <circle cx="17.5" cy="36" r="2" fill="#fca5a5" opacity="0.6" />
+                  <circle cx="32.5" cy="36" r="2" fill="#fca5a5" opacity="0.6" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scallop-border-bottom"></div>
+    </div>
+  </div>
+
   <!-- Dynamic Time-Based Background Crossfade Layers -->
   <div class="dynamic-bg-layer" id="bgLayerA"></div>
   <div class="dynamic-bg-layer" id="bgLayerB"></div>
@@ -107,6 +162,18 @@
           </span>
           <span class="nav-label">Đặt lịch thuê đồ</span>
         </button>
+
+        <button class="nav-item" data-tab="tracking" id="navTracking" title="Tra cứu tiến độ & mã vận đơn">
+          <span class="nav-icon tracking-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <span class="nav-label">Tra cứu đơn hàng</span>
+        </button>
+
       </nav>
 
       <!-- Sidebar Bottom Action -->
@@ -123,6 +190,12 @@
       <!-- TOP HEADER BAR -->
       <header class="top-header">
         <div class="header-actions">
+          <!-- Nút tra cứu đơn hàng nhanh cho khách -->
+          <button type="button" class="header-tracking-btn" id="btnHeaderTracking" title="Tra cứu tiến độ & mã vận đơn">
+            <span class="ht-icon">🔍</span>
+            <span class="ht-text">Tra cứu đơn</span>
+          </button>
+
           <!-- Notification Button -->
           <div class="notification-wrapper">
             <button class="icon-btn notif-btn" id="notifBtn" aria-label="Notifications"
@@ -470,42 +543,6 @@
               <button type="button" class="btn-reset-search" id="btnResetSearch">Xem tất cả 6 mẫu đồ</button>
             </div>
 
-            <!-- 0. TEST ITEM 10K -->
-            <div class="card costume-catalog-card" data-character="Gói Test Cổng SePay 10k" style="border: 2px dashed #0284c7; background: linear-gradient(135deg, rgba(2,132,199,0.04) 0%, rgba(37,99,235,0.08) 100%);">
-              <div class="catalog-img-wrap" style="background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); display:flex; align-items:center; justify-content:center; min-height: 180px;">
-                <div style="text-align:center; color:white; padding: 20px;">
-                  <span style="font-size: 42px;">🧪</span>
-                  <div style="font-size: 16px; font-weight: 800; margin-top: 8px;">TEST CỔNG SEPAY</div>
-                  <div style="font-size: 13px; opacity: 0.95; font-weight: 700; color: #fef08a;">10.000 VNĐ / Lượt</div>
-                </div>
-              </div>
-              <div class="catalog-info-box">
-                <div class="catalog-header-row">
-                  <h3 class="catalog-char-name" style="color: #0284c7;">Gói Test Cổng SePay (10k)</h3>
-                </div>
-                <div class="catalog-price-row">
-                  <div class="price-pill fes" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd;">
-                    <span class="price-name">Giá test:</span>
-                    <span class="price-val">10.000đ</span>
-                  </div>
-                  <div class="price-pill test" style="background: #f0fdf4; color: #15803d; border-color: #bbf7d0;">
-                    <span class="price-name">Mục đích:</span>
-                    <span class="price-val">Test Cổng SePay</span>
-                  </div>
-                </div>
-                <div class="catalog-btn-row">
-                  <button type="button" class="catalog-info-btn" data-char="Gói Test Cổng SePay 10k"
-                    data-fullname="Gói Test Cổng SePay 10k" data-img=""
-                    data-info="* Món đồ thử nghiệm hệ thống|* Dùng để test chuyển khoản ngân hàng & cổng SePay" data-prices="* Test : 10K">
-                    <span>ℹ️ Thông tin</span>
-                  </button>
-                  <button type="button" class="catalog-rent-btn" data-char="Gói Test Cổng SePay 10k" style="background: linear-gradient(135deg, #0284c7, #2563eb);">
-                    <span>⚡ Thuê Test 10k</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
             <!-- 1. HIMMEL -->
             <div class="card costume-catalog-card" data-character="Himmel (Sousou no Frieren)">
               <div class="catalog-img-wrap">
@@ -515,6 +552,12 @@
               <div class="catalog-info-box">
                 <div class="catalog-header-row">
                   <h3 class="catalog-char-name">himmel</h3>
+                </div>
+                <div class="catalog-size-pill-row">
+                  <span class="cat-pill size" title="Chiều cao: 1m60 - 1m75 • 3 Vòng: 90 - 75 - 95 cm">📏 Size XL (1m60
+                    - 1m75)</span>
+                  <span class="cat-pill items" title="1 áo khoác, 1 quần, 1 áo choàng be, 1 thắt lưng, 1 wig">🎒 5 món
+                    kèm Wig</span>
                 </div>
                 <div class="catalog-price-row">
                   <div class="price-pill fes">
@@ -526,11 +569,22 @@
                     <span class="price-val">80.000đ</span>
                   </div>
                 </div>
+                <div class="catalog-avail-strip" data-char="Himmel (Sousou no Frieren)">
+                  <div class="avail-strip-left">
+                    <span class="avail-dot">🟢</span>
+                    <span class="avail-text">Lịch trống: Đang cập nhật...</span>
+                  </div>
+                  <span class="avail-strip-right">Xem lịch ➔</span>
+                </div>
                 <div class="catalog-btn-row">
                   <button type="button" class="catalog-info-btn" data-char="himmel"
                     data-fullname="Himmel (Sousou no Frieren)" data-img="assets/costumes/costume_himmel.jpg"
                     data-info="* cost : sz xl|* wig" data-prices="* fes/shoot : 150K|* test : 80k">
                     <span>ℹ️ Thông tin</span>
+                  </button>
+                  <button type="button" class="catalog-cal-btn" data-char="Himmel (Sousou no Frieren)"
+                    title="Xem lịch trống theo ngày">
+                    <span>📅 Lịch trống</span>
                   </button>
                   <button type="button" class="catalog-rent-btn" data-char="Himmel (Sousou no Frieren)">
                     <span>👘 Đặt Thuê Ngay</span>
@@ -549,6 +603,12 @@
                 <div class="catalog-header-row">
                   <h3 class="catalog-char-name">frieren</h3>
                 </div>
+                <div class="catalog-size-pill-row">
+                  <span class="cat-pill size" title="Chiều cao: 1m55 - 1m65 • 3 Vòng: 85 - 68 - 90 cm">📏 Size M (1m55 -
+                    1m65)</span>
+                  <span class="cat-pill items" title="1 váy, 1 thắt lưng, 1 áo choàng cổ, 1 tai elf, 1 wig">🎒 5 món kèm
+                    Wig</span>
+                </div>
                 <div class="catalog-price-row">
                   <div class="price-pill fes">
                     <span class="price-name">Fes / Shoot:</span>
@@ -559,11 +619,22 @@
                     <span class="price-val">80.000đ</span>
                   </div>
                 </div>
+                <div class="catalog-avail-strip" data-char="Frieren (Sousou no Frieren)">
+                  <div class="avail-strip-left">
+                    <span class="avail-dot">🟢</span>
+                    <span class="avail-text">Lịch trống: Đang cập nhật...</span>
+                  </div>
+                  <span class="avail-strip-right">Xem lịch ➔</span>
+                </div>
                 <div class="catalog-btn-row">
                   <button type="button" class="catalog-info-btn" data-char="frieren"
                     data-fullname="Frieren (Sousou no Frieren)" data-img="assets/costumes/costume_frieren.jpg"
                     data-info="* cost : sz M|* wig" data-prices="* fes/shoot : 150K|* test : 80k">
                     <span>ℹ️ Thông tin</span>
+                  </button>
+                  <button type="button" class="catalog-cal-btn" data-char="Frieren (Sousou no Frieren)"
+                    title="Xem lịch trống theo ngày">
+                    <span>📅 Lịch trống</span>
                   </button>
                   <button type="button" class="catalog-rent-btn" data-char="Frieren (Sousou no Frieren)">
                     <span>👘 Đặt Thuê Ngay</span>
@@ -582,6 +653,12 @@
                 <div class="catalog-header-row">
                   <h3 class="catalog-char-name">kaito kid</h3>
                 </div>
+                <div class="catalog-size-pill-row">
+                  <span class="cat-pill size" title="Chiều cao: 1m70 - 1m85 • 3 Vòng: 100 - 88 - 104 cm">📏 Size 2XL
+                    (1m70 - 1m85)</span>
+                  <span class="cat-pill items" title="Áo vest, quần tây, sơ mi, cà vạt, áo choàng, mũ, kính, wig">🎒 8
+                    món kèm Wig</span>
+                </div>
                 <div class="catalog-price-row">
                   <div class="price-pill fes">
                     <span class="price-name">Fes / Shoot:</span>
@@ -592,12 +669,23 @@
                     <span class="price-val">80.000đ</span>
                   </div>
                 </div>
+                <div class="catalog-avail-strip" data-char="Kaito Kid">
+                  <div class="avail-strip-left">
+                    <span class="avail-dot">🟢</span>
+                    <span class="avail-text">Lịch trống: Đang cập nhật...</span>
+                  </div>
+                  <span class="avail-strip-right">Xem lịch ➔</span>
+                </div>
                 <div class="catalog-btn-row">
                   <button type="button" class="catalog-info-btn" data-char="kaito kid" data-fullname="Kaito Kid"
                     data-img="assets/costumes/costume_kaito_kid.jpg"
+                    data-feedback="assets/costumes/costume_kaito_kid_feedback.jpg"
                     data-info="* cost : sz 2xl|* wig|* không giày và vũ khí"
                     data-prices="* fes/shoot : 200k|* test : 80k">
                     <span>ℹ️ Thông tin</span>
+                  </button>
+                  <button type="button" class="catalog-cal-btn" data-char="Kaito Kid" title="Xem lịch trống theo ngày">
+                    <span>📅 Lịch trống</span>
                   </button>
                   <button type="button" class="catalog-rent-btn" data-char="Kaito Kid">
                     <span>👘 Đặt Thuê Ngay</span>
@@ -616,6 +704,11 @@
                 <div class="catalog-header-row">
                   <h3 class="catalog-char-name">flins</h3>
                 </div>
+                <div class="catalog-size-pill-row">
+                  <span class="cat-pill size" title="Chiều cao: 1m62 - 1m75 • 3 Vòng: 94 - 78 - 96 cm">📏 Size XL (1m62
+                    - 1m75)</span>
+                  <span class="cat-pill items" title="Áo khoác, quần, áo thun, thắt lưng, wig">🎒 5 món kèm Wig</span>
+                </div>
                 <div class="catalog-price-row">
                   <div class="price-pill fes">
                     <span class="price-name">Fes / Shoot:</span>
@@ -626,11 +719,22 @@
                     <span class="price-val">100.000đ</span>
                   </div>
                 </div>
+                <div class="catalog-avail-strip" data-char="Flins">
+                  <div class="avail-strip-left">
+                    <span class="avail-dot">🟢</span>
+                    <span class="avail-text">Lịch trống: Đang cập nhật...</span>
+                  </div>
+                  <span class="avail-strip-right">Xem lịch ➔</span>
+                </div>
                 <div class="catalog-btn-row">
                   <button type="button" class="catalog-info-btn" data-char="flins" data-fullname="Flins"
-                    data-img="assets/costumes/costume_flins.jpg" data-info="* cost : sz xl|* wig|* không đèn,không giày"
+                    data-img="assets/costumes/costume_flins.jpg"
+                    data-info="* cost : sz xl|* wig|* không đèn, không giày, không vũ khí"
                     data-prices="* fes/shoot : 250k|* test : 100k">
                     <span>ℹ️ Thông tin</span>
+                  </button>
+                  <button type="button" class="catalog-cal-btn" data-char="Flins" title="Xem lịch trống theo ngày">
+                    <span>📅 Lịch trống</span>
                   </button>
                   <button type="button" class="catalog-rent-btn" data-char="Flins">
                     <span>👘 Đặt Thuê Ngay</span>
@@ -649,6 +753,12 @@
                 <div class="catalog-header-row">
                   <h3 class="catalog-char-name">Kinosaki Mei</h3>
                 </div>
+                <div class="catalog-size-pill-row">
+                  <span class="cat-pill size" title="Chiều cao: 1m55 - 1m65 • 3 Vòng: 86 - 68 - 90 cm">📏 Size M (1m55 -
+                    1m65)</span>
+                  <span class="cat-pill items" title="Áo sơ mi, chân váy, nơ, wig, kèm giày 40 tùy chọn">🎒 4 món kèm
+                    Wig</span>
+                </div>
                 <div class="catalog-price-row">
                   <div class="price-pill fes">
                     <span class="price-name">Fes / Shoot:</span>
@@ -659,12 +769,23 @@
                     <span class="price-val">80.000đ</span>
                   </div>
                 </div>
+                <div class="catalog-avail-strip" data-char="Kinosaki Mei">
+                  <div class="avail-strip-left">
+                    <span class="avail-dot">🟢</span>
+                    <span class="avail-text">Lịch trống: Đang cập nhật...</span>
+                  </div>
+                  <span class="avail-strip-right">Xem lịch ➔</span>
+                </div>
                 <div class="catalog-btn-row">
                   <button type="button" class="catalog-info-btn" data-char="Kinosaki Mei" data-fullname="Kinosaki Mei"
                     data-img="assets/costumes/costume_kinosaki_mei.jpg"
                     data-info="* Cost size M|* Wig|* Thêm giày size 40 + 30k"
                     data-prices="* Fes/Shoot out : 150k|* Test : 80k">
                     <span>ℹ️ Thông tin</span>
+                  </button>
+                  <button type="button" class="catalog-cal-btn" data-char="Kinosaki Mei"
+                    title="Xem lịch trống theo ngày">
+                    <span>📅 Lịch trống</span>
                   </button>
                   <button type="button" class="catalog-rent-btn" data-char="Kinosaki Mei">
                     <span>👘 Đặt Thuê Ngay</span>
@@ -683,6 +804,12 @@
                 <div class="catalog-header-row">
                   <h3 class="catalog-char-name">Kitagawa Marin Ver Shizuku</h3>
                 </div>
+                <div class="catalog-size-pill-row">
+                  <span class="cat-pill size" title="Chiều cao: 1m55 - 1m65 • 3 Vòng: 88 - 66 - 92 cm">📏 Size M (1m55 -
+                    1m65)</span>
+                  <span class="cat-pill items"
+                    title="Váy maid, tạp dề, vòng choker, bờm tóc, wig, kèm giày 40 tùy chọn">🎒 5 món kèm Wig</span>
+                </div>
                 <div class="catalog-price-row">
                   <div class="price-pill fes">
                     <span class="price-name">Fes / Shoot:</span>
@@ -693,6 +820,13 @@
                     <span class="price-val">100.000đ</span>
                   </div>
                 </div>
+                <div class="catalog-avail-strip" data-char="Kitagawa Marin Ver Shizuku (My Dress-Up Darling)">
+                  <div class="avail-strip-left">
+                    <span class="avail-dot">🟢</span>
+                    <span class="avail-text">Lịch trống: Đang cập nhật...</span>
+                  </div>
+                  <span class="avail-strip-right">Xem lịch ➔</span>
+                </div>
                 <div class="catalog-btn-row">
                   <button type="button" class="catalog-info-btn" data-char="Kitagawa Marin Ver Shizuku"
                     data-fullname="Kitagawa Marin Ver Shizuku (My Dress-Up Darling)"
@@ -701,8 +835,212 @@
                     data-prices="* Fes/Shoot : 200k|* Test : 100k">
                     <span>ℹ️ Thông tin</span>
                   </button>
+                  <button type="button" class="catalog-cal-btn"
+                    data-char="Kitagawa Marin Ver Shizuku (My Dress-Up Darling)" title="Xem lịch trống theo ngày">
+                    <span>📅 Lịch trống</span>
+                  </button>
                   <button type="button" class="catalog-rent-btn"
                     data-char="Kitagawa Marin Ver Shizuku (My Dress-Up Darling)">
+                    <span>👘 Đặt Thuê Ngay</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 7. REM YUKATA -->
+            <div class="card costume-catalog-card" data-character="Rem Yukata">
+              <div class="catalog-img-wrap">
+                <img src="assets/costumes/costume_rem_yukata.jpg" alt="Cosplay Rem Yukata - mochimoon"
+                  class="catalog-img" style="object-position: center 18%;" loading="lazy">
+              </div>
+              <div class="catalog-info-box">
+                <div class="catalog-header-row">
+                  <h3 class="catalog-char-name">Rem Yukata</h3>
+                </div>
+                <div class="catalog-size-pill-row">
+                  <span class="cat-pill size" title="Chiều cao: 1m50 - 1m62 • 3 Vòng: 82 - 65 - 88 cm">📏 Size S-M (1m50
+                    - 1m62)</span>
+                  <span class="cat-pill items" title="Yukata hoa anh đào, obi hồng, nơ lưng, kẹp hoa, wig">🎒 5 món kèm
+                    Wig</span>
+                </div>
+                <div class="catalog-price-row">
+                  <div class="price-pill fes">
+                    <span class="price-name">Fes / Shoot:</span>
+                    <span class="price-val">200.000đ</span>
+                  </div>
+                  <div class="price-pill test">
+                    <span class="price-name">Test:</span>
+                    <span class="price-val">80.000đ</span>
+                  </div>
+                </div>
+                <div class="catalog-avail-strip" data-char="Rem Yukata">
+                  <div class="avail-strip-left">
+                    <span class="avail-dot">🟢</span>
+                    <span class="avail-text">Lịch trống: Đang cập nhật...</span>
+                  </div>
+                  <span class="avail-strip-right">Xem lịch ➔</span>
+                </div>
+                <div class="catalog-btn-row">
+                  <button type="button" class="catalog-info-btn" data-char="Rem Yukata"
+                    data-fullname="Rem Yukata (Re:Zero)" data-img="assets/costumes/costume_rem_yukata.jpg"
+                    data-info="* cost : sz sm|* wig|* không giày guốc, không kẹo táo"
+                    data-prices="* fes/shoot : 200k|* test : 80k">
+                    <span>ℹ️ Thông tin</span>
+                  </button>
+                  <button type="button" class="catalog-cal-btn" data-char="Rem Yukata" title="Xem lịch trống theo ngày">
+                    <span>📅 Lịch trống</span>
+                  </button>
+                  <button type="button" class="catalog-rent-btn" data-char="Rem Yukata">
+                    <span>👘 Đặt Thuê Ngay</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 8. REM MAID -->
+            <div class="card costume-catalog-card" data-character="Rem Maid">
+              <div class="catalog-img-wrap">
+                <img src="assets/costumes/costume_rem_maid.jpg" alt="Cosplay Rem Maid - mochimoon" class="catalog-img"
+                  style="object-position: center 26%;" loading="lazy">
+              </div>
+              <div class="catalog-info-box">
+                <div class="catalog-header-row">
+                  <h3 class="catalog-char-name">Rem Maid</h3>
+                </div>
+                <div class="catalog-size-pill-row">
+                  <span class="cat-pill size" title="Chiều cao: 1m50 - 1m62 • 3 Vòng: 82 - 66 - 88 cm">📏 Size S-M (1m50
+                    - 1m62)</span>
+                  <span class="cat-pill items" title="Váy maid, tạp dề, bờm tóc ren, kẹp nơ hoa, wig">🎒 5 món kèm
+                    Wig</span>
+                </div>
+                <div class="catalog-price-row">
+                  <div class="price-pill fes">
+                    <span class="price-name">Fes / Shoot:</span>
+                    <span class="price-val">150.000đ</span>
+                  </div>
+                  <div class="price-pill test">
+                    <span class="price-name">Test:</span>
+                    <span class="price-val">80.000đ</span>
+                  </div>
+                </div>
+                <div class="catalog-avail-strip" data-char="Rem Maid">
+                  <div class="avail-strip-left">
+                    <span class="avail-dot">🟢</span>
+                    <span class="avail-text">Lịch trống: Đang cập nhật...</span>
+                  </div>
+                  <span class="avail-strip-right">Xem lịch ➔</span>
+                </div>
+                <div class="catalog-btn-row">
+                  <button type="button" class="catalog-info-btn" data-char="Rem Maid" data-fullname="Rem Maid (Re:Zero)"
+                    data-img="assets/costumes/costume_rem_maid.jpg" data-info="* cost : sz sm|* wig|* không kèm giày"
+                    data-prices="* fes/shoot : 150k|* test : 80k">
+                    <span>ℹ️ Thông tin</span>
+                  </button>
+                  <button type="button" class="catalog-cal-btn" data-char="Rem Maid" title="Xem lịch trống theo ngày">
+                    <span>📅 Lịch trống</span>
+                  </button>
+                  <button type="button" class="catalog-rent-btn" data-char="Rem Maid">
+                    <span>👘 Đặt Thuê Ngay</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 9. RIKKA (CHUUNIBYOU NOEL) -->
+            <div class="card costume-catalog-card" data-character="Rikka">
+              <div class="catalog-img-wrap">
+                <img src="assets/costumes/costume_rikka.jpg" alt="Cosplay Takanashi Rikka Noel - mochimoon"
+                  class="catalog-img" style="object-position: center 15%;" loading="lazy">
+              </div>
+              <div class="catalog-info-box">
+                <div class="catalog-header-row">
+                  <h3 class="catalog-char-name">Rikka (Noel)</h3>
+                </div>
+                <div class="catalog-size-pill-row">
+                  <span class="cat-pill size" title="Chiều cao: 1m50 - 1m62 • 3 Vòng: 82 - 65 - 88 cm">📏 Size S-M (1m50
+                    - 1m62)</span>
+                  <span class="cat-pill items" title="Đầm Noel, áo choàng, găng tay, bịt mắt, wig">🎒 5 món kèm
+                    Wig</span>
+                </div>
+                <div class="catalog-price-row">
+                  <div class="price-pill fes">
+                    <span class="price-name">Fes / Shoot:</span>
+                    <span class="price-val">200.000đ</span>
+                  </div>
+                  <div class="price-pill test">
+                    <span class="price-name">Test:</span>
+                    <span class="price-val">80.000đ</span>
+                  </div>
+                </div>
+                <div class="catalog-avail-strip" data-char="Rikka">
+                  <div class="avail-strip-left">
+                    <span class="avail-dot">🟢</span>
+                    <span class="avail-text">Lịch trống: Đang cập nhật...</span>
+                  </div>
+                  <span class="avail-strip-right">Xem lịch ➔</span>
+                </div>
+                <div class="catalog-btn-row">
+                  <button type="button" class="catalog-info-btn" data-char="Rikka"
+                    data-fullname="Takanashi Rikka (Chuunibyou) - Bản Noel" data-img="assets/costumes/costume_rikka.jpg"
+                    data-feedback="assets/costumes/costume_rikka_card.jpg"
+                    data-info="* cost : sz sm|* wig|* không kèm giày bốt" data-prices="* shoot/fes : 200k|* test : 80k">
+                    <span>ℹ️ Thông tin</span>
+                  </button>
+                  <button type="button" class="catalog-cal-btn" data-char="Rikka" title="Xem lịch trống theo ngày">
+                    <span>📅 Lịch trống</span>
+                  </button>
+                  <button type="button" class="catalog-rent-btn" data-char="Rikka">
+                    <span>👘 Đặt Thuê Ngay</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 10. MAOMAO (DƯỢC SƯ TỰ SỰ) -->
+            <div class="card costume-catalog-card" data-character="Maomao">
+              <div class="catalog-img-wrap">
+                <img src="assets/costumes/costume_maomao.jpg" alt="Cosplay Maomao - mochimoon" class="catalog-img"
+                  style="object-position: center 20%;" loading="lazy">
+              </div>
+              <div class="catalog-info-box">
+                <div class="catalog-header-row">
+                  <h3 class="catalog-char-name">Maomao</h3>
+                </div>
+                <div class="catalog-size-pill-row">
+                  <span class="cat-pill size" title="Chiều cao: 1m50 - 1m60 • 3 Vòng: 80 - 64 - 86 cm">📏 Size S (1m50 -
+                    1m60)</span>
+                  <span class="cat-pill items" title="Áo hanfu, váy cung nữ, đai lưng, nơ tóc, wig">🎒 5 món kèm
+                    Wig</span>
+                </div>
+                <div class="catalog-price-row">
+                  <div class="price-pill fes">
+                    <span class="price-name">Fes / Shoot:</span>
+                    <span class="price-val">200.000đ</span>
+                  </div>
+                  <div class="price-pill test">
+                    <span class="price-name">Test:</span>
+                    <span class="price-val">80.000đ</span>
+                  </div>
+                </div>
+                <div class="catalog-avail-strip" data-char="Maomao">
+                  <div class="avail-strip-left">
+                    <span class="avail-dot">🟢</span>
+                    <span class="avail-text">Lịch trống: Đang cập nhật...</span>
+                  </div>
+                  <span class="avail-strip-right">Xem lịch ➔</span>
+                </div>
+                <div class="catalog-btn-row">
+                  <button type="button" class="catalog-info-btn" data-char="Maomao"
+                    data-fullname="Maomao (Dược Sư Tự Sự - Kusuriya no Hitorigoto)"
+                    data-img="assets/costumes/costume_maomao.jpg"
+                    data-feedback="assets/costumes/costume_maomao_card.jpg"
+                    data-info="* cost : sz s|* wig|* không kèm giày" data-prices="* fes/shoot : 200k|* test : 80k">
+                    <span>ℹ️ Thông tin</span>
+                  </button>
+                  <button type="button" class="catalog-cal-btn" data-char="Maomao" title="Xem lịch trống theo ngày">
+                    <span>📅 Lịch trống</span>
+                  </button>
+                  <button type="button" class="catalog-rent-btn" data-char="Maomao">
                     <span>👘 Đặt Thuê Ngay</span>
                   </button>
                 </div>
@@ -763,31 +1101,80 @@
                       <span>Trang phục / Nhân vật:</span>
                     </label>
                     <select class="booking-select" id="bookingCharacter" required>
-                      <option value="Gói Test Cổng SePay 10k" style="color: #0284c7; font-weight: 800;">🧪 Gói Test Cổng SePay (10.000đ)</option>
                       <option value="Himmel">Himmel</option>
                       <option value="Frieren">Frieren</option>
                       <option value="Kaito Kid">Kaito Kid</option>
                       <option value="Flins">Flins</option>
                       <option value="Kinosaki Mei">Kinosaki Mei</option>
                       <option value="Kitagawa Marin Ver Shizuku">Kitagawa Marin Ver Shizuku</option>
+                      <option value="Rem Yukata">Rem Yukata</option>
+                      <option value="Rem Maid">Rem Maid</option>
+                      <option value="Rikka">Rikka (Chuunibyou Noel)</option>
+                      <option value="Maomao">Maomao (Dược Sư Tự Sự)</option>
                     </select>
                   </div>
 
-                  <div class="form-group">
-                    <label class="booking-label" for="bookingSize">
-                      <span>Size trang phục:</span>
-                    </label>
+                  <div class="form-group flex-1">
+                    <div class="booking-label-with-action">
+                      <label class="booking-label" for="bookingSize">
+                        <span>Size trang phục:</span>
+                      </label>
+                      <button type="button" class="btn-size-guide-inline" id="btnOpenSizeGuideModal"
+                        title="Xem bảng số đo chi tiết & danh sách phụ kiện">
+                        <span>📏 Bảng số đo & Phụ kiện</span>
+                      </button>
+                    </div>
                     <select class="booking-select" id="bookingSize">
-                      <option value="XL">Size XL</option>
+                      <option value="XL">Size XL (Cao: 1m60 - 1m75 • V1-2-3: 90 - 75 - 95 cm)</option>
                     </select>
+                  </div>
+                </div>
+
+                <!-- Khung xem nhanh số đo chi tiết & phụ kiện trọn bộ (Gọn gàng & Đẹp mắt) -->
+                <div class="booking-size-preview-card" id="bookingSizePreviewCard">
+                  <div class="bsp-row-specs">
+                    <div class="bsp-specs-left">
+                      <span class="bsp-spec-pill" title="Chiều cao khuyến nghị">
+                        <span class="pill-icon">📏</span>
+                        <span class="pill-label">Cao:</span>
+                        <span class="pill-val" id="bspHeight">1m60 - 1m75</span>
+                      </span>
+                      <span class="bsp-spec-pill" title="Số đo 3 vòng">
+                        <span class="pill-icon">📐</span>
+                        <span class="pill-label">3 vòng:</span>
+                        <span class="pill-val" id="bsp3V">90 - 75 - 95 cm</span>
+                      </span>
+                      <span class="bsp-spec-pill" title="Cân nặng khuyến nghị">
+                        <span class="pill-icon">⚖️</span>
+                        <span class="pill-label">Cân nặng:</span>
+                        <span class="pill-val" id="bspWeight">63 - 72 kg</span>
+                      </span>
+                    </div>
+                    <button type="button" class="bsp-link-btn" id="bspOpenModalLink"
+                      title="Xem bảng quy chuẩn chi tiết">Xem bảng quy chuẩn chi tiết ➔</button>
+                  </div>
+
+                  <div class="bsp-row-acc">
+                    <div class="bsp-acc-left">
+                      <span class="bsp-acc-badge">🎒 Trọn bộ gồm:</span>
+                      <span class="bsp-acc-text" id="bspAccessories">1 áo khoác, 1 quần, 1 áo choàng be, 1 thắt lưng, 1
+                        wig</span>
+                    </div>
+                    <span class="bsp-not-included" id="bspNotIncluded">⚠️ Chưa kèm: Giày, kiếm đạo cụ</span>
                   </div>
                 </div>
 
                 <div class="form-row">
                   <div class="form-group flex-1">
-                    <label class="booking-label" for="bookingDateInput">
-                      <span>Ngày thuê (Bắt đầu):</span>
-                    </label>
+                    <div class="booking-label-with-action">
+                      <label class="booking-label" for="bookingDateInput">
+                        <span>Ngày thuê (Bắt đầu):</span>
+                      </label>
+                      <button type="button" class="btn-check-avail-inline" id="btnCheckAvailInline"
+                        title="Xem bảng lịch trống bộ này">
+                        <span>📅 Xem lịch trống</span>
+                      </button>
+                    </div>
                     <input type="date" class="booking-input" id="bookingDateInput" required>
                   </div>
 
@@ -799,6 +1186,18 @@
                       <option value="3 ngày (fes/shoot)" selected>3 ngày (fes/shoot)</option>
                       <option value="3 ngày (test)">3 ngày (test)</option>
                     </select>
+                  </div>
+                </div>
+
+                <!-- CẢNH BÁO / TRẠNG THÁI TRÙNG LỊCH THUÊ THEO BỘ TRANG PHỤC -->
+                <div class="booking-avail-notice-wrap" id="bookingAvailNoticeWrap">
+                  <div class="booking-avail-notice notice-info" id="bookingAvailNotice">
+                    <div class="notice-icon-box">💡</div>
+                    <div class="notice-body">
+                      <div class="notice-title">Kiểm tra lịch trống theo trang phục</div>
+                      <div class="notice-desc" id="bookingAvailNoticeDesc">Vui lòng chọn ngày bắt đầu thuê để hệ thống
+                        tự động kiểm tra lịch trống cho bạn nhé! 🌸</div>
+                    </div>
                   </div>
                 </div>
 
@@ -818,6 +1217,56 @@
                     <input type="tel" class="booking-input" id="customerPhone" placeholder="09xx xxx xxx" required>
                   </div>
                 </div>
+
+                <!-- 1. HÌNH THỨC NHẬN TRANG PHỤC (Item 3) -->
+                <div class="form-group booking-method-group">
+                  <label class="booking-label">
+                    <span>🚚 Hình thức nhận trang phục:</span>
+                  </label>
+                  <div class="booking-options-grid">
+                    <label class="booking-option-card active" id="labelDeliveryPickup">
+                      <input type="radio" name="deliveryMethod" value="pickup" checked id="radioDeliveryPickup"
+                        class="booking-radio-input">
+                      <div class="option-card-content">
+                        <div class="option-card-head">
+                          <span class="option-icon">🏬</span>
+                          <strong class="option-title">Nhận trực tiếp tại tiệm</strong>
+                          <span class="option-badge-free">Miễn phí cước</span>
+                        </div>
+                        <p class="option-desc">Đến thử đồ & nhận trực tiếp tại tiệm Mochimoon (KĐT Đặng Xá, Gia Lâm, Hà
+                          Nội).</p>
+                      </div>
+                    </label>
+
+                    <label class="booking-option-card" id="labelDeliveryShip">
+                      <input type="radio" name="deliveryMethod" value="delivery" id="radioDeliveryShip"
+                        class="booking-radio-input">
+                      <div class="option-card-content">
+                        <div class="option-card-head">
+                          <span class="option-icon">🛵</span>
+                          <strong class="option-title">Giao hàng tận nơi</strong>
+                          <span class="option-badge-ship">Ship COD / Grab</span>
+                        </div>
+                        <p class="option-desc">Shop đóng gói gửi tận nhà (Hà Nội & toàn quốc), phí ship thanh toán cho
+                          shipper.</p>
+                      </div>
+                    </label>
+                  </div>
+
+                  <!-- Khung nhập địa chỉ nhận hàng chi tiết (Tự bung ra khi chọn Giao hàng tận nơi) -->
+                  <div class="delivery-address-wrapper hidden" id="deliveryAddressGroup">
+                    <label class="booking-sub-label" for="deliveryAddressInput">
+                      <span>📍 Địa chỉ nhận hàng chi tiết:</span>
+                    </label>
+                    <div class="delivery-address-input-wrap">
+                      <input type="text" class="booking-input" id="deliveryAddressInput"
+                        placeholder="Số nhà, ngõ/đường, phường/xã, quận/huyện, tỉnh/thành phố...">
+                    </div>
+                    <span class="delivery-hint-text">💡 Tiệm sẽ gọi điện hoặc nhắn Zalo xác nhận trước khi gửi hàng cho
+                      bạn nhé! 🌸</span>
+                  </div>
+                </div>
+
 
                 <!-- CHỖ TẢI ẢNH CCCD / GIẤY TỜ TÙY THÂN -->
                 <div class="form-group cccd-upload-group">
@@ -851,6 +1300,7 @@
                         <button type="button" class="cccd-btn-del" id="cccdFrontDelBtn"
                           title="Xóa ảnh và chọn lại">✕</button>
                         <span class="cccd-badge-side front">Mặt trước ✓</span>
+                        <div class="cccd-compress-badge hidden" id="cccdFrontBadge"></div>
                       </div>
                     </div>
 
@@ -875,6 +1325,7 @@
                         <button type="button" class="cccd-btn-del" id="cccdBackDelBtn"
                           title="Xóa ảnh và chọn lại">✕</button>
                         <span class="cccd-badge-side back">Mặt sau ✓</span>
+                        <div class="cccd-compress-badge hidden" id="cccdBackBadge"></div>
                       </div>
                     </div>
                   </div>
@@ -941,6 +1392,10 @@
                       <span class="bill-label">📝 Ghi chú:</span>
                       <span class="bill-val" id="payNoteText">Không</span>
                     </div>
+                    <div class="bill-row" id="payDeliveryRow">
+                      <span class="bill-label">🚚 Nhận đồ:</span>
+                      <span class="bill-val" id="payDeliveryVal">Nhận trực tiếp tại tiệm</span>
+                    </div>
                     <div class="bill-row" id="payCccdRow">
                       <span class="bill-label">🪪 Ảnh CCCD cọc:</span>
                       <span class="bill-val" id="payCccdStatus">Chưa đính kèm</span>
@@ -954,8 +1409,8 @@
                     </div>
                     <div class="pricing-row">
                       <span>Hình thức cọc giữ đồ:</span>
-                      <span class="deposit-desc" id="payDepositDesc">Cọc Thẻ học sinh / Giấy khai sinh (hoặc cọc
-                        200.000đ)</span>
+                      <span class="deposit-desc" id="payDepositDesc">Cọc Thẻ học sinh / CCCD (hoặc cọc 200.000đ khi nhận
+                        đồ)</span>
                     </div>
                     <div class="pricing-total-row">
                       <span>Tổng tiền cần thanh toán:</span>
@@ -1042,12 +1497,15 @@
                   </div>
 
                   <!-- Cổng Thanh Toán SePay (Redirect trực tiếp sang pay.sepay.vn) -->
-                  <div class="sepay-gateway-box" style="margin-top: 14px; text-align: center; background: rgba(37,99,235,0.06); padding: 12px; border-radius: 14px; border: 1.5px dashed rgba(37,99,235,0.4);">
-                    <button type="button" class="btn-sepay-gateway-pay" id="btnPayWithSepayGateway" style="width: 100%; padding: 12px 18px; background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); color: #ffffff; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(37,99,235,0.35); display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                  <div class="sepay-gateway-box"
+                    style="margin-top: 14px; text-align: center; background: rgba(37,99,235,0.06); padding: 12px; border-radius: 14px; border: 1.5px dashed rgba(37,99,235,0.4);">
+                    <button type="button" class="btn-sepay-gateway-pay" id="btnPayWithSepayGateway"
+                      style="width: 100%; padding: 12px 18px; background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); color: #ffffff; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(37,99,235,0.35); display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
                       <span>🚀 Mở Trang Thanh Toán Cổng SePay (pay.sepay.vn)</span>
                     </button>
                     <p style="font-size: 11.5px; color: #64748b; margin-top: 6px; margin-bottom: 0;">
-                      💡 Khuyên dùng: Tự động tạo đơn hàng SePay, quét QR động, thanh toán thẻ &amp; hiển thị trong lịch sử cổng thanh toán.
+                      💡 Khuyên dùng: Tự động tạo đơn hàng SePay, quét QR động, thanh toán thẻ &amp; hiển thị trong lịch
+                      sử cổng thanh toán.
                     </p>
                   </div>
 
@@ -1136,6 +1594,14 @@
                         <span class="cust-lbl">Gói thời gian thuê:</span>
                         <span class="cust-val" id="invDurationText">3 ngày (fes/shoot)</span>
                       </div>
+                      <div class="cust-row">
+                        <span class="cust-lbl">Hình thức nhận đồ:</span>
+                        <strong class="cust-val" id="invDeliveryText">Nhận tại tiệm (Miễn phí)</strong>
+                      </div>
+                      <div class="cust-row">
+                        <span class="cust-lbl">Hình thức đặt cọc:</span>
+                        <strong class="cust-val" id="invDepositText">Chuyển khoản (100%)</strong>
+                      </div>
                       <div class="cust-row full-width" id="invNoteRow">
                         <span class="cust-lbl">Ghi chú của bạn:</span>
                         <span class="cust-val" id="invCustNote">Không có ghi chú</span>
@@ -1164,7 +1630,10 @@
                             <div class="table-item-desc" id="invItemDesc">Full set trang phục Hiệp sĩ kèm Áo choàng +
                               Wig chuẩn form</div>
                           </td>
-                          <td style="text-align: center;"><span class="badge-size" id="invItemSize">Size XL</span></td>
+                          <td style="text-align: center;">
+                            <span class="badge-size" id="invItemSize">Size XL</span>
+                            <div class="table-size-sub" id="invItemSizeSub">Cao: 1m60-1m75 • 90-75-95cm</div>
+                          </td>
                           <td style="text-align: center;" class="table-dates" id="invItemDates">12/10 ➔ 15/10</td>
                           <td style="text-align: right;" id="invItemUnitPrice">150.000đ</td>
                           <td style="text-align: right; font-weight: 800; color: #0f172a;" id="invItemTotal">150.000đ
@@ -1418,6 +1887,96 @@
         </div>
       </section>
 
+      <!-- TAB CONTAINER 5: ORDER TRACKING (Tra cứu đơn hàng dành cho khách) -->
+      <section class="tab-pane" id="tabTracking">
+        <div class="tracking-page-container">
+          <!-- Header Banner -->
+          <div class="tracking-hero-card">
+            <div class="tracking-hero-badge">
+              <span>🔍 CỔNG TRA CỨU ĐƠN HÀNG MOCHIMOON</span>
+            </div>
+            <h2 class="tracking-hero-title">Tra Cứu Tiến Độ Đơn Hàng <span class="sakura-badge">🌸</span></h2>
+            <p class="tracking-hero-desc">
+              Khách chỉ cần nhập <strong>Số điện thoại</strong> hoặc <strong>Mã đơn hàng (#MC-xxxxx)</strong> để tự kiểm
+              tra tiệm đã duyệt đơn chưa, đã đóng gói gửi ship chưa, mã vận đơn và ngày hẹn trả đồ.
+            </p>
+
+            <!-- Search Form Box -->
+            <form class="tracking-search-box" id="formOrderTracking" onsubmit="return false;">
+              <div class="tracking-input-wrapper">
+                <span class="tracking-input-icon">🔍</span>
+                <input type="text" class="tracking-input-field" id="trackingSearchInput"
+                  placeholder="Nhập Số điện thoại (vd: 0912345678) hoặc Mã đơn (vd: #MC-29087)..." autocomplete="off"
+                  required>
+                <button type="button" class="tracking-input-clear hidden" id="btnClearTrackingInput"
+                  title="Xóa">&times;</button>
+              </div>
+              <button type="submit" class="btn-tracking-submit" id="btnSubmitTracking">
+                <span>Tra Cứu Ngay ➔</span>
+              </button>
+            </form>
+
+            <!-- Quick suggestion chips (Lấy từ đơn hàng gần đây trên máy khách) -->
+            <div class="tracking-quick-chips" id="trackingQuickChips">
+              <!-- Render động từ JS -->
+            </div>
+          </div>
+
+          <!-- Result Area -->
+          <div class="tracking-results-area" id="trackingResultArea">
+            <!-- State 1: Chưa tra cứu (Default Guide) -->
+            <div class="tracking-empty-guide" id="trackingEmptyGuide">
+              <div class="guide-cards-grid">
+                <div class="guide-step-card">
+                  <div class="guide-step-icon">🌸</div>
+                  <div class="guide-step-title">1. Tình trạng duyệt đơn</div>
+                  <div class="guide-step-desc">Biết ngay đơn hàng đã được tiệm kiểm tra và duyệt cọc thành công hay
+                    chưa.</div>
+                </div>
+                <div class="guide-step-card">
+                  <div class="guide-step-icon">📦</div>
+                  <div class="guide-step-title">2. Đóng gói & Vận đơn</div>
+                  <div class="guide-step-desc">Theo dõi tiệm đã đóng gói chưa, lấy mã vận đơn SPX / GHN / J&T để tra cứu
+                    giao hàng.</div>
+                </div>
+                <div class="guide-step-card">
+                  <div class="guide-step-icon">🔄</div>
+                  <div class="guide-step-title">3. Ngày hẹn trả đồ</div>
+                  <div class="guide-step-desc">Nắm rõ chính xác ngày hẹn hoàn trả trang phục để chủ động sắp xếp thời
+                    gian đi Fes/Shoot.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- State 2: Đang tải (Loading state) -->
+            <div class="tracking-loading-state hidden" id="trackingLoadingState">
+              <div class="tracking-spinner">🌸</div>
+              <p>Đang kiểm tra hệ thống đơn hàng Mochimoon...</p>
+            </div>
+
+            <!-- State 3: Không tìm thấy (Not found state) -->
+            <div class="tracking-notfound-state hidden" id="trackingNotFoundState">
+              <div class="notfound-icon">🔎</div>
+              <h3 class="notfound-title">Không tìm thấy đơn hàng!</h3>
+              <p class="notfound-desc" id="trackingNotFoundMsg">
+                Không tìm thấy đơn hàng nào khớp với thông tin bạn cung cấp. Vui lòng kiểm tra lại số điện thoại hoặc mã
+                đơn (#MC-xxxxx).
+              </p>
+              <div class="notfound-action">
+                <button type="button" class="btn-help-contact" onclick="window.switchTab('wardrobe')">
+                  📖 Xem Hướng Dẫn & Lưu Ý
+                </button>
+              </div>
+            </div>
+
+            <!-- State 4: Danh sách kết quả đơn hàng tìm thấy -->
+            <div class="tracking-orders-list hidden" id="trackingOrdersList">
+              <!-- Render dynamic order cards from JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
     </div>
   </main>
 
@@ -1477,21 +2036,72 @@
       <button class="detail-modal-close-btn" id="closeCostumeInfoBtn" title="Đóng">&times;</button>
 
       <div class="detail-modal-body">
-        <!-- Cột Ảnh trang phục -->
+        <!-- Cột Ảnh trang phục & Gallery Feedback -->
         <div class="detail-modal-img-col">
-          <img src="" alt="Trang phục cosplay mochimoon" id="modalCostumeImg" class="modal-costume-img">
+          <div class="modal-img-container">
+            <img src="" alt="Trang phục cosplay mochimoon" id="modalCostumeImg" class="modal-costume-img">
+            <span class="modal-img-badge hidden" id="modalImgBadge">📸 Feedback thực tế</span>
+          </div>
+
+          <!-- Gallery Thumbnails (khi có ảnh feedback khách) -->
+          <div class="modal-img-thumbs-row hidden" id="modalImgThumbsRow">
+            <button type="button" class="modal-thumb-btn active" id="modalThumbMain" title="Xem ảnh mẫu trang phục">
+              <img src="" alt="Ảnh mẫu" id="modalThumbMainImg">
+              <span class="thumb-lbl">Ảnh mẫu</span>
+            </button>
+            <button type="button" class="modal-thumb-btn" id="modalThumbFeedback" title="Xem ảnh khách mặc thực tế">
+              <img src="" alt="Feedback" id="modalThumbFeedbackImg">
+              <span class="thumb-lbl">📸 Feedback khách</span>
+            </button>
+          </div>
         </div>
 
         <!-- Cột thông tin chi tiết -->
         <div class="detail-modal-info-col">
           <div class="modal-header-section">
             <h3 id="modalCostumeTitle" class="modal-costume-title">himmel</h3>
+            <span class="modal-size-chip" id="modalCostumeSizeChip">Size XL</span>
           </div>
 
           <div class="modal-info-section">
-            <!-- Mục thông tin (size cho vô mục thông tin, không cần mô tả) -->
-            <div class="modal-section-box">
-              <div class="modal-section-badge">thông tin</div>
+            <!-- 2. CHI TIẾT BỘ PHỤ KIỆN GỒM CÓ -->
+            <div class="modal-section-box modal-accessories-box">
+              <div class="modal-section-badge-row">
+                <span class="modal-section-badge">🎒 Trọn bộ gồm những món gì</span>
+                <span class="modal-items-count-badge" id="modalCostumeItemCount">5 món</span>
+              </div>
+              <div class="modal-accessory-tags" id="modalCostumeAccessoryList">
+                <span class="acc-pill"><em>🧥</em> <strong>1 áo khoác</strong></span>
+                <span class="acc-pill"><em>👖</em> <strong>1 quần</strong></span>
+                <span class="acc-pill"><em>🧣</em> <strong>1 áo choàng be</strong></span>
+                <span class="acc-pill"><em>🎗️</em> <strong>1 thắt lưng</strong></span>
+                <span class="acc-pill"><em>💇</em> <strong>1 wig</strong></span>
+              </div>
+              <div class="modal-not-included" id="modalCostumeNotIncludedWrap">
+                <span class="not-included-icon">❌</span>
+                <span class="not-included-text" id="modalCostumeNotIncludedText">Không kèm giày và kiếm đạo cụ</span>
+              </div>
+            </div>
+
+            <!-- Mục Feedback Khách Mặc Thực Tế (nếu có) -->
+            <div class="modal-section-box modal-feedback-preview-box hidden" id="modalFeedbackBox">
+              <div class="modal-section-badge-row">
+                <span class="modal-section-badge feedback-badge">📸 Ảnh feedback khách mặc thực tế</span>
+                <span class="modal-feedback-verified">✨ 100% Khách thật</span>
+              </div>
+              <div class="modal-feedback-card-inner" id="modalFeedbackTrigger" title="Bấm để xem ảnh feedback phóng to">
+                <img src="" alt="Feedback khách" id="modalFeedbackMiniImg" class="feedback-mini-thumb">
+                <div class="feedback-mini-info">
+                  <span class="feedback-mini-title">Khách diện đồ set Kaito Kid siêu nét ✨</span>
+                  <span class="feedback-mini-sub">Bấm vào đây để xem ảnh feedback chi tiết form dáng</span>
+                </div>
+                <span class="feedback-mini-arrow">🔍</span>
+              </div>
+            </div>
+
+            <!-- Mục thông tin phụ (nếu có) -->
+            <div class="modal-section-box" id="modalExtraInfoBox" style="display: none;">
+              <div class="modal-section-badge">thông tin thêm</div>
               <ul class="modal-bullet-list" id="modalCostumeInfoList">
                 <!-- Render từ data-info -->
               </ul>
@@ -1504,14 +2114,295 @@
                 <!-- Render từ data-prices -->
               </ul>
             </div>
+
           </div>
 
           <div class="modal-action-row">
-            <button type="button" class="modal-rent-now-btn" id="modalRentNowBtn">
+            <button type="button" class="modal-rent-now-btn" id="modalRentNowBtn" style="width: 100%; flex: 1;">
               <span>👘 Đặt Thuê Ngay Bộ Này</span>
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL LỊCH TRỐNG THEO TỪNG BỘ TRANG PHỤC (AVAILABILITY CALENDAR)
+       ======================================================== -->
+  <div class="modal-overlay hidden" id="costumeCalendarModal" style="z-index: 99998;">
+    <div class="costume-cal-modal-card">
+      <div class="costume-cal-modal-header">
+        <div class="costume-cal-title-wrap">
+          <div class="costume-cal-char-thumb">
+            <img id="calModalCharImg" src="assets/costumes/costume_himmel.jpg" alt="Trang phục">
+          </div>
+          <div>
+            <div class="costume-cal-badge">🌸 LỊCH THUÊ THEO BỘ TRANG PHỤC</div>
+            <h3 id="calModalCharTitle" class="costume-cal-char-name">Himmel (Sousou no Frieren)</h3>
+            <p class="costume-cal-sub">Chọn ngày màu xanh để đặt lịch thuê • Ngày màu đỏ đã có người đặt</p>
+          </div>
+        </div>
+        <button type="button" class="detail-modal-close-btn" id="closeCostumeCalendarBtn" title="Đóng">&times;</button>
+      </div>
+
+      <!-- Month Navigation Bar -->
+      <div class="costume-cal-nav-bar">
+        <button type="button" class="cal-nav-btn" id="calModalPrevMonthBtn" title="Tháng trước">◀ Tháng trước</button>
+        <div class="cal-month-title" id="calModalMonthTitle">Tháng 10 / 2026</div>
+        <button type="button" class="cal-nav-btn" id="calModalNextMonthBtn" title="Tháng sau">Tháng sau ▶</button>
+      </div>
+
+      <!-- Legend (Chú thích màu sắc) -->
+      <div class="costume-cal-legend">
+        <div class="cal-legend-item">
+          <span class="legend-dot dot-available"></span>
+          <span>🟢 Còn trống</span>
+        </div>
+        <div class="cal-legend-item">
+          <span class="legend-dot dot-booked"></span>
+          <span>🔴 Đã có người đặt</span>
+        </div>
+        <div class="cal-legend-item">
+          <span class="legend-dot dot-pending"></span>
+          <span>🟡 Đang chờ cọc</span>
+        </div>
+        <div class="cal-legend-item">
+          <span class="legend-dot dot-past"></span>
+          <span>⚪ Đã qua</span>
+        </div>
+      </div>
+
+      <!-- Calendar Grid -->
+      <div class="costume-cal-grid-wrapper">
+        <div class="cal-weekdays-row">
+          <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+        </div>
+        <div class="costume-cal-days-grid" id="calModalDaysGrid">
+          <!-- Render động từ JS -->
+        </div>
+      </div>
+
+      <!-- Selected Date Action Bar -->
+      <div class="costume-cal-action-bar" id="calModalActionBar">
+        <div class="cal-selected-info" id="calModalSelectedInfo">
+          <span>👉 Nhấp vào một <strong>ngày màu xanh</strong> trên lịch để chọn ngày thuê đồ.</span>
+        </div>
+        <button type="button" class="cal-modal-confirm-btn disabled" id="calModalConfirmRentBtn" disabled>
+          <span>👘 Đặt Thuê Cho Ngày Đã Chọn</span>
+        </button>
+      </div>
+
+      <!-- Danh sách tóm tắt các lịch đặt trong tháng -->
+      <div class="costume-cal-bookings-summary" id="calModalBookingsSummary">
+        <!-- Render động từ JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL BẢNG SỐ ĐO CHI TIẾT & CHI TIẾT BỘ PHỤ KIỆN (SIZE GUIDE POPUP)
+       ======================================================== -->
+  <div class="modal-overlay hidden" id="sizeGuideModal" style="z-index: 99999;">
+    <div class="size-guide-modal-card">
+      <div class="size-guide-header">
+        <div class="size-guide-title-wrap">
+          <div class="size-guide-icon-badge">📏</div>
+          <div>
+            <div class="size-guide-tag">MOCHIMOON COSPLAY SIZE GUIDE</div>
+            <h3 class="size-guide-title">Bảng Số Đo Chi Tiết & Bộ Phụ Kiện</h3>
+            <p class="size-guide-desc">Thông số chuẩn xác cho từng nhân vật & bảng quy đổi chuẩn giúp bạn chọn size vừa
+              vặn nhất</p>
+          </div>
+        </div>
+        <button type="button" class="detail-modal-close-btn" id="closeSizeGuideBtn" title="Đóng">&times;</button>
+      </div>
+
+      <!-- Tabs switcher -->
+      <div class="size-guide-tab-nav">
+        <button type="button" class="size-tab-btn active" data-tab="active-char" id="sizeTabActiveChar">
+          <span>👘 Bộ Đang Chọn (<strong id="sizeTabCharName">Himmel</strong>)</span>
+        </button>
+        <button type="button" class="size-tab-btn" data-tab="all-sizes" id="sizeTabAllSizes">
+          <span>📊 Bảng Quy Chuẩn Size S ➔ 2XL</span>
+        </button>
+        <button type="button" class="size-tab-btn" data-tab="how-to-measure" id="sizeTabHowToMeasure">
+          <span>📐 Hướng Dẫn Tự Đo Tại Nhà</span>
+        </button>
+      </div>
+
+      <div class="size-guide-tab-content">
+        <!-- TAB 1: BỘ ĐANG CHỌN -->
+        <div class="size-tab-pane active" id="sizePaneActiveChar">
+          <div class="active-char-size-box">
+            <div class="active-char-thumb-col">
+              <img src="assets/costumes/costume_himmel.jpg" id="sgModalCharImg" class="sg-modal-char-img"
+                alt="Trang phục">
+              <div class="sg-char-badge-pill" id="sgModalCharSizeBadge">Size XL</div>
+            </div>
+            <div class="active-char-info-col">
+              <h4 class="sg-char-name" id="sgModalCharName">Himmel (Sousou no Frieren)</h4>
+
+              <!-- Grid số đo -->
+              <div class="sg-specs-grid">
+                <div class="sg-spec-card highlight">
+                  <div class="sg-spec-label">🧍 Chiều cao phù hợp</div>
+                  <div class="sg-spec-val" id="sgModalHeight">1m60 - 1m75</div>
+                </div>
+                <div class="sg-spec-card highlight">
+                  <div class="sg-spec-label">📐 Vòng ngực - eo - mông</div>
+                  <div class="sg-spec-val" id="sgModal3V">90 - 75 - 95 cm</div>
+                </div>
+                <div class="sg-spec-card">
+                  <div class="sg-spec-label">⚖️ Cân nặng gợi ý</div>
+                  <div class="sg-spec-val" id="sgModalWeight">63 - 72 kg</div>
+                </div>
+                <div class="sg-spec-card">
+                  <div class="sg-spec-label">👗 Form dáng / Mẹo vừa vặn</div>
+                  <div class="sg-spec-val" id="sgModalFit">Chuẩn form anime</div>
+                </div>
+              </div>
+
+              <!-- Trọn bộ gồm những món gì -->
+              <div class="sg-accessories-section">
+                <div class="sg-acc-header">
+                  <span class="sg-acc-title">🎒 Trọn bộ gồm những món gì:</span>
+                  <span class="sg-acc-count" id="sgModalAccCount">(5 món)</span>
+                </div>
+                <div class="sg-acc-tags-list" id="sgModalAccList">
+                  <div class="sg-acc-item"><span class="sg-acc-icon">🧥</span><span class="sg-acc-text">1 áo
+                      khoác</span></div>
+                  <div class="sg-acc-item"><span class="sg-acc-icon">👖</span><span class="sg-acc-text">1 quần</span>
+                  </div>
+                  <div class="sg-acc-item"><span class="sg-acc-icon">🧣</span><span class="sg-acc-text">1 áo choàng
+                      be</span></div>
+                  <div class="sg-acc-item"><span class="sg-acc-icon">🎗️</span><span class="sg-acc-text">1 thắt
+                      lưng</span></div>
+                  <div class="sg-acc-item"><span class="sg-acc-icon">💇</span><span class="sg-acc-text">1 wig</span>
+                  </div>
+                </div>
+                <div class="sg-not-included-box" id="sgModalNotIncludedBox">
+                  <span class="sg-not-icon">❌</span>
+                  <span class="sg-not-text" id="sgModalNotIncludedText">Không kèm giày và kiếm đạo cụ</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: BẢNG QUY ĐỔI S - 2XL -->
+        <div class="size-tab-pane" id="sizePaneAllSizes">
+          <div class="size-table-container">
+            <table class="size-guide-table">
+              <thead>
+                <tr>
+                  <th>Kích Cỡ</th>
+                  <th>Chiều cao phù hợp</th>
+                  <th>Cân nặng gợi ý</th>
+                  <th>Vòng Ngực (V1)</th>
+                  <th>Vòng Eo (V2)</th>
+                  <th>Vòng Mông (V3)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="sz-badge sz-s">Size S</span></td>
+                  <td><strong>1m50 - 1m58</strong></td>
+                  <td>40 - 47 kg</td>
+                  <td>80 - 84 cm</td>
+                  <td>60 - 64 cm</td>
+                  <td>84 - 88 cm</td>
+                </tr>
+                <tr>
+                  <td><span class="sz-badge sz-m">Size M</span></td>
+                  <td><strong>1m55 - 1m65</strong></td>
+                  <td>48 - 55 kg</td>
+                  <td>84 - 88 cm</td>
+                  <td>65 - 70 cm</td>
+                  <td>88 - 92 cm</td>
+                </tr>
+                <tr>
+                  <td><span class="sz-badge sz-l">Size L</span></td>
+                  <td><strong>1m62 - 1m70</strong></td>
+                  <td>56 - 63 kg</td>
+                  <td>88 - 93 cm</td>
+                  <td>70 - 75 cm</td>
+                  <td>92 - 97 cm</td>
+                </tr>
+                <tr class="sz-row-highlight">
+                  <td><span class="sz-badge sz-xl">Size XL</span></td>
+                  <td><strong>1m60 - 1m75</strong></td>
+                  <td>63 - 73 kg</td>
+                  <td>90 - 96 cm</td>
+                  <td>75 - 82 cm</td>
+                  <td>95 - 100 cm</td>
+                </tr>
+                <tr>
+                  <td><span class="sz-badge sz-2xl">Size 2XL</span></td>
+                  <td><strong>1m70 - 1m85</strong></td>
+                  <td>74 - 85 kg</td>
+                  <td>96 - 104 cm</td>
+                  <td>82 - 90 cm</td>
+                  <td>100 - 108 cm</td>
+                </tr>
+                <tr>
+                  <td><span class="sz-badge sz-free">Freesize</span></td>
+                  <td><strong>Mọi chiều cao</strong></td>
+                  <td>Co giãn tự do</td>
+                  <td colspan="3" style="text-align: center; color: #64748b; font-style: italic;">Thiết kế áo choàng
+                    hoặc đai thắt co giãn thoải mái</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="size-table-note">💡 <em>Mẹo nhỏ cho Cosplayer:</em> Đồ cosplay thường có nhiều lớp (áo lót, áo
+            khoác, đai giáp), nếu số đo của bạn nằm ở ranh giới giữa 2 size thì bạn nên chọn size lớn hơn để mặc thoải
+            mái và dễ vận động khi pose dáng nhé!</p>
+        </div>
+
+        <!-- TAB 3: HƯỚNG DẪN TỰ ĐO TẠI NHÀ -->
+        <div class="size-tab-pane" id="sizePaneHowToMeasure">
+          <div class="measure-guide-grid">
+            <div class="guide-step-card">
+              <div class="guide-step-num">1</div>
+              <div class="guide-step-body">
+                <h5>🧍 Chiều cao</h5>
+                <p>Đứng thẳng lưng sát tường phẳng, không mang giày hoặc dép. Đặt thước vuông góc và đo từ đỉnh đầu chạm
+                  gót chân.</p>
+              </div>
+            </div>
+            <div class="guide-step-card">
+              <div class="guide-step-num">2</div>
+              <div class="guide-step-body">
+                <h5>👗 Vòng ngực (V1)</h5>
+                <p>Dùng thước dây vòng qua đỉnh ngực cao nhất, giữ thước thẳng ngang lưng và thở đều tự nhiên, không nén
+                  ngực.</p>
+              </div>
+            </div>
+            <div class="guide-step-card">
+              <div class="guide-step-num">3</div>
+              <div class="guide-step-body">
+                <h5>🎗️ Vòng eo (V2)</h5>
+                <p>Đo vòng quanh điểm nhỏ nhất của thắt lưng (thường nằm trên rốn khoảng 2 - 3 cm). Giữ thước ôm nhẹ vừa
+                  vặn.</p>
+              </div>
+            </div>
+            <div class="guide-step-card">
+              <div class="guide-step-num">4</div>
+              <div class="guide-step-body">
+                <h5>🍑 Vòng mông (V3)</h5>
+                <p>Đứng khép 2 chân, đo quanh phần nở nang nhất của mông. Giữ thước dây song song với mặt đất.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="size-guide-modal-footer">
+        <button type="button" class="btn-size-guide-close" id="btnConfirmSizeGuide">
+          <span>✓ Đã Hiểu • Chọn Size Này</span>
+        </button>
       </div>
     </div>
   </div>
@@ -1634,62 +2525,134 @@
         </div>
       </div>
 
-      <!-- 4 KPI Summary Cards -->
-      <div class="admin-kpi-grid">
-        <div class="admin-kpi-card kpi-all">
-          <div class="kpi-icon-box">👥</div>
-          <div class="kpi-text-box">
-            <span class="kpi-label">Tổng khách / Đơn thuê</span>
-            <strong class="kpi-number" id="adminKpiTotalOrders">0 đơn</strong>
+      <!-- Admin Tab Switcher -->
+      <div class="admin-tab-nav">
+        <button type="button" class="admin-tab-btn active" id="adminTabOrdersBtn">
+          <span>📋 Quản Lý Đơn Thuê & Khách Hàng</span>
+        </button>
+        <button type="button" class="admin-tab-btn" id="adminTabInventoryBtn">
+          <span>👗 Quản Lý Kho Trang Phục (10+ Bộ)</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: QUẢN LÝ ĐƠN THUÊ & KHÁCH HÀNG -->
+      <div class="admin-tab-pane active" id="adminOrdersTabPane">
+        <!-- 4 KPI Summary Cards -->
+        <div class="admin-kpi-grid">
+          <div class="admin-kpi-card kpi-all">
+            <div class="kpi-icon-box">👥</div>
+            <div class="kpi-text-box">
+              <span class="kpi-label">Tổng khách / Đơn thuê</span>
+              <strong class="kpi-number" id="adminKpiTotalOrders">0 đơn</strong>
+            </div>
+          </div>
+          <div class="admin-kpi-card kpi-pending">
+            <div class="kpi-icon-box">⏳</div>
+            <div class="kpi-text-box">
+              <span class="kpi-label">Chờ cọc / Chờ duyệt</span>
+              <strong class="kpi-number" id="adminKpiPendingOrders">0 đơn</strong>
+            </div>
+          </div>
+          <div class="admin-kpi-card kpi-approved">
+            <div class="kpi-icon-box">✅</div>
+            <div class="kpi-text-box">
+              <span class="kpi-label">Đã cọc / Đang thuê</span>
+              <strong class="kpi-number" id="adminKpiApprovedOrders">0 đơn</strong>
+            </div>
+          </div>
+          <div class="admin-kpi-card kpi-money">
+            <div class="kpi-icon-box">💰</div>
+            <div class="kpi-text-box">
+              <span class="kpi-label">Tổng tiền đơn</span>
+              <strong class="kpi-number" id="adminKpiTotalRevenue">0đ</strong>
+            </div>
           </div>
         </div>
-        <div class="admin-kpi-card kpi-pending">
-          <div class="kpi-icon-box">⏳</div>
-          <div class="kpi-text-box">
-            <span class="kpi-label">Chờ cọc / Chờ duyệt</span>
-            <strong class="kpi-number" id="adminKpiPendingOrders">0 đơn</strong>
+
+        <!-- Toolbar: Search & Filter -->
+        <div class="admin-toolbar-row">
+          <div class="admin-search-box">
+            <span class="admin-search-icon">🔍</span>
+            <input type="text" id="adminSearchInput"
+              placeholder="Tìm theo tên khách hàng, số điện thoại, mã đơn (#MC-)...">
+          </div>
+          <div class="admin-filter-box">
+            <select id="adminStatusFilter">
+              <option value="all">Tất cả trạng thái</option>
+              <option value="pending">⏳ Chờ thanh toán cọc</option>
+              <option value="approved">✅ Đã cọc thành công</option>
+              <option value="renting">👘 Đang thuê đồ</option>
+              <option value="completed">🌸 Đã hoàn tất / Đã trả</option>
+            </select>
+            <button type="button" class="btn-admin-refresh" id="btnAdminRefresh" title="Tải lại danh sách">
+              <span>🔄 Làm mới</span>
+            </button>
           </div>
         </div>
-        <div class="admin-kpi-card kpi-approved">
-          <div class="kpi-icon-box">✅</div>
-          <div class="kpi-text-box">
-            <span class="kpi-label">Đã cọc / Đang thuê</span>
-            <strong class="kpi-number" id="adminKpiApprovedOrders">0 đơn</strong>
-          </div>
-        </div>
-        <div class="admin-kpi-card kpi-money">
-          <div class="kpi-icon-box">💰</div>
-          <div class="kpi-text-box">
-            <span class="kpi-label">Tổng tiền đơn</span>
-            <strong class="kpi-number" id="adminKpiTotalRevenue">0đ</strong>
-          </div>
+
+        <!-- Danh sách khách hàng Full Thông Tin -->
+        <div class="admin-orders-container" id="adminOrdersContainer">
+          <!-- Render danh sách chi tiết khách hàng tại đây -->
         </div>
       </div>
 
-      <!-- Toolbar: Search & Filter -->
-      <div class="admin-toolbar-row">
-        <div class="admin-search-box">
-          <span class="admin-search-icon">🔍</span>
-          <input type="text" id="adminSearchInput"
-            placeholder="Tìm theo tên khách hàng, số điện thoại, mã đơn (#MC-)...">
+      <!-- TAB 2: QUẢN LÝ KHO TRANG PHỤC (Item 6) -->
+      <div class="admin-tab-pane hidden" id="adminInventoryTabPane">
+        <!-- 4 KPI Kho Trang Phục -->
+        <div class="admin-kpi-grid">
+          <div class="admin-kpi-card kpi-all">
+            <div class="kpi-icon-box">👗</div>
+            <div class="kpi-text-box">
+              <span class="kpi-label">Tổng trang phục trong kho</span>
+              <strong class="kpi-number" id="adminInvKpiTotal">10 bộ</strong>
+            </div>
+          </div>
+          <div class="admin-kpi-card kpi-approved">
+            <div class="kpi-icon-box">🟢</div>
+            <div class="kpi-text-box">
+              <span class="kpi-label">Sẵn sàng cho thuê</span>
+              <strong class="kpi-number" id="adminInvKpiReady">9 bộ</strong>
+            </div>
+          </div>
+          <div class="admin-kpi-card kpi-pending">
+            <div class="kpi-icon-box">🧺</div>
+            <div class="kpi-text-box">
+              <span class="kpi-label">Đang giặt hấp / bảo dưỡng</span>
+              <strong class="kpi-number" id="adminInvKpiWashing">1 bộ</strong>
+            </div>
+          </div>
+          <div class="admin-kpi-card kpi-money">
+            <div class="kpi-icon-box">🔴</div>
+            <div class="kpi-text-box">
+              <span class="kpi-label">Tạm ngưng cho thuê</span>
+              <strong class="kpi-number" id="adminInvKpiPaused">0 bộ</strong>
+            </div>
+          </div>
         </div>
-        <div class="admin-filter-box">
-          <select id="adminStatusFilter">
-            <option value="all">Tất cả trạng thái</option>
-            <option value="pending">⏳ Chờ thanh toán cọc</option>
-            <option value="approved">✅ Đã cọc thành công</option>
-            <option value="renting">👘 Đang thuê đồ</option>
-            <option value="completed">🌸 Đã hoàn tất / Đã trả</option>
-          </select>
-          <button type="button" class="btn-admin-refresh" id="btnAdminRefresh" title="Tải lại danh sách">
-            <span>🔄 Làm mới</span>
-          </button>
-        </div>
-      </div>
 
-      <!-- Danh sách khách hàng Full Thông Tin -->
-      <div class="admin-orders-container" id="adminOrdersContainer">
-        <!-- Render danh sách chi tiết khách hàng tại đây -->
+        <!-- Toolbar Quản lý kho -->
+        <div class="admin-toolbar-row">
+          <div class="admin-search-box">
+            <span class="admin-search-icon">🔍</span>
+            <input type="text" id="adminInvSearchInput" placeholder="Tìm trang phục theo tên nhân vật, anime, size...">
+          </div>
+          <div class="admin-filter-box">
+            <select id="adminInvStatusFilter">
+              <option value="all">Tất cả tình trạng kho</option>
+              <option value="ready">🟢 Sẵn sàng cho thuê</option>
+              <option value="washing">🧺 Đang giặt hấp / spa wig</option>
+              <option value="paused">🔴 Tạm ngưng cho thuê</option>
+            </select>
+            <button type="button" class="btn-admin-add-costume" id="btnAdminAddCostume">
+              <span>✨ Thêm Trang Phục Mới</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Danh sách thẻ quản lý từng bộ trang phục -->
+        <div class="admin-costumes-grid" id="adminCostumesGrid">
+          <!-- Render danh sách trang phục quản lý tại đây -->
+        </div>
       </div>
 
       <!-- Footer -->
@@ -1699,6 +2662,84 @@
         </div>
         <button type="button" class="primary-btn" id="closeAdminDashBtn2">Đóng Bảng Quản Trị</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 3. MODAL THÊM / CHỈNH SỬA TRANG PHỤC KHO ADMIN (Item 6) -->
+  <div class="modal-overlay hidden" id="adminCostumeEditModal" style="z-index: 10001;">
+    <div class="modal-card admin-costume-edit-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <div class="costume-edit-modal-title">
+          <span style="font-size: 24px;">👗</span>
+          <div>
+            <h3 id="adminCostumeModalTitle" style="font-size: 18px; margin: 0; color: #1e293b;">Chỉnh Sửa Thông Tin
+              Trang Phục</h3>
+            <span style="font-size: 12px; color: #64748b;">Quản lý kho đồ cosplay tiệm Mochimoon</span>
+          </div>
+        </div>
+        <button class="modal-close" id="closeAdminCostumeEditBtn">&times;</button>
+      </div>
+
+      <form id="adminCostumeEditForm" style="display: flex; flex-direction: column; gap: 14px; margin-top: 14px;">
+        <input type="hidden" id="editCostumeOriginalKey">
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="booking-label">Tên nhân vật / Trang phục:</label>
+            <input type="text" class="booking-input" id="editCostumeTitle" required placeholder="Ví dụ: Kaito Kid">
+          </div>
+          <div class="form-group flex-1">
+            <label class="booking-label">Tình trạng trong kho:</label>
+            <select class="booking-select" id="editCostumeStatus">
+              <option value="ready">🟢 Sẵn sàng cho thuê</option>
+              <option value="washing">🧺 Đang giặt hấp / spa wig</option>
+              <option value="paused">🔴 Tạm ngưng cho thuê</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="booking-label">Giá Fes / Shoot (VNĐ):</label>
+            <input type="text" class="booking-input" id="editCostumePriceFes" required placeholder="200.000đ">
+          </div>
+          <div class="form-group flex-1">
+            <label class="booking-label">Giá Test (VNĐ):</label>
+            <input type="text" class="booking-input" id="editCostumePriceTest" required placeholder="80.000đ">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="booking-label">Kích thước (Size):</label>
+            <input type="text" class="booking-input" id="editCostumeSize" required placeholder="Size M / XL / 2XL...">
+          </div>
+          <div class="form-group flex-1">
+            <label class="booking-label">Đường dẫn ảnh (URL hoặc assets/):</label>
+            <input type="text" class="booking-input" id="editCostumeImg" required placeholder="assets/costumes/...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="booking-label">Trọn bộ gồm phụ kiện gì (cách nhau bằng dấu phẩy):</label>
+          <input type="text" class="booking-input" id="editCostumeAccessories"
+            placeholder="Áo khoác, Quần, Áo choàng, Wig...">
+        </div>
+
+        <div class="form-group">
+          <label class="booking-label">Ghi chú chưa kèm (nếu có):</label>
+          <input type="text" class="booking-input" id="editCostumeNotIncluded"
+            placeholder="Không kèm giày, không kèm kiếm...">
+        </div>
+
+        <div class="modal-footer"
+          style="padding-top: 10px; margin-top: 6px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn-admin-cancel" id="cancelAdminCostumeEditBtn">Hủy Bỏ</button>
+          <button type="submit" class="primary-btn">
+            <span>💾 Lưu Thông Tin Trang Phục</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1729,7 +2770,7 @@
 
     <div class="drawer-nav-section-label">
       <span>DANH MỤC TRANG</span>
-      <span class="drawer-nav-badge">4 trang</span>
+      <span class="drawer-nav-badge">5 trang</span>
     </div>
 
     <!-- 4 trang gộp vào đây -->
@@ -1819,6 +2860,27 @@
           </svg>
         </span>
       </button>
+
+      <button type="button" class="mobile-nav-item" data-tab="tracking" id="mobNavTracking">
+        <div class="mob-nav-icon-wrap tracking-wrap" style="background:#fdf2f8; color:#db2777;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <div class="mob-nav-content">
+          <span class="mob-nav-title">Tra cứu đơn hàng</span>
+          <span class="mob-nav-desc">Kiểm tra duyệt, mã vận đơn & ngày trả</span>
+        </div>
+        <span class="mob-nav-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </span>
+      </button>
+
     </nav>
 
     <!-- Footer các nút phụ -->
@@ -1844,6 +2906,96 @@
           style="max-width: 100%; max-height: 72vh; object-fit: contain; display: block;">
       </div>
     </div>
+  </div>
+
+
+  <!-- NÚT CHAT LIÊN HỆ NHANH FLOATING WIDGET (Item 2) -->
+  <div class="floating-contact-widget" id="floatingContactWidget">
+    <!-- Menu popup danh sách kênh liên hệ -->
+    <div class="floating-contact-menu hidden" id="floatingContactMenu" aria-label="Menu liên hệ nhanh">
+      <div class="contact-menu-header">
+        <div class="contact-menu-title-wrap">
+          <span class="contact-menu-flower">🌸</span>
+          <span class="contact-menu-title">Tư Vấn & Hỗ Trợ Nhanh</span>
+        </div>
+        <button type="button" class="contact-menu-close" id="closeContactMenuBtn"
+          aria-label="Đóng menu">&times;</button>
+      </div>
+
+      <div class="contact-menu-body">
+        <!-- Zalo -->
+        <a href="https://zalo.me/0377193835" target="_blank" rel="noopener noreferrer" class="contact-item zalo-item">
+          <div class="contact-icon-box zalo-box">
+            <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+              <circle cx="24" cy="24" r="22" fill="#0068FF" />
+              <path
+                d="M14 28V20C14 18.8954 14.8954 18 16 18H20C21.1046 18 22 18.8954 22 20V28C22 29.1046 21.1046 30 20 30H16C14.8954 30 14 29.1046 14 28Z"
+                fill="white" />
+              <path d="M26 18H34V21L28.5 27H34V30H26V27L31.5 21H26V18Z" fill="white" />
+            </svg>
+          </div>
+          <div class="contact-info">
+            <strong class="contact-name">Chat Zalo (0377.193.835)</strong>
+            <span class="contact-sub">Tư vấn size & chốt giữ đồ ngay</span>
+          </div>
+          <span class="contact-badge-online">Online</span>
+        </a>
+
+        <!-- Facebook cá nhân / Messenger -->
+        <a href="https://www.facebook.com/duong.phong.784932?locale=vi_VN" target="_blank" rel="noopener noreferrer"
+          class="contact-item fb-item" title="Nhắn tin Facebook trực tiếp với Dương Phong">
+          <div class="contact-icon-box fb-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2C6.477 2 2 6.145 2 11.258c0 2.91 1.455 5.517 3.736 7.204V22l3.37-1.85c.91.252 1.88.388 2.894.388 5.523 0 10-4.145 10-9.258C22 6.145 17.523 2 12 2zm1.042 12.443l-2.67-2.85-5.21 2.85 5.73-6.082 2.739 2.85 5.14-2.85-5.73 6.082z" />
+            </svg>
+          </div>
+          <div class="contact-info">
+            <strong class="contact-name">Facebook / Messenger</strong>
+            <span class="contact-sub">Nhắn tin Dương Phong (Chủ shop)</span>
+          </div>
+        </a>
+
+        <!-- Hotline -->
+        <a href="tel:0377193835" class="contact-item phone-item">
+          <div class="contact-icon-box phone-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+              </path>
+            </svg>
+          </div>
+          <div class="contact-info">
+            <strong class="contact-name">Hotline (0377.193.835)</strong>
+            <span class="contact-sub">Hỗ trợ khẩn cấp (8h00 - 22h00)</span>
+          </div>
+        </a>
+
+        <!-- Discord -->
+        <a href="https://discord.com/users/1299336220094103643" target="_blank" rel="noopener noreferrer"
+          class="contact-item discord-item" title="Nhắn tin Discord trực tiếp">
+          <div class="contact-icon-box discord-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+            </svg>
+          </div>
+          <div class="contact-info">
+            <strong class="contact-name">Discord</strong>
+            <span class="contact-sub">Nhắn tin qua Discord</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Nút tròn chính (FAB) -->
+    <button type="button" class="floating-contact-btn" id="floatingContactBtn" aria-label="Liên hệ nhanh với Mochimoon"
+      title="Cần tư vấn đồ? Chat ngay với Mochimoon!">
+      <span class="contact-pulse-ring"></span>
+      <span class="contact-btn-icon" id="contactBtnIcon">💬</span>
+      <span class="contact-btn-tooltip">Chat với tiệm 🌸</span>
+    </button>
   </div>
 
   <script src="app.js"></script>

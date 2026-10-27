@@ -1,4 +1,38 @@
 /* ========================================================
+// CUTE MOCHIMOON PRELOADER CONTROLLER
+// ======================================================== */
+(function initCutePreloader() {
+  const preloader = document.getElementById('sitePreloader');
+  const bar = document.getElementById('preloaderBar');
+  if (!preloader || !bar) return;
+
+  let currentPercent = 0;
+  const targetDuration = 1350; // Chạy mượt trong ~1.35s
+  const startTime = Date.now();
+
+  const timer = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / targetDuration, 1);
+
+    // Easing mượt mà dạng ease-out
+    const eased = 1 - Math.pow(1 - progress, 2.5);
+    currentPercent = Math.min(100, Math.floor(eased * 100));
+    bar.style.width = `${currentPercent}%`;
+
+    if (progress >= 1) {
+      clearInterval(timer);
+      bar.style.width = '100%';
+      setTimeout(() => {
+        preloader.classList.add('fade-out');
+        setTimeout(() => {
+          preloader.classList.add('hidden-preloader');
+        }, 480);
+      }, 160);
+    }
+  }, 20);
+})();
+
+/* ========================================================
 // TOAST NOTIFICATION SYSTEM (MOCHIMOON)
 // ======================================================== */
 function showToast(message, type = 'info') {
@@ -90,11 +124,11 @@ const appState = {
   timeFormat: '24', // '24' hoặc '12'
   soundEnabled: true,
   tasks: [
-    { id: 1, text: 'Faire les courses', completed: true },
-    { id: 2, text: 'Travailler sur le projet', completed: true },
-    { id: 3, text: 'Lire pendant 30 min', completed: true },
-    { id: 4, text: 'Méditer 10 minutes', completed: true },
-    { id: 5, text: 'Arroser les plantes 🌸', completed: false }
+    { id: 1, text: 'Giặt hấp & sấy đồ cosplay trả về 🌸', completed: true },
+    { id: 2, text: 'Chải nếp & dưỡng wig tóc giả Frieren ✨', completed: true },
+    { id: 3, text: 'Kiểm tra đơn cọc ngân hàng SePay MB Bank', completed: true },
+    { id: 4, text: 'Chuẩn bị phụ kiện kiếm cho set Himmel', completed: true },
+    { id: 5, text: 'Chụp ảnh feedback khách diện đồ mới 📸', completed: false }
   ],
   isAdmin: false,
   bookings: [
@@ -151,11 +185,16 @@ document.addEventListener('DOMContentLoaded', () => {
   initHealthTab();
   initCosplayBooking();
   initCostumeCatalog();
+  initCostumeCalendarSystem();
+  initSizeGuideSystem();
   initCostumeSearch();
   updateSearchBarVisibility();
   renderInvoiceNotifications();
   initBackgroundMusicPlayer();
   initAdminPortal();
+  initFloatingContactWidget();
+  initDeliveryAndDepositOptions();
+  initAdminInventoryPortal();
   checkExpiredBookings();
   setInterval(checkExpiredBookings, 60000); // 1 phút kiểm tra đơn quá hạn một lần
   syncCloudBookings();
@@ -190,7 +229,7 @@ function checkUrlPaymentStatus() {
               if (b) onBankPaymentApproved(b, data.transaction);
             }
           }
-        } catch (e) {}
+        } catch (e) { }
       }, 1000);
     }
   } else if (payment === 'cancel') {
@@ -978,6 +1017,12 @@ function initEventListeners() {
       pane.classList.remove('active');
     });
 
+    if (targetTab === 'feedback') {
+      if (typeof closeMobileDrawer === 'function') closeMobileDrawer();
+      if (typeof openCustomerFeedbackModal === 'function') openCustomerFeedbackModal();
+      return;
+    }
+
     if (targetTab === 'tracker') {
       document.getElementById('tabDailyTracker')?.classList.add('active');
     } else if (targetTab === 'health') {
@@ -986,6 +1031,9 @@ function initEventListeners() {
       document.getElementById('tabHobbies')?.classList.add('active');
     } else if (targetTab === 'wardrobe') {
       document.getElementById('tabWardrobe')?.classList.add('active');
+    } else if (targetTab === 'tracking') {
+      document.getElementById('tabTracking')?.classList.add('active');
+      if (typeof renderTrackingQuickChips === 'function') renderTrackingQuickChips();
     }
 
     if (typeof updateSearchBarVisibility === 'function') {
@@ -1450,23 +1498,56 @@ function escapeHtml(str) {
 // ========================================================
 // 9. COSPLAY RENTAL BOOKING (MOCHIMOON)
 // ========================================================
+// ========================================================
+// 9. COSPLAY RENTAL BOOKING & SIZE GUIDE CATALOG (MOCHIMOON)
+// ========================================================
+// 💡 HƯỚNG DẪN DÀNH CHO BẠN ("đồ gồm những gì tôi sẽ thêm sau"):
+// Bạn có thể thoải mái thêm hoặc bớt các món đồ trong mảng `accessories`:
+// Ví dụ:
+// accessories: [
+//   '1 áo khoác',
+//   '1 quần',
+//   '1 áo choàng be',
+//   '1 thắt lưng',
+//   '1 wig',
+//   '1 găng tay da' // <-- thêm món mới bất kỳ vào đây
+// ]
+// Tương tự, bạn có thể chỉnh `sizeGuide` (height, measurements, weight, fitTip).
+// ========================================================
 const costumeCatalog = {
-  'Gói Test Cổng SePay 10k': {
-    title: 'Gói Test Cổng SePay (10.000đ)',
-    price: '10.000đ (Thử nghiệm thanh toán)',
-    desc: 'Gói đồ test dùng để kiểm tra chuyển khoản ngân hàng và khớp lệnh Cổng SePay.',
-    image: '',
-    sizes: [
-      { value: 'Freesize', label: 'Freesize (10k)' }
-    ]
-  },
   'Himmel': {
     title: 'Himmel (Sousou no Frieren)',
     price: '150.000đ (Fes/Shoot) • 80.000đ (Test)',
     desc: 'Cost size XL kèm Wig tạo kiểu chuẩn nhân vật hiệp sĩ Himmel.',
     image: 'assets/costumes/costume_himmel.jpg',
     sizes: [
-      { value: 'XL', label: 'Size XL' }
+      {
+        value: 'XL',
+        label: 'Size XL (Cao: 1m60 - 1m75 • V1-2-3: 90 - 75 - 95 cm)',
+        height: '1m60 - 1m75',
+        measurements: '90 - 75 - 95 cm',
+        weight: '63 - 72 kg'
+      }
+    ],
+    sizeGuide: {
+      height: '1m60 - 1m75',
+      measurements: '90 - 75 - 95 cm',
+      bust: '90 cm',
+      waist: '75 cm',
+      hips: '95 cm',
+      weight: '63 - 72 kg',
+      fitTip: 'Form áo khoác hiệp sĩ tôn dáng, áo choàng be có khuy cài chắc chắn, thắt lưng có nhiều nấc điều chỉnh theo vòng eo.'
+    },
+    accessories: [
+      '1 áo khoác',
+      '1 quần',
+      '1 áo choàng be',
+      '1 thắt lưng',
+      '1 wig'
+    ],
+    notIncluded: [
+      'Không kèm giày',
+      'Không kèm kiếm đạo cụ'
     ]
   },
   'Frieren': {
@@ -1475,7 +1556,33 @@ const costumeCatalog = {
     desc: 'Cost size M kèm Wig chuẩn pháp sư Frieren.',
     image: 'assets/costumes/costume_frieren.jpg',
     sizes: [
-      { value: 'M', label: 'Size M' }
+      {
+        value: 'M',
+        label: 'Size M (Cao: 1m55 - 1m65 • V1-2-3: 85 - 68 - 90 cm)',
+        height: '1m55 - 1m65',
+        measurements: '85 - 68 - 90 cm',
+        weight: '48 - 54 kg'
+      }
+    ],
+    sizeGuide: {
+      height: '1m55 - 1m65',
+      measurements: '85 - 68 - 90 cm',
+      bust: '85 cm',
+      waist: '68 cm',
+      hips: '90 cm',
+      weight: '48 - 54 kg',
+      fitTip: 'Váy và áo choàng cổ chuẩn anime, thắt lưng tôn dáng, kèm tai elf và wig đã chải tạo bím sẵn.'
+    },
+    accessories: [
+      '1 váy',
+      '1 thắt lưng',
+      '1 áo choàng cổ',
+      '1 tai elf',
+      '1 wig Frieren'
+    ],
+    notIncluded: [
+      'Không kèm giày',
+      'Không kèm trượng pháp sư'
     ]
   },
   'Kaito Kid': {
@@ -1483,17 +1590,76 @@ const costumeCatalog = {
     price: '200.000đ (Fes/Shoot) • 80.000đ (Test)',
     desc: 'Cost size 2XL kèm Wig siêu đạo chích Kaito Kid (không kèm giày và vũ khí).',
     image: 'assets/costumes/costume_kaito_kid.jpg',
+    feedbackImages: [
+      'assets/costumes/costume_kaito_kid_feedback.jpg'
+    ],
     sizes: [
-      { value: '2XL', label: 'Size 2XL' }
+      {
+        value: '2XL',
+        label: 'Size 2XL (Cao: 1m70 - 1m85 • V1-2-3: 100 - 88 - 104 cm)',
+        height: '1m70 - 1m85',
+        measurements: '100 - 88 - 104 cm',
+        weight: '73 - 85 kg'
+      }
+    ],
+    sizeGuide: {
+      height: '1m70 - 1m85',
+      measurements: '100 - 88 - 104 cm',
+      bust: '100 cm',
+      waist: '88 cm',
+      hips: '104 cm',
+      weight: '73 - 85 kg',
+      fitTip: 'Áo vest trắng đứng dáng chuẩn quý ông, quần tây ống suông thoải mái, kèm áo choàng lụa trắng bay nhẹ trong gió.'
+    },
+    accessories: [
+      '1 áo vest trắng',
+      '1 quần tây trắng',
+      '1 áo sơ mi xanh',
+      '1 cà vạt đỏ',
+      '1 áo choàng trắng',
+      '1 mũ ảo thuật gia kèm ruy băng xanh',
+      '1 kính đơn monocle',
+      '1 wig Kaito Kid'
+    ],
+    notIncluded: [
+      'Không kèm giày',
+      'Không kèm súng bắn bài / vũ khí'
     ]
   },
   'Flins': {
     title: 'Flins',
     price: '250.000đ (Fes/Shoot) • 100.000đ (Test)',
-    desc: 'Cost size XL kèm Wig chuẩn Flins (không đèn và giày).',
+    desc: 'Cost size XL kèm Wig chuẩn Flins (không đèn, giày và vũ khí).',
     image: 'assets/costumes/costume_flins.jpg',
     sizes: [
-      { value: 'XL', label: 'Size XL' }
+      {
+        value: 'XL',
+        label: 'Size XL (Cao: 1m62 - 1m75 • V1-2-3: 94 - 78 - 96 cm)',
+        height: '1m62 - 1m75',
+        measurements: '94 - 78 - 96 cm',
+        weight: '63 - 72 kg'
+      }
+    ],
+    sizeGuide: {
+      height: '1m62 - 1m75',
+      measurements: '94 - 78 - 96 cm',
+      bust: '94 cm',
+      waist: '78 cm',
+      hips: '96 cm',
+      weight: '63 - 72 kg',
+      fitTip: 'Form áo khoác ngoài cực cá tính, chất vải dày dặn, phụ kiện kim loại đính kèm tỉ mỉ.'
+    },
+    accessories: [
+      '1 áo khoác Flins',
+      '1 quần Flins',
+      '1 áo thun lót',
+      '1 thắt lưng phụ kiện',
+      '1 wig tạo kiểu Flins'
+    ],
+    notIncluded: [
+      'Không kèm đèn led phát sáng',
+      'Không kèm giày',
+      'Không kèm vũ khí'
     ]
   },
   'Kinosaki Mei': {
@@ -1502,8 +1668,41 @@ const costumeCatalog = {
     desc: 'Cost size M kèm Wig Kinosaki Mei. Có thể chọn kèm giày size 40.',
     image: 'assets/costumes/costume_kinosaki_mei.jpg',
     sizes: [
-      { value: 'M', label: 'Size M' },
-      { value: 'M + Giày 40', label: 'Size M + Giày size 40 (+30k)' }
+      {
+        value: 'M',
+        label: 'Size M (Cao: 1m55 - 1m65 • V1-2-3: 86 - 68 - 90 cm)',
+        height: '1m55 - 1m65',
+        measurements: '86 - 68 - 90 cm',
+        weight: '48 - 54 kg'
+      },
+      {
+        value: 'M + Giày 40',
+        label: 'Size M + Giày size 40 (+30k)',
+        height: '1m55 - 1m65',
+        measurements: '86 - 68 - 90 cm',
+        weight: '48 - 54 kg'
+      }
+    ],
+    sizeGuide: {
+      height: '1m55 - 1m65',
+      measurements: '86 - 68 - 90 cm',
+      bust: '86 cm',
+      waist: '68 cm',
+      hips: '90 cm',
+      weight: '48 - 54 kg',
+      fitTip: 'Đồng phục học sinh Nhật Bản may theo số đo chuẩn châu Á, chân váy xếp ly ôm vừa vặn tôn eo.'
+    },
+    accessories: [
+      '1 áo sơ mi đồng phục',
+      '1 chân váy xếp ly Mei',
+      '1 nơ cổ áo',
+      '1 wig Mei tạo kiểu sẵn'
+    ],
+    options: [
+      'Tùy chọn kèm: Giày cosplay size 40 (+30k)'
+    ],
+    notIncluded: [
+      'Chưa bao gồm giày (nếu chọn gói cơ bản không giày)'
     ]
   },
   'Kitagawa Marin Ver Shizuku': {
@@ -1512,8 +1711,185 @@ const costumeCatalog = {
     desc: 'Cost size M kèm Wig Shizuku-tan. Có thể chọn kèm giày size 40.',
     image: 'assets/costumes/costume_marin_shizuku.jpg',
     sizes: [
-      { value: 'M', label: 'Size M' },
-      { value: 'M + Giày 40', label: 'Size M + Giày size 40 (+30k)' }
+      {
+        value: 'M',
+        label: 'Size M (Cao: 1m55 - 1m65 • V1-2-3: 88 - 66 - 92 cm)',
+        height: '1m55 - 1m65',
+        measurements: '88 - 66 - 92 cm',
+        weight: '48 - 54 kg'
+      },
+      {
+        value: 'M + Giày 40',
+        label: 'Size M + Giày size 40 (+30k)',
+        height: '1m55 - 1m65',
+        measurements: '88 - 66 - 92 cm',
+        weight: '48 - 54 kg'
+      }
+    ],
+    sizeGuide: {
+      height: '1m55 - 1m65',
+      measurements: '88 - 66 - 92 cm',
+      bust: '88 cm',
+      waist: '66 cm',
+      hips: '92 cm',
+      weight: '48 - 54 kg',
+      fitTip: 'Set hầu gái Shizuku-tan có dây siết nịt eo phía sau giúp tôn dáng đồng hồ cát, ren cao cấp mềm mịn.'
+    },
+    accessories: [
+      '1 váy hầu gái đen Shizuku-tan',
+      '1 tạp dề ren trắng',
+      '1 vòng cổ choker ren',
+      '1 bờm tóc cài đầu',
+      '1 wig tím Shizuku-tan'
+    ],
+    options: [
+      'Tùy chọn kèm: Giày cosplay size 40 (+30k)'
+    ],
+    notIncluded: [
+      'Chưa bao gồm giày (nếu chọn gói cơ bản không giày)'
+    ]
+  },
+  'Rem Yukata': {
+    title: 'Rem Yukata (Re:Zero)',
+    price: '200.000đ (Fes/Shoot) • 80.000đ (Test)',
+    desc: 'Cost size S-M kèm Wig nhân vật Rem Yukata (Re:Zero) xinh xắn.',
+    image: 'assets/costumes/costume_rem_yukata.jpg',
+    sizes: [
+      {
+        value: 'S-M',
+        label: 'Size S-M (Cao: 1m50 - 1m62 • V1-2-3: 82 - 65 - 88 cm)',
+        height: '1m50 - 1m62',
+        measurements: '82 - 65 - 88 cm',
+        weight: '42 - 50 kg'
+      }
+    ],
+    sizeGuide: {
+      height: '1m50 - 1m62',
+      measurements: '82 - 65 - 88 cm',
+      bust: '82 cm',
+      waist: '65 cm',
+      hips: '88 cm',
+      weight: '42 - 50 kg',
+      fitTip: 'Set yukata chất vải thoáng mát, thắt lưng obi thêu hoa kèm dây nơ tôn eo thon gọn, kẹp hoa trang trí tinh tế.'
+    },
+    accessories: [
+      '1 yukata hoa anh đào',
+      '1 thắt lưng obi hồng',
+      '1 dây nơ lưng',
+      '1 kẹp hoa cài tóc Rem',
+      '1 wig Rem xanh tạo kiểu sẵn'
+    ],
+    notIncluded: [
+      'Không kèm giày guốc geta',
+      'Không kèm kẹo táo đạo cụ'
+    ]
+  },
+  'Rem Maid': {
+    title: 'Rem Maid (Re:Zero)',
+    price: '150.000đ (Fes/Shoot) • 80.000đ (Test)',
+    desc: 'Cost size S-M kèm Wig nhân vật Rem hầu gái (Re:Zero) kinh điển.',
+    image: 'assets/costumes/costume_rem_maid.jpg',
+    sizes: [
+      {
+        value: 'S-M',
+        label: 'Size S-M (Cao: 1m50 - 1m62 • V1-2-3: 82 - 66 - 88 cm)',
+        height: '1m50 - 1m62',
+        measurements: '82 - 66 - 88 cm',
+        weight: '42 - 50 kg'
+      }
+    ],
+    sizeGuide: {
+      height: '1m50 - 1m62',
+      measurements: '82 - 66 - 88 cm',
+      bust: '82 cm',
+      waist: '66 cm',
+      hips: '88 cm',
+      weight: '42 - 50 kg',
+      fitTip: 'Váy hầu gái Rem chuẩn anime Re:Zero, form ôm tôn dáng eo thon, tay bồng và tạp dề trắng xinh xắn.'
+    },
+    accessories: [
+      '1 váy hầu gái Rem',
+      '1 tạp dề trắng',
+      '1 bờm tóc cài đầu ren',
+      '1 kẹp nơ hoa tím',
+      '1 wig Rem xanh tạo kiểu sẵn'
+    ],
+    notIncluded: [
+      'Không kèm giày'
+    ]
+  },
+  'Rikka': {
+    title: 'Takanashi Rikka (Chuunibyou) - Bản Noel',
+    price: '200.000đ (Fes/Shoot) • 80.000đ (Test)',
+    desc: 'Cost size S-M kèm Wig nhân vật Takanashi Rikka (Chuunibyou) phiên bản Giáng Sinh Noel cực đáng yêu.',
+    image: 'assets/costumes/costume_rikka.jpg',
+    feedbackImages: [
+      'assets/costumes/costume_rikka_card.jpg'
+    ],
+    sizes: [
+      {
+        value: 'S-M',
+        label: 'Size S-M (Cao: 1m50 - 1m62 • V1-2-3: 82 - 65 - 88 cm)',
+        height: '1m50 - 1m62',
+        measurements: '82 - 65 - 88 cm',
+        weight: '42 - 50 kg'
+      }
+    ],
+    sizeGuide: {
+      height: '1m50 - 1m62',
+      measurements: '82 - 65 - 88 cm',
+      bust: '82 cm',
+      waist: '65 cm',
+      hips: '88 cm',
+      weight: '42 - 50 kg',
+      fitTip: 'Đầm Noel đỏ viền lông trắng mềm mịn, kèm áo choàng và nơ cổ xinh xắn, chuẩn phong cách Tà Vương Chân Nhãn Rikka.'
+    },
+    accessories: [
+      '1 đầm Noel đỏ viền lông trắng',
+      '1 áo choàng Noel cổ nơ',
+      '1 đôi găng tay đỏ',
+      '1 bịt mắt y tế Rikka',
+      '1 wig Rikka tím than tạo kiểu sẵn'
+    ],
+    notIncluded: [
+      'Không kèm giày bốt'
+    ]
+  },
+  'Maomao': {
+    title: 'Maomao (Dược Sư Tự Sự - Kusuriya no Hitorigoto)',
+    price: '200.000đ (Fes/Shoot) • 80.000đ (Test)',
+    desc: 'Cost size S kèm Wig chuẩn nàng dược sư Maomao thông minh, cá tính.',
+    image: 'assets/costumes/costume_maomao.jpg',
+    feedbackImages: [
+      'assets/costumes/costume_maomao_card.jpg'
+    ],
+    sizes: [
+      {
+        value: 'S',
+        label: 'Size S (Cao: 1m50 - 1m60 • V1-2-3: 80 - 64 - 86 cm)',
+        height: '1m50 - 1m60',
+        measurements: '80 - 64 - 86 cm',
+        weight: '40 - 48 kg'
+      }
+    ],
+    sizeGuide: {
+      height: '1m50 - 1m60',
+      measurements: '80 - 64 - 86 cm',
+      bust: '80 cm',
+      waist: '64 cm',
+      hips: '86 cm',
+      weight: '40 - 48 kg',
+      fitTip: 'Trang phục cổ phong cung nữ màu xanh lục dịu mắt, chất vải rủ mềm mại thoải mái, wig đã tết 2 bím hạt ngọc đặc trưng.'
+    },
+    accessories: [
+      '1 áo hanfu cung nữ xanh lá',
+      '1 chân váy cổ trang',
+      '1 đai thắt lưng',
+      '1 nơ kẹp tóc tím',
+      '1 wig Maomao thắt bím đính hạt ngọc'
+    ],
+    notIncluded: [
+      'Không kèm giày'
     ]
   }
 };
@@ -1522,13 +1898,25 @@ const costumeCatalog = {
 costumeCatalog['Himmel (Sousou no Frieren)'] = costumeCatalog['Himmel'];
 costumeCatalog['Frieren (Sousou no Frieren)'] = costumeCatalog['Frieren'];
 costumeCatalog['Kitagawa Marin Ver Shizuku (My Dress-Up Darling)'] = costumeCatalog['Kitagawa Marin Ver Shizuku'];
+costumeCatalog['Rem Yukata (Re:Zero)'] = costumeCatalog['Rem Yukata'];
+costumeCatalog['Rem Maid (Re:Zero)'] = costumeCatalog['Rem Maid'];
+costumeCatalog['Takanashi Rikka'] = costumeCatalog['Rikka'];
+costumeCatalog['Rikka (Chuunibyou)'] = costumeCatalog['Rikka'];
+costumeCatalog['Rikka Noel'] = costumeCatalog['Rikka'];
+costumeCatalog['Maomao (Dược Sư Tự Sự)'] = costumeCatalog['Maomao'];
+costumeCatalog['Mao Mao'] = costumeCatalog['Maomao'];
 costumeCatalog['himmel'] = costumeCatalog['Himmel'];
 costumeCatalog['frieren'] = costumeCatalog['Frieren'];
 costumeCatalog['kaito kid'] = costumeCatalog['Kaito Kid'];
 costumeCatalog['flins'] = costumeCatalog['Flins'];
-costumeCatalog['gói test cổng sepay 10k'] = costumeCatalog['Gói Test Cổng SePay 10k'];
-costumeCatalog['test 10k'] = costumeCatalog['Gói Test Cổng SePay 10k'];
-costumeCatalog['test'] = costumeCatalog['Gói Test Cổng SePay 10k'];
+costumeCatalog['rem yukata'] = costumeCatalog['Rem Yukata'];
+costumeCatalog['rem maid'] = costumeCatalog['Rem Maid'];
+costumeCatalog['Rem (Yukata)'] = costumeCatalog['Rem Yukata'];
+costumeCatalog['Rem (Maid)'] = costumeCatalog['Rem Maid'];
+costumeCatalog['Rem Hầu Gái'] = costumeCatalog['Rem Maid'];
+costumeCatalog['rem'] = costumeCatalog['Rem Maid'];
+costumeCatalog['rikka'] = costumeCatalog['Rikka'];
+costumeCatalog['maomao'] = costumeCatalog['Maomao'];
 
 function findCostumeData(name) {
   if (!name) return null;
@@ -1559,13 +1947,71 @@ function syncCostumeSize(characterName) {
     });
   } else {
     sizeSelect.innerHTML = `
-      <option value="S">Size S (40 - 47kg)</option>
-      <option value="M" selected>Size M (48 - 54kg)</option>
-      <option value="L">Size L (55 - 62kg)</option>
-      <option value="XL">Size XL (63 - 72kg)</option>
-      <option value="2XL">Size 2XL (73 - 85kg)</option>
+      <option value="S">Size S (Cao: 1m50 - 1m58 • 80 - 62 - 86 cm)</option>
+      <option value="M" selected>Size M (Cao: 1m55 - 1m65 • 85 - 68 - 90 cm)</option>
+      <option value="L">Size L (Cao: 1m62 - 1m70 • 88 - 72 - 94 cm)</option>
+      <option value="XL">Size XL (Cao: 1m60 - 1m75 • 90 - 75 - 95 cm)</option>
+      <option value="2XL">Size 2XL (Cao: 1m70 - 1m85 • 100 - 88 - 104 cm)</option>
       <option value="Freesize">Freesize (Co giãn)</option>
     `;
+  }
+  updateBookingSizeDetailBox(characterName, sizeSelect.value);
+}
+
+// Cập nhật khung xem nhanh số đo & danh sách phụ kiện trên Form Đặt Lịch
+function updateBookingSizeDetailBox(characterName, selectedSizeVal) {
+  const previewBox = document.getElementById('bookingSizePreviewCard');
+  if (!previewBox) return;
+
+  const costume = findCostumeData(characterName);
+  if (!costume) {
+    previewBox.classList.add('hidden');
+    return;
+  }
+  previewBox.classList.remove('hidden');
+
+  const guide = costume.sizeGuide || {};
+  const heightEl = document.getElementById('bspHeight');
+  const threeVEl = document.getElementById('bsp3V');
+  const weightEl = document.getElementById('bspWeight');
+  const accTextEl = document.getElementById('bspAccessories');
+  const notIncludedEl = document.getElementById('bspNotIncluded');
+
+  // Tìm thông số theo size nếu size có override
+  let hStr = guide.height || '1m60 - 1m75';
+  let mStr = guide.measurements || '90 - 75 - 95 cm';
+  let wStr = guide.weight || '63 - 72 kg';
+
+  if (costume.sizes && selectedSizeVal) {
+    const matched = costume.sizes.find(s => s.value === selectedSizeVal);
+    if (matched) {
+      if (matched.height) hStr = matched.height;
+      if (matched.measurements) mStr = matched.measurements;
+      if (matched.weight) wStr = matched.weight;
+    }
+  }
+
+  if (heightEl) heightEl.textContent = hStr;
+  if (threeVEl) threeVEl.textContent = mStr;
+  if (weightEl) weightEl.textContent = wStr;
+
+  if (accTextEl) {
+    const accList = costume.accessories || [];
+    accTextEl.textContent = accList.length > 0 ? accList.join(', ') : 'Đang cập nhật phụ kiện';
+  }
+
+  if (notIncludedEl) {
+    if (costume.notIncluded && costume.notIncluded.length > 0) {
+      notIncludedEl.style.display = 'inline-flex';
+      notIncludedEl.textContent = '⚠️ Chưa gồm: ' + costume.notIncluded.join(', ');
+    } else {
+      notIncludedEl.style.display = 'none';
+    }
+  }
+
+  const invSizeSub = document.getElementById('invItemSizeSub');
+  if (invSizeSub) {
+    invSizeSub.textContent = `(Cao: ${hStr} • 3V: ${mStr})`;
   }
 }
 
@@ -1602,66 +2048,865 @@ function checkExpiredBookings() {
   }
 }
 
+// ========================================================
+// TÍNH NĂNG: HỆ THỐNG LỊCH TRỐNG THEO BỘ TRANG PHỤC & CHỐNG TRÙNG LỊCH (DOUBLE BOOKING)
+// ========================================================
+
+function parseDateFlexible(val) {
+  if (!val) return null;
+  if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+  const str = String(val).trim();
+  // Định dạng DD/MM/YYYY
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+    const parts = str.split('/');
+    const d = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const y = parseInt(parts[2], 10);
+    return new Date(y, m, d, 0, 0, 0);
+  }
+  // Định dạng YYYY-MM-DD
+  if (/^\d{4}-\d{1,2}-\d{1,2}/.test(str)) {
+    const parts = str.split('T')[0].split('-').map(Number);
+    return new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0);
+  }
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+}
+
+function formatDateDisplay(dateObj) {
+  if (!dateObj) return '';
+  const d = String(dateObj.getDate()).padStart(2, '0');
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const y = dateObj.getFullYear();
+  return `${d}/${m}/${y}`;
+}
+
+function formatDateInput(dateObj) {
+  if (!dateObj) return '';
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const d = String(dateObj.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function matchCostumeName(rawA, rawB) {
+  if (!rawA || !rawB) return false;
+  const cleanA = String(rawA).toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
+  const cleanB = String(rawB).toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
+  if (!cleanA || !cleanB) return false;
+  return cleanA === cleanB || cleanA.includes(cleanB) || cleanB.includes(cleanA);
+}
+
+// Lấy danh sách các khoảng ngày bị đặt của một bộ đồ
+function getCostumeBookingRanges(characterName) {
+  if (!characterName) return [];
+  const ranges = [];
+  (appState.bookings || []).forEach(b => {
+    const raw = b.character || b.costume_name || b.costumeName;
+    if (!raw) return;
+    if (!matchCostumeName(raw, characterName)) return;
+
+    const st = (b.status || '').toLowerCase();
+    // Bỏ qua các đơn đã hoàn trả đồ hoặc đã hủy
+    if (st.includes('hủy') || st.includes('huỷ') || st.includes('hết hạn') || st.includes('trả') || st.includes('hoàn tất')) {
+      return;
+    }
+
+    const startDate = parseDateFlexible(b.date || b.rental_date || b.rentalDate);
+    if (!startDate) return;
+
+    let returnDate = parseDateFlexible(b.returnDate || b.return_date);
+    if (!returnDate) {
+      const calcStr = calculateReturnDate(formatDateDisplay(startDate), b.duration || '3 ngày');
+      returnDate = parseDateFlexible(calcStr);
+    }
+    if (!returnDate) {
+      returnDate = new Date(startDate);
+      returnDate.setDate(returnDate.getDate() + 3);
+    }
+
+    const isPending = st.includes('chờ') || st.includes('pending');
+    ranges.push({
+      booking: b,
+      start: startDate,
+      end: returnDate,
+      statusType: isPending ? 'pending' : 'booked',
+      orderId: b.orderId || '',
+      customerName: b.customerName || 'Khách hàng',
+      duration: b.duration || '3 ngày'
+    });
+  });
+  return ranges;
+}
+
+// Kiểm tra trạng thái của một ngày cụ thể đối với một bộ đồ
+function getCostumeDateStatus(characterName, targetDate) {
+  const normTarget = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+
+  if (normTarget < today) {
+    return { status: 'past', label: 'Ngày đã qua' };
+  }
+
+  const ranges = getCostumeBookingRanges(characterName);
+  const targetTime = normTarget.getTime();
+
+  for (const r of ranges) {
+    const startTime = r.start.getTime();
+    const endTime = r.end.getTime();
+    if (targetTime >= startTime && targetTime <= endTime) {
+      if (r.statusType === 'booked') {
+        return {
+          status: 'booked',
+          label: 'Đã có người đặt (Kín lịch)',
+          booking: r.booking,
+          range: r
+        };
+      } else {
+        return {
+          status: 'pending',
+          label: 'Đang giữ chỗ chờ cọc',
+          booking: r.booking,
+          range: r
+        };
+      }
+    }
+  }
+
+  return { status: 'available', label: 'Còn trống (Sẵn sàng thuê)' };
+}
+
+// Kiểm tra trùng lịch khi khách chọn ngày thuê và số ngày thuê
+function checkRentalDateConflict(characterName, startDateInputVal, durationStr) {
+  if (!characterName || !startDateInputVal) {
+    return { conflict: false, reason: 'missing_info' };
+  }
+
+  const startDate = parseDateFlexible(startDateInputVal);
+  if (!startDate) return { conflict: false, reason: 'invalid_date' };
+
+  let days = 3;
+  const match = String(durationStr).match(/(\d+)\s*ngày/i);
+  if (match) days = parseInt(match[1], 10);
+  else if (String(durationStr).toLowerCase().includes('tuần')) days = 7;
+
+  const returnDate = new Date(startDate);
+  returnDate.setDate(returnDate.getDate() + days);
+
+  const ranges = getCostumeBookingRanges(characterName);
+  const checkStart = startDate.getTime();
+  const checkEnd = returnDate.getTime();
+
+  for (const r of ranges) {
+    const rStart = r.start.getTime();
+    const rEnd = r.end.getTime();
+
+    // Hai khoảng thời gian [A, B] và [C, D] giao nhau nếu: A <= D && B >= C
+    if (checkStart <= rEnd && checkEnd >= rStart) {
+      return {
+        conflict: true,
+        type: r.statusType, // 'booked' hoặc 'pending'
+        booking: r.booking,
+        range: r,
+        startDate,
+        returnDate,
+        overlapStart: new Date(Math.max(checkStart, rStart)),
+        overlapEnd: new Date(Math.min(checkEnd, rEnd))
+      };
+    }
+  }
+
+  return {
+    conflict: false,
+    startDate,
+    returnDate
+  };
+}
+
+// Kiểm tra xem hôm nay bộ đồ có đang bị bận không (dùng cho icon/badge nhanh)
 function isCostumeBooked(characterName) {
   if (!characterName) return false;
-  const targetClean = String(characterName).toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
-  if (!targetClean || targetClean.length < 2) return false;
-  return appState.bookings.some(b => {
-    const raw = b.character || b.costume_name || b.costumeName;
-    if (!raw) return false;
-    const st = (b.status || '').toLowerCase();
-    if (st.includes('trả') || st.includes('hoàn tất') || st.includes('hủy') || st.includes('huỷ')) {
-      return false;
+  const today = new Date();
+  const status = getCostumeDateStatus(characterName, today);
+  return status.status === 'booked';
+}
+
+// Trạng thái modal lịch trống
+const calModalState = {
+  characterName: 'Himmel',
+  year: new Date().getFullYear(),
+  month: new Date().getMonth(),
+  selectedDate: null
+};
+
+// Mở modal lịch trống của một bộ trang phục
+function openCostumeCalendarModal(characterName, targetMonth, targetYear) {
+  if (!characterName) characterName = 'Himmel';
+  calModalState.characterName = characterName;
+
+  const now = new Date();
+  if (typeof targetYear === 'number') calModalState.year = targetYear;
+  else calModalState.year = now.getFullYear();
+
+  if (typeof targetMonth === 'number') calModalState.month = targetMonth;
+  else calModalState.month = now.getMonth();
+
+  calModalState.selectedDate = null;
+
+  const modal = document.getElementById('costumeCalendarModal');
+  const titleEl = document.getElementById('calModalCharTitle');
+  const imgEl = document.getElementById('calModalCharImg');
+
+  const costumeData = findCostumeData(characterName);
+  if (titleEl) {
+    titleEl.textContent = costumeData ? costumeData.title : characterName;
+  }
+  if (imgEl) {
+    imgEl.src = (costumeData && costumeData.image) ? costumeData.image : 'assets/mochiimoon_logo.png';
+  }
+
+  renderCostumeCalendarGrid();
+
+  if (modal) modal.classList.remove('hidden');
+  playChime(620);
+}
+
+// Render lưới lịch tháng trong Modal Lịch Trống
+function renderCostumeCalendarGrid() {
+  const gridEl = document.getElementById('calModalDaysGrid');
+  const monthTitleEl = document.getElementById('calModalMonthTitle');
+  const selectedInfoEl = document.getElementById('calModalSelectedInfo');
+  const confirmBtn = document.getElementById('calModalConfirmRentBtn');
+  const summaryEl = document.getElementById('calModalBookingsSummary');
+
+  if (!gridEl) return;
+
+  const { characterName, year, month, selectedDate } = calModalState;
+
+  if (monthTitleEl) {
+    monthTitleEl.textContent = `Tháng ${month + 1} / ${year}`;
+  }
+
+  gridEl.innerHTML = '';
+
+  // Tính thứ của ngày 1 (Thứ 2 = 0, ..., CN = 6)
+  const firstDay = new Date(year, month, 1).getDay();
+  const startDayOffset = (firstDay + 6) % 7; // Monday = 0
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // Ô trống đầu tháng
+  for (let i = 0; i < startDayOffset; i++) {
+    const emptyCell = document.createElement('div');
+    emptyCell.className = 'cal-day-cell empty';
+    gridEl.appendChild(emptyCell);
+  }
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cellDate = new Date(year, month, d, 0, 0, 0);
+    const dateStatus = getCostumeDateStatus(characterName, cellDate);
+
+    const cell = document.createElement('div');
+    cell.className = `cal-day-cell day-${dateStatus.status}`;
+
+    if (cellDate.getTime() === today.getTime()) {
+      cell.classList.add('is-today');
+      cell.title = 'Hôm nay';
     }
-    const bookedClean = String(raw).toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
-    return bookedClean.includes(targetClean) || targetClean.includes(bookedClean);
+
+    if (selectedDate && cellDate.getTime() === selectedDate.getTime()) {
+      cell.classList.add('is-selected');
+    }
+
+    let subTagText = '';
+    if (dateStatus.status === 'available') {
+      subTagText = '🟢 Trống';
+      cell.title = `${d}/${month + 1}/${year}: Còn trống (Nhấp để chọn ngày thuê)`;
+    } else if (dateStatus.status === 'booked') {
+      subTagText = '🔴 Kín';
+      const orderCode = dateStatus.range?.orderId || '';
+      cell.title = `${d}/${month + 1}/${year}: Đã có người đặt thuê ${orderCode ? '(' + orderCode + ')' : ''}`;
+    } else if (dateStatus.status === 'pending') {
+      subTagText = '🟡 Chờ';
+      cell.title = `${d}/${month + 1}/${year}: Đang chờ thanh toán cọc giữ chỗ`;
+    } else if (dateStatus.status === 'past') {
+      subTagText = '⚪ Qua';
+      cell.title = `${d}/${month + 1}/${year}: Ngày đã qua`;
+    }
+
+    cell.innerHTML = `
+      <span class="day-num">${d}</span>
+      <span class="day-sub-tag">${subTagText}</span>
+    `;
+
+    // Click handler chọn ngày
+    cell.addEventListener('click', () => {
+      if (dateStatus.status === 'past') {
+        showToast('Ngày này đã qua, vui lòng chọn ngày từ hôm nay trở đi nhé 🌸', 'warning');
+        return;
+      }
+      if (dateStatus.status === 'booked') {
+        const r = dateStatus.range;
+        const msg = r ? `từ ${formatDateDisplay(r.start)} đến ${formatDateDisplay(r.end)} (Đơn ${r.orderId})` : 'vào ngày này';
+        showToast(`❌ Ngày ${d}/${month + 1} bộ "${characterName}" đã có khách đặt ${msg}. Bạn hãy chọn các ngày màu xanh còn trống nhé! 🌸`, 'error');
+        playChime(320);
+        return;
+      }
+      if (dateStatus.status === 'pending') {
+        showToast(`⏳ Ngày ${d}/${month + 1} đang có khách giữ chỗ chờ cọc. Nếu bạn muốn chắc chắn 100%, hãy chọn ngày màu xanh nhé! 🌸`, 'warning');
+      }
+
+      calModalState.selectedDate = cellDate;
+      renderCostumeCalendarGrid();
+      playChime(660);
+    });
+
+    gridEl.appendChild(cell);
+  }
+
+  // Update Action Bar
+  if (selectedInfoEl) {
+    if (selectedDate) {
+      const dStr = formatDateDisplay(selectedDate);
+      selectedInfoEl.innerHTML = `✨ Đang chọn: <strong>${dStr}</strong> (Còn trống) • Bấm nút bên cạnh để đặt thuê ngay!`;
+    } else {
+      selectedInfoEl.innerHTML = `👉 Nhấp vào một <strong>ngày màu xanh</strong> trên lịch để chọn ngày thuê đồ.`;
+    }
+  }
+
+  if (confirmBtn) {
+    if (selectedDate) {
+      confirmBtn.disabled = false;
+      confirmBtn.classList.remove('disabled');
+      confirmBtn.innerHTML = `<span>👘 Thuê Ngày ${formatDateDisplay(selectedDate)} ➔</span>`;
+    } else {
+      confirmBtn.disabled = true;
+      confirmBtn.classList.add('disabled');
+      confirmBtn.innerHTML = `<span>👘 Đặt Thuê Cho Ngày Đã Chọn</span>`;
+    }
+  }
+
+  // Render Bookings Summary for this month
+  if (summaryEl) {
+    const ranges = getCostumeBookingRanges(characterName);
+    const monthRanges = ranges.filter(r => {
+      return (r.start.getMonth() === month && r.start.getFullYear() === year) ||
+        (r.end.getMonth() === month && r.end.getFullYear() === year);
+    });
+
+    if (monthRanges.length === 0) {
+      summaryEl.innerHTML = `
+        <div class="cal-summary-title">🗓️ Tình trạng tháng ${month + 1}/${year}:</div>
+        <div style="font-size: 12.5px; color: #15803d; font-weight: 700;">
+          ✨ Tháng này chưa có ai đặt bộ này, tất cả các ngày tới đều còn trống! Bạn hãy nhanh tay đặt trước nhé 🌸
+        </div>
+      `;
+    } else {
+      let listHtml = '';
+      monthRanges.forEach(r => {
+        const isB = r.statusType === 'booked';
+        listHtml += `
+          <li class="cal-summary-item ${isB ? 'is-booked' : 'is-pending'}">
+            <span>${isB ? '🔴 Đã đặt' : '🟡 Chờ cọc'}: <strong>${formatDateDisplay(r.start)} ➔ ${formatDateDisplay(r.end)}</strong> (${r.duration})</span>
+            <span style="color:#64748b; font-size: 11px;">Mã: ${escapeHtml(r.orderId || 'Đang duyệt')}</span>
+          </li>
+        `;
+      });
+      summaryEl.innerHTML = `
+        <div class="cal-summary-title">🗓️ Các lịch đã đặt trong tháng ${month + 1}/${year} (${monthRanges.length} lịch):</div>
+        <ul class="cal-summary-list">${listHtml}</ul>
+      `;
+    }
+  }
+}
+
+// Xác nhận đặt thuê từ modal lịch trống và chuyển thẳng sang Form Đặt Lịch
+function confirmRentFromCalendarModal() {
+  const { characterName, selectedDate } = calModalState;
+  if (!selectedDate) return;
+
+  const modal = document.getElementById('costumeCalendarModal');
+  if (modal) modal.classList.add('hidden');
+
+  // Chuyển sang Tab Đặt Lịch
+  const navHealth = document.getElementById('navHealth');
+  if (navHealth) navHealth.click();
+
+  // Chọn đúng nhân vật
+  const selectChar = document.getElementById('bookingCharacter');
+  if (selectChar && characterName) {
+    const targetClean = characterName.toLowerCase().split('(')[0].trim();
+    for (let i = 0; i < selectChar.options.length; i++) {
+      const optVal = selectChar.options[i].value.toLowerCase().split('(')[0].trim();
+      const optTxt = selectChar.options[i].textContent.toLowerCase().split('(')[0].trim();
+      if (optVal === targetClean || optTxt === targetClean || optVal.includes(targetClean) || targetClean.includes(optVal)) {
+        selectChar.selectedIndex = i;
+        break;
+      }
+    }
+    selectChar.dispatchEvent(new Event('change'));
+  }
+
+  // Điền ngày đã chọn
+  const dateInput = document.getElementById('bookingDateInput');
+  if (dateInput) {
+    dateInput.value = formatDateInput(selectedDate);
+    dateInput.dispatchEvent(new Event('change'));
+  }
+
+  const bookingCard = document.getElementById('bookingCard');
+  if (bookingCard) {
+    bookingCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  showToast(`🎉 Đã chọn bộ "${characterName}" cho ngày ${formatDateDisplay(selectedDate)}!`, 'success');
+  playSuccessChime();
+}
+
+// Khởi tạo toàn bộ sự kiện cho Modal Lịch Trống
+function initCostumeCalendarSystem() {
+  const modal = document.getElementById('costumeCalendarModal');
+  const closeBtn = document.getElementById('closeCostumeCalendarBtn');
+  const prevBtn = document.getElementById('calModalPrevMonthBtn');
+  const nextBtn = document.getElementById('calModalNextMonthBtn');
+  const confirmBtn = document.getElementById('calModalConfirmRentBtn');
+
+  if (closeBtn && modal) {
+    closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.add('hidden');
+    });
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      calModalState.month--;
+      if (calModalState.month < 0) {
+        calModalState.month = 11;
+        calModalState.year--;
+      }
+      playChime(460);
+      renderCostumeCalendarGrid();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      calModalState.month++;
+      if (calModalState.month > 11) {
+        calModalState.month = 0;
+        calModalState.year++;
+      }
+      playChime(560);
+      renderCostumeCalendarGrid();
+    });
+  }
+
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', confirmRentFromCalendarModal);
+  }
+
+  // Đóng bằng phím Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+      modal.classList.add('hidden');
+    }
   });
+
+  // Nút mở lịch trống từ form đặt lịch
+  const btnCheckInline = document.getElementById('btnCheckAvailInline');
+  if (btnCheckInline) {
+    btnCheckInline.addEventListener('click', (e) => {
+      e.preventDefault();
+      const currentSelectedChar = document.getElementById('bookingCharacter')?.value || 'Himmel';
+      openCostumeCalendarModal(currentSelectedChar);
+    });
+  }
+
+  // Lắng nghe thay đổi ngày & thời gian thuê trong form đặt lịch để kiểm tra trùng lịch
+  const dateInput = document.getElementById('bookingDateInput');
+  const durationSelect = document.getElementById('bookingDuration');
+  const charSelect = document.getElementById('bookingCharacter');
+
+  if (dateInput) {
+    dateInput.addEventListener('change', checkAndDisplayDateAvailability);
+    dateInput.addEventListener('input', checkAndDisplayDateAvailability);
+  }
+  if (durationSelect) {
+    durationSelect.addEventListener('change', checkAndDisplayDateAvailability);
+  }
+  if (charSelect) {
+    charSelect.addEventListener('change', checkAndDisplayDateAvailability);
+  }
+
+  // Cập nhật dải trạng thái ban đầu
+  updateCatalogAvailabilityStrips();
+  checkAndDisplayDateAvailability();
+}
+
+// ========================================================
+// HỆ THỐNG POPUP BẢNG SỐ ĐO CHI TIẾT & BỘ PHỤ KIỆN (SIZE GUIDE)
+// ========================================================
+let activeSizeGuideChar = 'Himmel';
+
+function openSizeGuideModal(characterName) {
+  if (!characterName) {
+    const selectChar = document.getElementById('bookingCharacter');
+    characterName = selectChar ? selectChar.value : 'Himmel';
+  }
+  activeSizeGuideChar = characterName;
+
+  const costume = findCostumeData(characterName);
+  if (!costume) return;
+
+  const modal = document.getElementById('sizeGuideModal');
+  if (!modal) return;
+
+  // Cập nhật tab & header
+  const tabCharName = document.getElementById('sizeTabCharName');
+  if (tabCharName) {
+    const shortName = costume.title ? costume.title.split('(')[0].trim() : characterName;
+    tabCharName.textContent = shortName;
+  }
+
+  const modalName = document.getElementById('sgModalCharName');
+  if (modalName) modalName.textContent = costume.title || characterName;
+
+  const modalImg = document.getElementById('sgModalCharImg');
+  if (modalImg) {
+    modalImg.src = costume.image || 'assets/mochiimoon_logo.png';
+  }
+
+  const modalSizeBadge = document.getElementById('sgModalCharSizeBadge');
+  if (modalSizeBadge) {
+    const firstSz = (costume.sizes && costume.sizes[0]) ? costume.sizes[0].value : 'Size XL';
+    modalSizeBadge.textContent = firstSz;
+  }
+
+  // Cập nhật thông số số đo
+  const guide = costume.sizeGuide || {};
+  const heightEl = document.getElementById('sgModalHeight');
+  if (heightEl) heightEl.textContent = guide.height || '1m60 - 1m75';
+
+  const threeVEl = document.getElementById('sgModal3V');
+  if (threeVEl) threeVEl.textContent = guide.measurements || '90 - 75 - 95 cm';
+
+  const weightEl = document.getElementById('sgModalWeight');
+  if (weightEl) weightEl.textContent = guide.weight || '63 - 72 kg';
+
+  const fitEl = document.getElementById('sgModalFit');
+  if (fitEl) fitEl.textContent = guide.fitTip || 'Form chuẩn anime';
+
+  // Render danh sách phụ kiện trọn bộ gồm những món gì
+  const accListEl = document.getElementById('sgModalAccList');
+  const accCountEl = document.getElementById('sgModalAccCount');
+  if (accListEl) {
+    accListEl.innerHTML = '';
+    const items = costume.accessories || [];
+    if (accCountEl) accCountEl.textContent = `(${items.length} món)`;
+    items.forEach(acc => {
+      const itemEl = document.createElement('div');
+      itemEl.className = 'sg-acc-item';
+      let icon = '🎁';
+      const lower = acc.toLowerCase();
+      if (lower.includes('áo khoác') || lower.includes('áo vest')) icon = '🧥';
+      else if (lower.includes('áo choàng')) icon = '🧣';
+      else if (lower.includes('quần')) icon = '👖';
+      else if (lower.includes('váy') || lower.includes('yếm')) icon = '👗';
+      else if (lower.includes('thắt lưng') || lower.includes('đai')) icon = '🎗️';
+      else if (lower.includes('wig') || lower.includes('tóc')) icon = '💇';
+      else if (lower.includes('mũ')) icon = '🎩';
+      else if (lower.includes('kính') || lower.includes('monocle')) icon = '🧐';
+      else if (lower.includes('cà vạt') || lower.includes('nơ')) icon = '👔';
+      else if (lower.includes('giày')) icon = '👞';
+
+      itemEl.innerHTML = `<span class="sg-acc-icon">${icon}</span><span class="sg-acc-text">${acc}</span>`;
+      accListEl.appendChild(itemEl);
+    });
+  }
+
+  // Danh sách các món không kèm
+  const notBox = document.getElementById('sgModalNotIncludedBox');
+  const notText = document.getElementById('sgModalNotIncludedText');
+  if (notBox && notText) {
+    if (costume.notIncluded && costume.notIncluded.length > 0) {
+      notBox.style.display = 'flex';
+      notText.textContent = costume.notIncluded.join(' • ');
+    } else {
+      notBox.style.display = 'none';
+    }
+  }
+
+  // Luôn mở mặc định Tab 1 (Bộ đang chọn)
+  switchSizeGuideTab('active-char');
+
+  modal.classList.remove('hidden');
+  playChime(640);
+}
+
+function switchSizeGuideTab(tabKey) {
+  const tabs = document.querySelectorAll('.size-tab-btn');
+  const panes = document.querySelectorAll('.size-tab-pane');
+  tabs.forEach(t => {
+    if (t.getAttribute('data-tab') === tabKey) t.classList.add('active');
+    else t.classList.remove('active');
+  });
+  panes.forEach(p => {
+    const paneId = (tabKey === 'active-char') ? 'sizePaneActiveChar' : ((tabKey === 'all-sizes') ? 'sizePaneAllSizes' : 'sizePaneHowToMeasure');
+    if (p.id === paneId) {
+      p.classList.add('active');
+    } else {
+      p.classList.remove('active');
+    }
+  });
+}
+
+function initSizeGuideSystem() {
+  const modal = document.getElementById('sizeGuideModal');
+  const closeBtn = document.getElementById('closeSizeGuideBtn');
+  const confirmBtn = document.getElementById('btnConfirmSizeGuide');
+
+  if (closeBtn && modal) {
+    closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.add('hidden');
+    });
+  }
+
+  if (confirmBtn && modal) {
+    confirmBtn.addEventListener('click', () => {
+      modal.classList.add('hidden');
+      playSuccessChime();
+      showToast('🌸 Đã chọn kích thước phù hợp! Bạn hãy kiểm tra lại ngày thuê để tiến hành cọc đồ nhé.', 'success');
+    });
+  }
+
+  // Đóng bằng phím Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+      modal.classList.add('hidden');
+    }
+  });
+
+  // Chuyển tabs
+  const tabBtns = document.querySelectorAll('.size-tab-btn');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabKey = btn.getAttribute('data-tab');
+      switchSizeGuideTab(tabKey);
+      playChime(520);
+    });
+  });
+
+  // Nút mở bảng số đo từ Form Đặt Lịch
+  const btnOpenSizeGuide = document.getElementById('btnOpenSizeGuideModal');
+  if (btnOpenSizeGuide) {
+    btnOpenSizeGuide.addEventListener('click', (e) => {
+      e.preventDefault();
+      const currentSelectedChar = document.getElementById('bookingCharacter')?.value || 'Himmel';
+      openSizeGuideModal(currentSelectedChar);
+    });
+  }
+
+  // Nút xem chi tiết từ banner dưới ô select
+  const bspOpenLink = document.getElementById('bspOpenModalLink');
+  if (bspOpenLink) {
+    bspOpenLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      const currentSelectedChar = document.getElementById('bookingCharacter')?.value || 'Himmel';
+      openSizeGuideModal(currentSelectedChar);
+    });
+  }
+}
+
+// Cập nhật dải trạng thái lịch trống nhanh trên các thẻ trang phục
+function updateCatalogAvailabilityStrips() {
+  const cards = document.querySelectorAll('.costume-catalog-card');
+  const today = new Date();
+
+  cards.forEach(card => {
+    const charName = card.getAttribute('data-character') || '';
+    if (!charName) return;
+
+    const strip = card.querySelector('.catalog-avail-strip');
+    const calBtn = card.querySelector('.catalog-cal-btn');
+    const todayStatus = getCostumeDateStatus(charName, today);
+    const ranges = getCostumeBookingRanges(charName);
+
+    if (strip) {
+      const leftEl = strip.querySelector('.avail-strip-left');
+      if (leftEl) {
+        if (todayStatus.status === 'booked') {
+          strip.classList.add('is-booked-today');
+          leftEl.innerHTML = `<span class="avail-dot">🔴</span><span>Hôm nay kín lịch • Có ${ranges.length} lịch đặt</span>`;
+        } else if (todayStatus.status === 'pending') {
+          strip.classList.remove('is-booked-today');
+          leftEl.innerHTML = `<span class="avail-dot">🟡</span><span>Đang giữ chỗ hôm nay • Có ${ranges.length} lịch đặt</span>`;
+        } else {
+          strip.classList.remove('is-booked-today');
+          leftEl.innerHTML = `<span class="avail-dot">🟢</span><span>Hôm nay còn trống • Bấm xem lịch</span>`;
+        }
+      }
+
+      if (!strip.hasAttribute('data-has-cal-click')) {
+        strip.setAttribute('data-has-cal-click', 'true');
+        strip.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openCostumeCalendarModal(charName);
+        });
+      }
+    }
+
+    if (calBtn) {
+      if (!calBtn.hasAttribute('data-has-cal-click')) {
+        calBtn.setAttribute('data-has-cal-click', 'true');
+        calBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openCostumeCalendarModal(charName);
+        });
+      }
+    }
+  });
+}
+
+// Kiểm tra và hiển thị hộp cảnh báo trùng lịch theo thời gian thực trong Form Đặt Lịch
+function checkAndDisplayDateAvailability() {
+  const charSelect = document.getElementById('bookingCharacter');
+  const dateInput = document.getElementById('bookingDateInput');
+  const durationSelect = document.getElementById('bookingDuration');
+  const noticeBox = document.getElementById('bookingAvailNotice');
+  const submitBtn = document.getElementById('submitBookingBtn');
+
+  if (!charSelect || !dateInput || !noticeBox) return;
+
+  const character = charSelect.value;
+  const dateVal = dateInput.value;
+  const duration = durationSelect ? durationSelect.value : '3 ngày (fes/shoot)';
+
+  if (!dateVal) {
+    noticeBox.className = 'booking-avail-notice notice-info';
+    noticeBox.innerHTML = `
+      <div class="notice-icon-box">💡</div>
+      <div class="notice-body">
+        <div class="notice-title">Kiểm tra lịch trống theo trang phục</div>
+        <div class="notice-desc">Vui lòng chọn ngày bắt đầu thuê để hệ thống tự động kiểm tra lịch trống cho bạn nhé! 🌸</div>
+      </div>
+    `;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('disabled');
+      submitBtn.innerHTML = '<span>🌸 Xác Nhận Đặt Lịch Thuê</span>';
+    }
+    return;
+  }
+
+  const result = checkRentalDateConflict(character, dateVal, duration);
+
+  if (result.conflict) {
+    if (result.type === 'booked') {
+      const b = result.booking || {};
+      const r = result.range || {};
+      const startStr = formatDateDisplay(result.startDate);
+      const returnStr = formatDateDisplay(result.returnDate);
+      const bookedStart = formatDateDisplay(r.start);
+      const bookedEnd = formatDateDisplay(r.end);
+
+      noticeBox.className = 'booking-avail-notice notice-conflict';
+      noticeBox.innerHTML = `
+        <div class="notice-icon-box">❌</div>
+        <div class="notice-body">
+          <div class="notice-title">TRÙNG LỊCH THUÊ! (Đã có khách đặt trước)</div>
+          <div class="notice-desc">
+            Khoảng ngày bạn chọn (<strong>${startStr} ➔ ${returnStr}</strong>) bị trùng với đơn đặt trước của khách:
+            <br/>🗓️ Đã kín lịch từ <strong>${bookedStart} đến ${bookedEnd}</strong> (Mã đơn: <strong>${escapeHtml(b.orderId || '')}</strong>).
+            <br/>Vui lòng đổi sang ngày khác hoặc bấm nút bên dưới để chọn các ngày màu xanh còn trống nhé! 🌸
+          </div>
+          <div class="notice-btn-row">
+            <button type="button" class="btn-switch-to-cal" id="btnNoticeOpenCal">
+              <span>📅 Mở Lịch Xem Ngày Còn Trống</span>
+            </button>
+          </div>
+        </div>
+      `;
+
+      const calBtn = noticeBox.querySelector('#btnNoticeOpenCal');
+      if (calBtn) {
+        calBtn.addEventListener('click', () => openCostumeCalendarModal(character));
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('disabled');
+        submitBtn.innerHTML = '<span>❌ Trùng Lịch Thuê - Vui Lòng Đổi Ngày</span>';
+        submitBtn.title = 'Trang phục này đã có người thuê trong khoảng ngày bạn chọn';
+      }
+    } else {
+      // Pending
+      const startStr = formatDateDisplay(result.startDate);
+      const returnStr = formatDateDisplay(result.returnDate);
+      noticeBox.className = 'booking-avail-notice notice-pending';
+      noticeBox.innerHTML = `
+        <div class="notice-icon-box">⏳</div>
+        <div class="notice-body">
+          <div class="notice-title">CẢNH BÁO: ĐANG CÓ KHÁCH GIỮ CHỖ CHỜ CỌC</div>
+          <div class="notice-desc">
+            Khoảng ngày (<strong>${startStr} ➔ ${returnStr}</strong>) đang có đơn giữ chỗ chờ thanh toán cọc trong 20 phút.
+            Nếu khách không cọc thành công, slot sẽ tự động mở lại cho bạn.
+          </div>
+          <div class="notice-btn-row">
+            <button type="button" class="btn-switch-to-cal" id="btnNoticeOpenCal" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+              <span>📅 Mở Lịch Xem Các Ngày Khác</span>
+            </button>
+          </div>
+        </div>
+      `;
+
+      const calBtn = noticeBox.querySelector('#btnNoticeOpenCal');
+      if (calBtn) {
+        calBtn.addEventListener('click', () => openCostumeCalendarModal(character));
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('disabled');
+        submitBtn.innerHTML = '<span>🌸 Đặt Chờ (Nếu Slot Mở) Hoặc Đổi Ngày</span>';
+      }
+    }
+  } else {
+    // Hoàn toàn trống
+    const startStr = formatDateDisplay(result.startDate);
+    const returnStr = formatDateDisplay(result.returnDate);
+
+    noticeBox.className = 'booking-avail-notice notice-available';
+    noticeBox.innerHTML = `
+      <div class="notice-icon-box">✅</div>
+      <div class="notice-body">
+        <div class="notice-title">LỊCH THUÊ TRỐNG - SẴN SÀNG ĐẶT!</div>
+        <div class="notice-desc">
+          Bộ trang phục <strong>${escapeHtml(character)}</strong> hoàn toàn trống từ <strong>${startStr}</strong> đến <strong>${returnStr}</strong>. Bạn có thể yên tâm đặt ngay! 🌸
+        </div>
+      </div>
+    `;
+
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('disabled');
+      submitBtn.innerHTML = '<span>🌸 Xác Nhận Đặt Lịch Thuê</span>';
+      submitBtn.title = 'Bấm để xác nhận đặt lịch thuê';
+    }
+  }
 }
 
 function refreshAvailabilityUI() {
   const charSelect = document.getElementById('bookingCharacter');
   if (charSelect) {
-    for (let i = 0; i < charSelect.options.length; i++) {
-      const opt = charSelect.options[i];
-      const baseName = opt.value;
-      const booked = isCostumeBooked(baseName);
-      if (booked) {
-        opt.textContent = `${baseName} (❌ Hết đồ)`;
-      } else {
-        opt.textContent = baseName;
-      }
-    }
     updateCostumePreview(charSelect.value);
   }
-
-  // Cập nhật nhãn hết đồ trên từng thẻ trong mục Mẫu Đồ
-  const cards = document.querySelectorAll('.costume-catalog-card');
-  cards.forEach(card => {
-    const charName = card.getAttribute('data-character') || '';
-    const booked = isCostumeBooked(charName);
-    const rentBtn = card.querySelector('.catalog-rent-btn');
-    const imgWrap = card.querySelector('.catalog-img-wrap');
-    let badge = card.querySelector('.catalog-stock-tag');
-
-    if (booked) {
-      if (!badge && imgWrap) {
-        badge = document.createElement('span');
-        badge.className = 'catalog-stock-tag out-of-stock';
-        badge.textContent = '❌ Hết đồ';
-        imgWrap.appendChild(badge);
-      }
-      if (rentBtn) {
-        rentBtn.innerHTML = '<span>❌ Đã Hết Slot</span>';
-        rentBtn.classList.add('btn-rent-disabled');
-      }
-    } else {
-      badge?.remove();
-      if (rentBtn) {
-        rentBtn.innerHTML = '<span>👘 Đặt Thuê Ngay</span>';
-        rentBtn.classList.remove('btn-rent-disabled');
-      }
-    }
-  });
+  updateCatalogAvailabilityStrips();
+  checkAndDisplayDateAvailability();
 }
 
 function updateCostumePreview(characterName) {
@@ -1674,78 +2919,33 @@ function updateCostumePreview(characterName) {
   const previewImg = document.getElementById('costumePreviewImg');
   const stockBadge = document.getElementById('costumeStockBadge');
   const stockWarning = document.getElementById('bookingStockWarning');
-  const submitBtn = document.getElementById('submitBookingBtn');
 
   if (previewName) previewName.textContent = costume.title;
   if (previewPrice) previewPrice.textContent = costume.price;
   if (previewDesc) previewDesc.textContent = costume.desc;
   if (previewImg && costume.image) previewImg.src = costume.image;
 
-  const isBooked = isCostumeBooked(characterName);
+  const ranges = getCostumeBookingRanges(characterName);
+  const isBookedToday = isCostumeBooked(characterName);
 
   if (stockBadge) {
-    if (isBooked) {
+    if (isBookedToday) {
       stockBadge.className = 'costume-badge out-of-stock';
-      stockBadge.innerHTML = '❌ HẾT ĐỒ (Đã có người đặt thuê)';
+      stockBadge.innerHTML = '🔴 Hôm nay kín lịch (Bấm "Xem lịch trống" để chọn ngày khác)';
+    } else if (ranges.length > 0) {
+      stockBadge.className = 'costume-badge in-stock';
+      stockBadge.innerHTML = `✨ Còn nhiều ngày trống (Có ${ranges.length} lịch đặt trước)`;
     } else {
       stockBadge.className = 'costume-badge in-stock';
-      stockBadge.innerHTML = '✨ Còn đồ (Sẵn sàng cho thuê)';
+      stockBadge.innerHTML = '✨ Còn đồ (Tất cả ngày trống sẵn sàng)';
     }
   }
 
   if (stockWarning) {
-    if (isBooked) {
-      stockWarning.classList.remove('hidden');
-      const pendingBooking = (appState.bookings || []).find(b => {
-        const raw = b.character || b.costume_name || b.costumeName;
-        if (!raw || !b.status || !b.status.includes('Chờ')) return false;
-        const bookedClean = String(raw).toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
-        const targetClean = String(characterName || '').toLowerCase().split('(')[0].replace(/[^a-z0-9]/g, '');
-        return bookedClean.includes(targetClean) || targetClean.includes(bookedClean);
-      });
-
-      if (pendingBooking && isMyOrder(pendingBooking.orderId)) {
-        // Chỉ hiển thị nút thanh toán cho ĐÚNG KHÁCH ĐÃ TẠO ĐƠN NÀY
-        stockWarning.innerHTML = `
-          📌 Bạn đang có đơn chờ cọc cho bộ <strong>${escapeHtml(characterName)}</strong> (Mã: <strong>${escapeHtml(pendingBooking.orderId || '')}</strong>).<br/>
-          <div style="margin-top:6px;">
-            <button type="button" class="btn-continue-pending-order" style="background: linear-gradient(135deg, #0284c7, #0ea5e9); color: #fff; border:none; border-radius: 8px; padding: 5px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(2,132,199,0.25);">
-              💳 Tiếp Tục Thanh Toán Cho Đơn Của Bạn ➔
-            </button>
-          </div>
-        `;
-        const btnContinue = stockWarning.querySelector('.btn-continue-pending-order');
-        if (btnContinue) {
-          btnContinue.addEventListener('click', (e) => {
-            e.preventDefault();
-            appState.currentPaymentBooking = pendingBooking;
-            showPaymentStep(pendingBooking);
-          });
-        }
-      } else if (pendingBooking) {
-        // Đối với khách mới (Khách B): KHÔNG HIỂN THỊ NÚT THANH TOÁN
-        stockWarning.innerHTML = `⏳ Bộ trang phục <strong>${escapeHtml(characterName)}</strong> hiện đang có khách giữ chỗ (Đang chờ chuyển khoản cọc trong 20 phút). Nếu khách không cọc, slot sẽ tự động mở lại cho bạn nhé! 🌸`;
-      } else {
-        stockWarning.innerHTML = `⚠️ Bộ trang phục <strong>${escapeHtml(characterName)}</strong> hiện đã có khách đặt thuê (Hết slot). Vui lòng chọn mẫu khác hoặc liên hệ shop nhé! 🌸`;
-      }
-    } else {
-      stockWarning.classList.add('hidden');
-    }
+    stockWarning.classList.add('hidden');
   }
 
-  if (submitBtn) {
-    if (isBooked) {
-      submitBtn.disabled = true;
-      submitBtn.classList.add('disabled');
-      submitBtn.innerHTML = '<span>❌ Hết Đồ - Không Thể Cho Thuê (Hết Slot)</span>';
-      submitBtn.title = 'Trang phục này hiện đã có người thuê, không thể đặt lúc này';
-    } else {
-      submitBtn.disabled = false;
-      submitBtn.classList.remove('disabled');
-      submitBtn.innerHTML = '<span>🌸 Xác Nhận Đặt Lịch Thuê</span>';
-      submitBtn.title = 'Bấm để xác nhận đặt lịch thuê';
-    }
-  }
+  checkAndDisplayDateAvailability();
 }
 
 function syncBookingDateInput(year, month, day) {
@@ -1765,45 +2965,118 @@ let cccdUploadedState = {
   back: ''
 };
 
-function readAndCompressImage(file, maxDimension = 1200, quality = 0.82) {
+function formatCccdFileSize(bytes) {
+  if (!bytes || isNaN(bytes)) return '0 KB';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function estimateBase64ByteSize(dataUrl) {
+  if (!dataUrl) return 0;
+  const commaIdx = dataUrl.indexOf(',');
+  const strLen = commaIdx >= 0 ? dataUrl.length - commaIdx - 1 : dataUrl.length;
+  return Math.round((strLen * 3) / 4);
+}
+
+function readAndCompressImage(file, maxDimension = 960, quality = 0.80) {
   return new Promise((resolve, reject) => {
     if (!file || !file.type.startsWith('image/')) {
       reject(new Error('Vui lòng chọn tệp hình ảnh hợp lệ (JPG, PNG, WebP)'));
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        let width = img.width;
-        let height = img.height;
 
-        if (width > maxDimension || height > maxDimension) {
-          if (width > height) {
-            height = Math.round((height * maxDimension) / width);
-            width = maxDimension;
-          } else {
-            width = Math.round((width * maxDimension) / height);
-            height = maxDimension;
-          }
+    // Giới hạn maxDimension trong khoảng 800px - 1000px theo yêu cầu
+    const targetMaxDim = Math.min(Math.max(maxDimension || 960, 800), 1000);
+    const originalBytes = file.size || 0;
+
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      let width = img.naturalWidth || img.width;
+      let height = img.naturalHeight || img.height;
+
+      // Tính tỷ lệ co ảnh chuẩn không méo hình
+      if (width > targetMaxDim || height > targetMaxDim) {
+        if (width >= height) {
+          height = Math.round((height * targetMaxDim) / width);
+          width = targetMaxDim;
+        } else {
+          width = Math.round((width * targetMaxDim) / height);
+          height = targetMaxDim;
         }
+      }
 
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, width, height);
-        ctx.drawImage(img, 0, 0, width, height);
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d', { alpha: false });
 
-        const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        resolve(dataUrl);
-      };
-      img.onerror = () => reject(new Error('Không thể đọc dữ liệu ảnh'));
-      img.src = e.target.result;
+      // Nền trắng chống viền đen khi chuyển PNG trong suốt sang JPEG
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      // Bật khử răng cưa chất lượng cao
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Lần nén 1: JPEG chất lượng ban đầu (0.80)
+      let curQuality = quality || 0.80;
+      let dataUrl = canvas.toDataURL('image/jpeg', curQuality);
+      let compBytes = estimateBase64ByteSize(dataUrl);
+
+      // Nén thích ứng (Adaptive loop) giữ kích thước mục tiêu ~150KB - 300KB
+      if (compBytes > 300 * 1024) {
+        curQuality = 0.72;
+        dataUrl = canvas.toDataURL('image/jpeg', curQuality);
+        compBytes = estimateBase64ByteSize(dataUrl);
+      }
+
+      // Nếu vẫn lớn hơn 320KB, hạ nhẹ kích thước canvas xuống 850px và nén 0.70
+      if (compBytes > 320 * 1024 && (width > 850 || height > 850)) {
+        const scale = 850 / Math.max(width, height);
+        const w2 = Math.round(width * scale);
+        const h2 = Math.round(height * scale);
+        const canvas2 = document.createElement('canvas');
+        canvas2.width = w2;
+        canvas2.height = h2;
+        const ctx2 = canvas2.getContext('2d', { alpha: false });
+        ctx2.fillStyle = '#ffffff';
+        ctx2.fillRect(0, 0, w2, h2);
+        ctx2.imageSmoothingEnabled = true;
+        ctx2.imageSmoothingQuality = 'high';
+        ctx2.drawImage(canvas, 0, 0, w2, h2);
+
+        dataUrl = canvas2.toDataURL('image/jpeg', 0.70);
+        compBytes = estimateBase64ByteSize(dataUrl);
+        width = w2;
+        height = h2;
+      }
+
+      const savedPercent = originalBytes > 0 ? Math.max(0, Math.round((1 - compBytes / originalBytes) * 100)) : 0;
+
+      resolve({
+        dataUrl,
+        originalBytes,
+        compressedBytes: compBytes,
+        savedPercent,
+        width,
+        height,
+        originalFormatted: formatCccdFileSize(originalBytes),
+        compressedFormatted: formatCccdFileSize(compBytes)
+      });
     };
-    reader.onerror = () => reject(new Error('Lỗi khi đọc tệp ảnh'));
-    reader.readAsDataURL(file);
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Không thể đọc dữ liệu ảnh'));
+    };
+
+    img.src = objectUrl;
   });
 }
 
@@ -1837,19 +3110,29 @@ function resetCccdUploads() {
   const frontPlaceholder = document.getElementById('cccdFrontPlaceholder');
   const frontPreview = document.getElementById('cccdFrontPreviewWrap');
   const frontImg = document.getElementById('cccdFrontPreviewImg');
+  const frontBadge = document.getElementById('cccdFrontBadge');
   if (frontBox) frontBox.classList.remove('has-file');
   if (frontPlaceholder) frontPlaceholder.classList.remove('hidden');
   if (frontPreview) frontPreview.classList.add('hidden');
   if (frontImg) frontImg.src = '';
+  if (frontBadge) {
+    frontBadge.classList.add('hidden');
+    frontBadge.innerHTML = '';
+  }
 
   const backBox = document.getElementById('cccdBackBox');
   const backPlaceholder = document.getElementById('cccdBackPlaceholder');
   const backPreview = document.getElementById('cccdBackPreviewWrap');
   const backImg = document.getElementById('cccdBackPreviewImg');
+  const backBadge = document.getElementById('cccdBackBadge');
   if (backBox) backBox.classList.remove('has-file');
   if (backPlaceholder) backPlaceholder.classList.remove('hidden');
   if (backPreview) backPreview.classList.add('hidden');
   if (backImg) backImg.src = '';
+  if (backBadge) {
+    backBadge.classList.add('hidden');
+    backBadge.innerHTML = '';
+  }
 
   const errorAlert = document.getElementById('cccdErrorAlert');
   if (errorAlert) errorAlert.classList.add('hidden');
@@ -1864,6 +3147,7 @@ function initCccdUploadHandlers() {
   const frontPreview = document.getElementById('cccdFrontPreviewWrap');
   const frontImg = document.getElementById('cccdFrontPreviewImg');
   const frontDelBtn = document.getElementById('cccdFrontDelBtn');
+  const frontBadge = document.getElementById('cccdFrontBadge');
 
   const backBox = document.getElementById('cccdBackBox');
   const backInput = document.getElementById('cccdBackInput');
@@ -1871,6 +3155,7 @@ function initCccdUploadHandlers() {
   const backPreview = document.getElementById('cccdBackPreviewWrap');
   const backImg = document.getElementById('cccdBackPreviewImg');
   const backDelBtn = document.getElementById('cccdBackDelBtn');
+  const backBadge = document.getElementById('cccdBackBadge');
 
   const lightboxModal = document.getElementById('cccdLightboxModal');
   const lightboxCloseBtn = document.getElementById('closeCccdLightboxBtn');
@@ -1889,7 +3174,7 @@ function initCccdUploadHandlers() {
     }
   });
 
-  function setupCccdCard(box, input, placeholder, previewWrap, previewImg, delBtn, sideKey, labelName) {
+  function setupCccdCard(box, input, placeholder, previewWrap, previewImg, delBtn, badgeEl, sideKey, labelName) {
     if (!box || !input) return;
 
     box.addEventListener('click', (e) => {
@@ -1903,17 +3188,28 @@ function initCccdUploadHandlers() {
       input.click();
     });
 
-    input.addEventListener('change', async () => {
-      const file = input.files?.[0];
+    async function handleFileSelected(file) {
       if (!file) return;
 
       try {
-        const compressedBase64 = await readAndCompressImage(file, 1200, 0.82);
-        cccdUploadedState[sideKey] = compressedBase64;
+        if (badgeEl) {
+          badgeEl.className = 'cccd-compress-badge compressing';
+          badgeEl.innerHTML = '<span class="badge-bolt">⏳</span> Đang nén ảnh Canvas...';
+        }
 
-        if (previewImg) previewImg.src = compressedBase64;
+        // Nén ảnh bằng HTML5 Canvas: giới hạn 800 - 1000px, dung lượng ~150KB - 300KB
+        const result = await readAndCompressImage(file, 960, 0.80);
+        cccdUploadedState[sideKey] = result.dataUrl;
+
+        if (previewImg) previewImg.src = result.dataUrl;
         if (placeholder) placeholder.classList.add('hidden');
         if (previewWrap) previewWrap.classList.remove('hidden');
+
+        if (badgeEl) {
+          badgeEl.className = 'cccd-compress-badge';
+          badgeEl.innerHTML = `<span class="badge-bolt">⚡</span> ${result.originalFormatted} ➔ <strong>${result.compressedFormatted}</strong> <span class="badge-reduction">(-${result.savedPercent}%)</span>`;
+        }
+
         box.classList.add('has-file');
         box.classList.remove('is-invalid');
 
@@ -1925,8 +3221,17 @@ function initCccdUploadHandlers() {
 
         playChime(640);
       } catch (err) {
+        if (badgeEl) {
+          badgeEl.classList.add('hidden');
+          badgeEl.innerHTML = '';
+        }
         alert(err.message || 'Không thể tải ảnh');
       }
+    }
+
+    input.addEventListener('change', () => {
+      const file = input.files?.[0];
+      handleFileSelected(file);
     });
 
     if (delBtn) {
@@ -1937,6 +3242,10 @@ function initCccdUploadHandlers() {
         if (previewImg) previewImg.src = '';
         if (previewWrap) previewWrap.classList.add('hidden');
         if (placeholder) placeholder.classList.remove('hidden');
+        if (badgeEl) {
+          badgeEl.classList.add('hidden');
+          badgeEl.innerHTML = '';
+        }
         box.classList.remove('has-file');
       });
     }
@@ -1959,34 +3268,14 @@ function initCccdUploadHandlers() {
       });
     });
 
-    box.addEventListener('drop', async (e) => {
+    box.addEventListener('drop', (e) => {
       const file = e.dataTransfer?.files?.[0];
-      if (!file) return;
-      try {
-        const compressedBase64 = await readAndCompressImage(file, 1200, 0.82);
-        cccdUploadedState[sideKey] = compressedBase64;
-
-        if (previewImg) previewImg.src = compressedBase64;
-        if (placeholder) placeholder.classList.add('hidden');
-        if (previewWrap) previewWrap.classList.remove('hidden');
-        box.classList.add('has-file');
-        box.classList.remove('is-invalid');
-
-        const otherSideKey = sideKey === 'front' ? 'back' : 'front';
-        if (cccdUploadedState[otherSideKey]) {
-          const alertEl = document.getElementById('cccdErrorAlert');
-          if (alertEl) alertEl.classList.add('hidden');
-        }
-
-        playChime(640);
-      } catch (err) {
-        alert(err.message || 'Không thể tải ảnh');
-      }
+      handleFileSelected(file);
     });
   }
 
-  setupCccdCard(frontBox, frontInput, frontPlaceholder, frontPreview, frontImg, frontDelBtn, 'front', 'Mặt trước CCCD');
-  setupCccdCard(backBox, backInput, backPlaceholder, backPreview, backImg, backDelBtn, 'back', 'Mặt sau CCCD');
+  setupCccdCard(frontBox, frontInput, frontPlaceholder, frontPreview, frontImg, frontDelBtn, frontBadge, 'front', 'Mặt trước CCCD');
+  setupCccdCard(backBox, backInput, backPlaceholder, backPreview, backImg, backDelBtn, backBadge, 'back', 'Mặt sau CCCD');
 }
 
 function initCosplayBooking() {
@@ -2018,6 +3307,16 @@ function initCosplayBooking() {
     refreshAvailabilityUI();
   }
 
+  // Size Select Change Handler để đồng bộ thông số số đo và danh sách phụ kiện
+  const sizeSelect = document.getElementById('bookingSize');
+  if (sizeSelect) {
+    sizeSelect.addEventListener('change', (e) => {
+      const selectedChar = document.getElementById('bookingCharacter')?.value || 'Himmel';
+      updateBookingSizeDetailBox(selectedChar, e.target.value);
+      playChime(480);
+    });
+  }
+
   // Render initial booking list
   renderBookedList();
 
@@ -2028,56 +3327,43 @@ function initCosplayBooking() {
       e.preventDefault();
 
       const character = document.getElementById('bookingCharacter')?.value || 'Trang phục Cosplay';
-
-      if (isCostumeBooked(character)) {
-        alert(`⚠️ Rất tiếc! Bộ trang phục "${character}" hiện đã có khách đặt thuê (Hết slot) nên không thể cho thuê thêm. Bạn vui lòng chọn mẫu khác nhé! 🌸`);
-        return;
-      }
-
       const size = document.getElementById('bookingSize')?.value || 'M';
       const dateVal = document.getElementById('bookingDateInput')?.value || '';
       const duration = document.getElementById('bookingDuration')?.value || '3 ngày (fes/shoot)';
+
+      // KIỂM TRA TRÙNG LỊCH THUÊ THEO TỪNG BỘ TRANG PHỤC (CHỐNG DOUBLE BOOKING)
+      const conflictCheck = checkRentalDateConflict(character, dateVal, duration);
+      if (conflictCheck.conflict) {
+        if (conflictCheck.type === 'booked') {
+          const b = conflictCheck.booking || {};
+          const r = conflictCheck.range || {};
+          alert(`⚠️ TRÙNG LỊCH THUÊ! Bộ "${character}" đã có khách đặt thuê từ ngày ${formatDateDisplay(r.start)} đến ${formatDateDisplay(r.end)} (Đơn ${b.orderId || ''}).\n\nBạn vui lòng mở bảng "Lịch trống" để chọn các ngày màu xanh còn trống nhé! 🌸`);
+          openCostumeCalendarModal(character);
+        } else {
+          alert(`⚠️ Bộ "${character}" hiện đang có khách giữ chỗ từ ngày ${formatDateDisplay(conflictCheck.startDate)} đến ${formatDateDisplay(conflictCheck.returnDate)} (Chờ chuyển khoản cọc trong 20 phút).\n\nNếu khách không cọc, slot sẽ tự động mở lại cho bạn nhé! 🌸`);
+        }
+        return;
+      }
       const customerName = document.getElementById('customerName')?.value.trim() || '';
       const customerPhone = document.getElementById('customerPhone')?.value.trim() || '';
       const note = document.getElementById('bookingNote')?.value.trim() || '';
 
-      // BẮT BUỘC PHẢI GỬI ĐỦ 2 MẶT ẢNH CCCD MỚI ĐƯỢC QUA THANH TOÁN
+      // Lấy hình thức nhận trang phục (Item 3)
+      const deliveryMethod = document.querySelector('input[name="deliveryMethod"]:checked')?.value || 'pickup';
+      let deliveryAddress = '';
+      if (deliveryMethod === 'delivery') {
+        deliveryAddress = document.getElementById('deliveryAddressInput')?.value.trim() || '';
+        if (!deliveryAddress) {
+          alert('⚠️ Bạn đã chọn "Giao hàng tận nơi", vui lòng nhập địa chỉ nhận hàng chi tiết để Mochimoon đóng gói và gửi ship nhé! 🌸');
+          document.getElementById('deliveryAddressInput')?.focus();
+          return;
+        }
+      }
+
+      // Kiểm tra CCCD:
       const frontBox = document.getElementById('cccdFrontBox');
       const backBox = document.getElementById('cccdBackBox');
       const errorAlert = document.getElementById('cccdErrorAlert');
-
-      const hasFront = Boolean(cccdUploadedState.front);
-      const hasBack = Boolean(cccdUploadedState.back);
-
-      if (!hasFront || !hasBack) {
-        let errorMsg = '';
-        if (!hasFront && !hasBack) {
-          errorMsg = '⚠️ Bạn bắt buộc phải tải lên cả 2 mặt Căn cước công dân (Mặt trước & Mặt sau) thì mới được chuyển qua thanh toán cọc nhé! 🌸';
-          if (frontBox) frontBox.classList.add('is-invalid');
-          if (backBox) backBox.classList.add('is-invalid');
-        } else if (!hasFront) {
-          errorMsg = '⚠️ Bạn còn thiếu ảnh Mặt trước CCCD. Vui lòng tải lên để hoàn tất đơn nhé! 🌸';
-          if (frontBox) frontBox.classList.add('is-invalid');
-          if (backBox) backBox.classList.remove('is-invalid');
-        } else {
-          errorMsg = '⚠️ Bạn còn thiếu ảnh Mặt sau CCCD. Vui lòng tải lên để hoàn tất đơn nhé! 🌸';
-          if (backBox) backBox.classList.add('is-invalid');
-          if (frontBox) frontBox.classList.remove('is-invalid');
-        }
-
-        if (errorAlert) {
-          errorAlert.textContent = errorMsg;
-          errorAlert.classList.remove('hidden');
-        }
-
-        const targetCard = !hasFront ? frontBox : backBox;
-        if (targetCard) {
-          targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        alert(errorMsg);
-        return;
-      }
 
       if (errorAlert) errorAlert.classList.add('hidden');
       if (frontBox) frontBox.classList.remove('is-invalid');
@@ -2107,6 +3393,8 @@ function initCosplayBooking() {
         customerName,
         phone: customerPhone,
         note,
+        deliveryMethod,
+        deliveryAddress: deliveryMethod === 'delivery' ? deliveryAddress : 'Nhận trực tiếp tại tiệm',
         pricing,
         status: 'Chờ thanh toán cọc ⏳',
         cccdFront: cccdUploadedState.front || '',
@@ -2167,12 +3455,20 @@ function getRentalPricing(characterName, duration, size) {
   } else if (nameLower.includes('marin') || nameLower.includes('shizuku')) {
     rentPrice = isTest ? 100000 : 200000;
     if (String(size).includes('Giày')) rentPrice += 30000;
+  } else if (nameLower.includes('rem') && (nameLower.includes('yukata') || nameLower.includes('kimono'))) {
+    rentPrice = isTest ? 80000 : 200000;
+  } else if (nameLower.includes('rem')) {
+    rentPrice = isTest ? 80000 : 150000;
+  } else if (nameLower.includes('rikka')) {
+    rentPrice = isTest ? 80000 : 200000;
+  } else if (nameLower.includes('maomao') || nameLower.includes('mao')) {
+    rentPrice = isTest ? 80000 : 200000;
   }
 
   return {
     rentPrice,
     rentPriceFormatted: rentPrice.toLocaleString('vi-VN') + 'đ',
-    depositDesc: 'Cọc Thẻ học sinh / Khai sinh (hoặc cọc 200.000đ)',
+    depositDesc: 'Cọc Thẻ học sinh / CCCD (hoặc cọc 200.000đ khi nhận đồ)',
     totalToPay: rentPrice,
     totalToPayFormatted: rentPrice.toLocaleString('vi-VN') + 'đ'
   };
@@ -2260,6 +3556,18 @@ function showPaymentStep(booking) {
   const pricing = booking.pricing || getRentalPricing(booking.character, booking.duration, booking.size);
   const payRentPriceEl = document.getElementById('payRentPrice');
   if (payRentPriceEl) payRentPriceEl.textContent = pricing.rentPriceFormatted;
+
+  const payDepositDescEl = document.getElementById('payDepositDesc');
+  if (payDepositDescEl) payDepositDescEl.textContent = pricing.depositDesc || 'Cọc Thẻ học sinh / CCCD (hoặc cọc 200.000đ khi nhận đồ)';
+
+  const payDeliveryVal = document.getElementById('payDeliveryVal');
+  if (payDeliveryVal) {
+    if (booking.deliveryMethod === 'delivery') {
+      payDeliveryVal.innerHTML = `<span style="color:#2563eb; font-weight:700;">🛵 Giao tận nơi:</span> ${escapeHtml(booking.deliveryAddress || '')}`;
+    } else {
+      payDeliveryVal.innerHTML = `<span style="color:#059669; font-weight:700;">🏬 Nhận tại tiệm</span> (KĐT Đặng Xá, Gia Lâm)`;
+    }
+  }
 
   const payTotalAmountEl = document.getElementById('payTotalAmount');
   if (payTotalAmountEl) payTotalAmountEl.textContent = pricing.totalToPayFormatted;
@@ -2475,6 +3783,18 @@ function showInvoiceStep(booking, txData) {
   const invDurationTextEl = document.getElementById('invDurationText');
   if (invDurationTextEl) invDurationTextEl.textContent = booking.duration || '3 ngày (fes/shoot)';
 
+  const invDeliveryTextEl = document.getElementById('invDeliveryText');
+  if (invDeliveryTextEl) {
+    invDeliveryTextEl.textContent = booking.deliveryMethod === 'delivery'
+      ? `🛵 Giao hàng tận nơi: ${booking.deliveryAddress}`
+      : '🏬 Nhận trực tiếp tại tiệm (Miễn phí)';
+  }
+
+  const invDepositTextEl = document.getElementById('invDepositText');
+  if (invDepositTextEl) {
+    invDepositTextEl.textContent = 'Cọc Thẻ học sinh / CCCD (hoặc cọc 200.000đ khi nhận đồ)';
+  }
+
   const invCustNoteEl = document.getElementById('invCustNote');
   if (invCustNoteEl) invCustNoteEl.textContent = booking.note || 'Không có ghi chú thêm';
 
@@ -2504,6 +3824,16 @@ function showInvoiceStep(booking, txData) {
 
   const invItemSizeEl = document.getElementById('invItemSize');
   if (invItemSizeEl) invItemSizeEl.textContent = `Size ${booking.size}`;
+  const invItemSizeSub = document.getElementById('invItemSizeSub');
+  if (invItemSizeSub) {
+    const cData = findCostumeData(booking.character);
+    if (cData && cData.sizeGuide) {
+      invItemSizeSub.textContent = `Cao: ${cData.sizeGuide.height} • 3V: ${cData.sizeGuide.measurements}`;
+      invItemSizeSub.style.display = 'block';
+    } else {
+      invItemSizeSub.style.display = 'none';
+    }
+  }
 
   const invItemDatesEl = document.getElementById('invItemDates');
   if (invItemDatesEl) invItemDatesEl.textContent = dateRange;
@@ -3408,18 +4738,161 @@ function initCostumeCatalog() {
 
       currentActiveCharName = fullName;
 
-      if (modalCostumeImg) modalCostumeImg.src = imgSrc;
-      if (modalCostumeTitle) modalCostumeTitle.textContent = charName;
+      // Cập nhật Size Chip hiển thị ở Header modal
+      const cData = findCostumeData(fullName) || findCostumeData(charName);
+      const feedbackSrc = btn.getAttribute('data-feedback') || (cData && cData.feedbackImages && cData.feedbackImages[0]) || '';
 
-      // Render danh sách Thông Tin (size cho vào thông tin, không cần mô tả)
+      const thumbsRow = document.getElementById('modalImgThumbsRow');
+      const thumbMainBtn = document.getElementById('modalThumbMain');
+      const thumbMainImg = document.getElementById('modalThumbMainImg');
+      const thumbFeedBtn = document.getElementById('modalThumbFeedback');
+      const thumbFeedImg = document.getElementById('modalThumbFeedbackImg');
+      const imgBadge = document.getElementById('modalImgBadge');
+      const feedbackBox = document.getElementById('modalFeedbackBox');
+      const feedbackMiniImg = document.getElementById('modalFeedbackMiniImg');
+      const feedbackTrigger = document.getElementById('modalFeedbackTrigger');
+
+      const setDisplayImage = (src) => {
+        if (!modalCostumeImg) return;
+        modalCostumeImg.classList.remove('contain-fit');
+        modalCostumeImg.src = src;
+        modalCostumeImg.onload = () => {
+          if (modalCostumeImg.naturalWidth > modalCostumeImg.naturalHeight * 1.15) {
+            modalCostumeImg.classList.add('contain-fit');
+          }
+        };
+      };
+
+      const switchToMainImg = () => {
+        setDisplayImage(imgSrc);
+        if (imgBadge) imgBadge.classList.add('hidden');
+        if (thumbMainBtn) thumbMainBtn.classList.add('active');
+        if (thumbFeedBtn) thumbFeedBtn.classList.remove('active');
+      };
+
+      const switchToFeedbackImg = () => {
+        if (!feedbackSrc) return;
+        setDisplayImage(feedbackSrc);
+        if (imgBadge) imgBadge.classList.remove('hidden');
+        if (thumbMainBtn) thumbMainBtn.classList.remove('active');
+        if (thumbFeedBtn) thumbFeedBtn.classList.add('active');
+      };
+
+      // Mặc định nạp ảnh mẫu chính
+      switchToMainImg();
+
+      if (feedbackSrc) {
+        if (thumbsRow) thumbsRow.classList.remove('hidden');
+        if (thumbMainImg) thumbMainImg.src = imgSrc;
+        if (thumbFeedImg) thumbFeedImg.src = feedbackSrc;
+        if (feedbackBox) feedbackBox.classList.remove('hidden');
+        if (feedbackMiniImg) feedbackMiniImg.src = feedbackSrc;
+
+        if (thumbMainBtn) thumbMainBtn.onclick = (ev) => { ev.stopPropagation(); switchToMainImg(); };
+        if (thumbFeedBtn) thumbFeedBtn.onclick = (ev) => { ev.stopPropagation(); switchToFeedbackImg(); };
+        if (feedbackTrigger) feedbackTrigger.onclick = (ev) => {
+          ev.stopPropagation();
+          switchToFeedbackImg();
+          const imgCol = document.querySelector('.detail-modal-img-col');
+          if (imgCol) imgCol.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        };
+      } else {
+        if (thumbsRow) thumbsRow.classList.add('hidden');
+        if (feedbackBox) feedbackBox.classList.add('hidden');
+        if (imgBadge) imgBadge.classList.add('hidden');
+      }
+
+      // Phóng to Lightbox khi click vào ảnh
+      if (modalCostumeImg && !modalCostumeImg.hasAttribute('data-lightbox-bound')) {
+        modalCostumeImg.setAttribute('data-lightbox-bound', 'true');
+        modalCostumeImg.style.cursor = 'zoom-in';
+        modalCostumeImg.addEventListener('click', () => {
+          const currentSrc = modalCostumeImg.src;
+          const isFeedback = imgBadge && !imgBadge.classList.contains('hidden');
+          const lightbox = document.getElementById('cccdLightboxModal');
+          const lbImg = document.getElementById('cccdLightboxImg');
+          const lbTitle = document.getElementById('cccdLightboxTitle');
+          if (lightbox && lbImg) {
+            lbImg.src = currentSrc;
+            if (lbTitle) lbTitle.textContent = isFeedback ? '📸 Feedback Khách Mặc Thực Tế - ' + (charName || 'Kaito Kid') : (currentActiveCharName || 'Trang phục Cosplay');
+            lightbox.classList.remove('hidden');
+          }
+        });
+      }
+
+      if (modalCostumeTitle) modalCostumeTitle.textContent = charName;
+      const sizeChip = document.getElementById('modalCostumeSizeChip');
+      let detectedSize = '';
+      if (cData && cData.sizes && cData.sizes[0]) {
+        detectedSize = cData.sizes[0].value;
+      } else if (rawInfo) {
+        const m = rawInfo.match(/sz\s*([0-9a-zA-Z]+)/i);
+        if (m) detectedSize = m[1].toUpperCase();
+      }
+      if (sizeChip) {
+        if (detectedSize) {
+          sizeChip.textContent = detectedSize.startsWith('Size') ? detectedSize : `Size ${detectedSize}`;
+          sizeChip.style.display = 'inline-block';
+        } else {
+          sizeChip.textContent = 'Freesize';
+        }
+      }
+
+      // Render danh sách Phụ kiện gồm những món gì
+      const accListEl = document.getElementById('modalCostumeAccessoryList');
+      const accCountEl = document.getElementById('modalCostumeItemCount');
+      const notWrap = document.getElementById('modalCostumeNotIncludedWrap');
+      const notText = document.getElementById('modalCostumeNotIncludedText');
+
+      if (accListEl && cData) {
+        accListEl.innerHTML = '';
+        const items = cData.accessories || [];
+        if (accCountEl) accCountEl.textContent = `${items.length} món`;
+        items.forEach(acc => {
+          const pill = document.createElement('span');
+          pill.className = 'acc-pill';
+          let icon = '🎁';
+          const lower = acc.toLowerCase();
+          if (lower.includes('áo khoác') || lower.includes('áo vest')) icon = '🧥';
+          else if (lower.includes('áo choàng')) icon = '🧣';
+          else if (lower.includes('quần')) icon = '👖';
+          else if (lower.includes('váy') || lower.includes('yếm')) icon = '👗';
+          else if (lower.includes('thắt lưng') || lower.includes('đai')) icon = '🎗️';
+          else if (lower.includes('tai')) icon = '🧝';
+          else if (lower.includes('wig') || lower.includes('tóc')) icon = '💇';
+          else if (lower.includes('mũ')) icon = '🎩';
+          else if (lower.includes('kính') || lower.includes('monocle')) icon = '🧐';
+          else if (lower.includes('cà vạt') || lower.includes('nơ')) icon = '👔';
+          else if (lower.includes('giày')) icon = '👞';
+          pill.innerHTML = `<em>${icon}</em> <strong>${acc}</strong>`;
+          accListEl.appendChild(pill);
+        });
+
+        if (notWrap && notText) {
+          if (cData.notIncluded && cData.notIncluded.length > 0) {
+            notWrap.style.display = 'flex';
+            notText.textContent = cData.notIncluded.join(' • ');
+          } else {
+            notWrap.style.display = 'none';
+          }
+        }
+      }
+
+      // Render danh sách Thông Tin phụ (nếu có)
+      const extraBox = document.getElementById('modalExtraInfoBox');
       if (modalCostumeInfoList) {
         modalCostumeInfoList.innerHTML = '';
-        const items = rawInfo.split('|').filter(s => s.trim());
-        items.forEach(item => {
-          const li = document.createElement('li');
-          li.textContent = item.trim();
-          modalCostumeInfoList.appendChild(li);
-        });
+        const items = rawInfo.split('|').filter(s => s.trim() && !s.toLowerCase().includes('sz') && !s.toLowerCase().includes('size'));
+        if (items.length > 0) {
+          if (extraBox) extraBox.style.display = 'flex';
+          items.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item.trim();
+            modalCostumeInfoList.appendChild(li);
+          });
+        } else {
+          if (extraBox) extraBox.style.display = 'none';
+        }
       }
 
       // Render danh sách Giá Thuê
@@ -3433,15 +4906,23 @@ function initCostumeCatalog() {
         });
       }
 
-      // Kiểm tra tình trạng slot của bộ đồ trong modal
-      if (modalRentNowBtn) {
-        if (isCostumeBooked(fullName)) {
-          modalRentNowBtn.innerHTML = '<span>❌ Đã Hết Slot (Đang có người thuê)</span>';
-          modalRentNowBtn.classList.add('btn-rent-disabled');
+      // Cập nhật tình trạng lịch trống trong modal chi tiết
+      const calTextEl = document.getElementById('modalCostumeCalText');
+      if (calTextEl) {
+        const todayStatus = getCostumeDateStatus(fullName, new Date());
+        const ranges = getCostumeBookingRanges(fullName);
+        if (todayStatus.status === 'booked') {
+          calTextEl.innerHTML = `<span style="color:#b91c1c;">🔴 Hôm nay đang có người thuê • Có ${ranges.length} lịch đặt trong tháng</span>`;
+        } else if (todayStatus.status === 'pending') {
+          calTextEl.innerHTML = `<span style="color:#b45309;">🟡 Đang giữ chỗ chờ cọc hôm nay • Có ${ranges.length} lịch đặt</span>`;
         } else {
-          modalRentNowBtn.innerHTML = '<span>👘 Đặt Thuê Ngay Bộ Này</span>';
-          modalRentNowBtn.classList.remove('btn-rent-disabled');
+          calTextEl.innerHTML = `<span style="color:#047857;">🟢 Hôm nay sẵn sàng cho thuê • Bấm xem lịch chi tiết</span>`;
         }
+      }
+
+      if (modalRentNowBtn) {
+        modalRentNowBtn.innerHTML = '<span>👘 Đặt Thuê Ngay Bộ Này</span>';
+        modalRentNowBtn.classList.remove('btn-rent-disabled');
       }
 
       if (costumeInfoModal) {
@@ -3450,6 +4931,32 @@ function initCostumeCatalog() {
       playChime(640);
     });
   });
+
+  // Nút mở bảng quy chuẩn số đo toàn diện từ modal chi tiết
+  const btnOpenSizeChartFromDetail = document.getElementById('btnOpenSizeChartFromDetail');
+  if (btnOpenSizeChartFromDetail && !btnOpenSizeChartFromDetail.hasAttribute('data-bound')) {
+    btnOpenSizeChartFromDetail.setAttribute('data-bound', 'true');
+    btnOpenSizeChartFromDetail.addEventListener('click', () => {
+      openSizeGuideModal(currentActiveCharName || 'Himmel');
+      switchSizeGuideTab('all-sizes');
+    });
+  }
+
+  // Nút mở lịch trống từ trong modal chi tiết
+  const modalViewCalBtn = document.getElementById('modalViewCalBtn');
+  const btnOpenCalFromModal = document.getElementById('btnOpenCalFromModal');
+  const handleOpenCalFromModal = () => {
+    if (costumeInfoModal) costumeInfoModal.classList.add('hidden');
+    openCostumeCalendarModal(currentActiveCharName || 'Himmel');
+  };
+  if (modalViewCalBtn && !modalViewCalBtn.hasAttribute('data-bound')) {
+    modalViewCalBtn.setAttribute('data-bound', 'true');
+    modalViewCalBtn.addEventListener('click', handleOpenCalFromModal);
+  }
+  if (btnOpenCalFromModal && !btnOpenCalFromModal.hasAttribute('data-bound')) {
+    btnOpenCalFromModal.setAttribute('data-bound', 'true');
+    btnOpenCalFromModal.addEventListener('click', handleOpenCalFromModal);
+  }
 
   // Đóng modal thông tin chi tiết
   if (closeCostumeInfoBtn && costumeInfoModal) {
@@ -3496,7 +5003,7 @@ function initCostumeCatalog() {
       if (matchedIndex !== -1) {
         selectChar.selectedIndex = matchedIndex;
       }
-      // Kích hoạt sự kiện change để đồng bộ size và cập nhật xem trước thẻ đặt lịch
+      // Kích hoạt sự kiện change để đồng bộ size và kiểm tra trùng lịch
       selectChar.dispatchEvent(new Event('change'));
     }
 
@@ -3505,11 +5012,7 @@ function initCostumeCatalog() {
       bookingCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    if (isCostumeBooked(charName)) {
-      alert(`⚠️ Bộ trang phục "${charName}" hiện đã có khách đặt thuê (Hết slot). Bạn vui lòng chọn mẫu khác nhé! 🌸`);
-    } else {
-      playSuccessChime();
-    }
+    playSuccessChime();
   }
 
   // Nút "Đặt Thuê Ngay" trực tiếp trên thẻ
@@ -4716,6 +6219,22 @@ function renderAdminDashboard() {
           <div class="admin-price-line">Tiền cọc: <strong class="admin-deposit-highlight">${escapeHtml(depositFmt)}</strong></div>
           <div class="admin-price-line">Tổng đơn: <strong class="admin-total-highlight">${escapeHtml(totalToPayFmt)}</strong></div>
         </div>
+
+        <!-- Cột 4: Hình thức nhận đồ & Cọc (Item 3) -->
+        <div class="admin-detail-col">
+          <span class="admin-detail-label">🚚 Nhận & Cọc:</span>
+          <div style="font-size:12px; margin-bottom:4px;">
+            ${b.deliveryMethod === 'delivery' ? `
+              <span style="color:#2563eb; font-weight:700;">🛵 Ship tận nơi:</span>
+              <div style="color:#475569; font-size:11px; line-height:1.3; max-width:200px;">${escapeHtml(b.deliveryAddress || '')}</div>
+            ` : `
+              <span style="color:#059669; font-weight:700;">🏬 Nhận tại tiệm</span>
+            `}
+          </div>
+          <div style="font-size:12px; color:#475569;">
+            <span>🪪 Cọc CCCD / Thẻ SV (nhận đồ)</span>
+          </div>
+        </div>
       </div>
 
       <!-- Ghi chú nếu có -->
@@ -4895,4 +6414,782 @@ async function deleteAdminBooking(targetId) {
       console.error('Lỗi khi gọi DELETE /api/bookings:', err);
     }
   }
+}
+
+/* ========================================================
+   ORDER TRACKING SYSTEM FOR CUSTOMERS (TRA CỨU ĐƠN HÀNG)
+   ======================================================== */
+function renderTrackingQuickChips() {
+  const chipsContainer = document.getElementById('trackingQuickChips');
+  if (!chipsContainer) return;
+
+  // Lấy danh sách các mã đơn đã lưu trên máy khách
+  let myOrderIds = [];
+  try {
+    const raw = localStorage.getItem('mochimoon_my_orders');
+    if (raw) myOrderIds = JSON.parse(raw);
+  } catch (e) { }
+
+  if (!Array.isArray(myOrderIds) || myOrderIds.length === 0) {
+    // Nếu chưa có trong my_orders, thử lấy đơn gần nhất trong bookings
+    const latestLocal = (appState.bookings || [])[0];
+    if (latestLocal && latestLocal.orderId) {
+      myOrderIds = [latestLocal.orderId];
+    }
+  }
+
+  if (myOrderIds.length === 0) {
+    chipsContainer.innerHTML = '';
+    return;
+  }
+
+  chipsContainer.innerHTML = '<span style="font-size:12px; color:#64748b; font-weight:600;">Gợi ý đơn của bạn:</span>';
+  myOrderIds.slice(-3).reverse().forEach(oid => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'quick-order-pill';
+    chip.textContent = `${oid} ➔`;
+    chip.addEventListener('click', () => {
+      const input = document.getElementById('trackingSearchInput');
+      if (input) {
+        input.value = oid;
+        performOrderTracking(oid);
+      }
+    });
+    chipsContainer.appendChild(chip);
+  });
+}
+
+async function performOrderTracking(queryStr) {
+  const inputVal = (queryStr || document.getElementById('trackingSearchInput')?.value || '').trim();
+  if (!inputVal) {
+    showToast('Vui lòng nhập Số điện thoại hoặc Mã đơn (#MC-xxxxx) nhé!', 'warning');
+    document.getElementById('trackingSearchInput')?.focus();
+    return;
+  }
+
+  const guideBox = document.getElementById('trackingEmptyGuide');
+  const loadingBox = document.getElementById('trackingLoadingState');
+  const notFoundBox = document.getElementById('trackingNotFoundState');
+  const notFoundMsg = document.getElementById('trackingNotFoundMsg');
+  const ordersListBox = document.getElementById('trackingOrdersList');
+
+  // Chuyển sang trạng thái Loading
+  if (guideBox) guideBox.classList.add('hidden');
+  if (notFoundBox) notFoundBox.classList.add('hidden');
+  if (ordersListBox) ordersListBox.classList.add('hidden');
+  if (loadingBox) loadingBox.classList.remove('hidden');
+
+  let orders = [];
+
+  try {
+    // 1. Thử gọi API Backend trước
+    const res = await fetch('/api/order-lookup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'quick-lookup', query: inputVal })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.orders)) {
+        orders = data.orders;
+      }
+    }
+  } catch (err) {
+    console.warn('[Order Tracking] API fetch failed, fallback to local data:', err);
+  }
+
+  // 2. Fallback tìm kiếm trong dữ liệu cục bộ nếu API không tìm thấy hoặc offline
+  if (orders.length === 0) {
+    const cleanQ = inputVal.toLowerCase().replace(/[\s#\-]/g, '');
+    const localList = appState.bookings || [];
+    const matched = localList.filter(b => {
+      const oid = String(b.orderId || b.order_id || '').toLowerCase().replace(/[\s#\-]/g, '');
+      const ph = String(b.phone || '').replace(/[\s#\-]/g, '');
+      return oid.includes(cleanQ) || ph === cleanQ || (cleanQ.length >= 4 && cleanQ.includes(oid));
+    });
+
+    if (matched.length > 0) {
+      orders = matched.map(b => {
+        const oid = b.orderId || b.order_id || '#MC-00000';
+        const statusRaw = String(b.status || 'Chờ tiệm duyệt ⏳');
+        const isApproved = ['duyệt', 'paid', 'đã', 'thành công', 'xác nhận'].some(k => statusRaw.toLowerCase().includes(k));
+        const notesStr = String(b.notes || b.note || '');
+
+        let trackingCode = b.trackingCode || '';
+        if (!trackingCode) {
+          const m = notesStr.match(/(?:mã vận đơn|mvd|tracking|spx|ghn|j&t)[\s:]*([A-Za-z0-9\-]+)/i);
+          if (m) trackingCode = m[1].toUpperCase();
+        }
+
+        let shippingStatus = b.shippingStatus;
+        if (!shippingStatus) {
+          if (trackingCode) shippingStatus = 'Đã đóng gói & Gửi shipper 🚚';
+          else if (isApproved) shippingStatus = 'Đang đóng gói chuẩn bị hàng 📦';
+          else shippingStatus = 'Chờ tiệm duyệt đơn trước khi đóng gói ⏳';
+        }
+
+        return {
+          orderId: oid,
+          customerName: b.customerName || b.customer_name || 'Khách hàng',
+          phone: b.phone || '',
+          costumeName: b.character || b.costumeName || b.costume_name || 'Trang phục Cosplay',
+          size: b.size || 'Freesize',
+          rentalDate: b.date || b.rentalDate || 'Chưa định',
+          returnDate: b.returnDate || calculateReturnDate(b.date || b.rentalDate, b.duration) || 'Chưa định',
+          status: statusRaw,
+          isApproved: isApproved,
+          shippingStatus: shippingStatus,
+          trackingCode: trackingCode || 'Tiệm đang chuẩn bị đóng gói...',
+          deposit: b.deposit || b.pricing?.deposit || 0,
+          total: b.total || b.pricing?.totalToPay || 0,
+          notes: notesStr,
+          paid: Boolean(statusRaw.toLowerCase().includes('đã') || statusRaw.toLowerCase().includes('paid'))
+        };
+      });
+    }
+  }
+
+  // Kết thúc loading
+  if (loadingBox) loadingBox.classList.add('hidden');
+
+  if (orders.length === 0) {
+    if (notFoundBox) {
+      if (notFoundMsg) {
+        notFoundMsg.innerHTML = `Không tìm thấy đơn hàng nào khớp với "<strong>${escapeHtml(inputVal)}</strong>".<br>Vui lòng kiểm tra lại số điện thoại hoặc mã đơn (#MC-xxxxx) nhé!`;
+      }
+      notFoundBox.classList.remove('hidden');
+    }
+    playChime(320);
+    return;
+  }
+
+  // Render danh sách đơn hàng tìm thấy
+  if (ordersListBox) {
+    ordersListBox.innerHTML = '';
+    orders.forEach(ord => {
+      const card = renderSingleOrderTrackingCard(ord);
+      ordersListBox.appendChild(card);
+    });
+    ordersListBox.classList.remove('hidden');
+    playChime(640);
+  }
+}
+
+function renderSingleOrderTrackingCard(ord) {
+  const card = document.createElement('div');
+  card.className = 'order-track-card';
+
+  const isApproved = ord.isApproved;
+  const statusBadgeClass = isApproved ? 'ot-badge-approved' : 'ot-badge-pending';
+  const statusBadgeText = isApproved ? '🟢 ĐÃ ĐƯỢC TIỆM DUYỆT' : '⏳ ĐANG CHỜ DUYỆT ĐƠN';
+
+  const hasTrackingCode = ord.trackingCode && !ord.trackingCode.includes('chuẩn bị') && !ord.trackingCode.includes('...');
+  const totalFmt = Number(ord.total || 0).toLocaleString('vi-VN') + 'đ';
+  const depositFmt = Number(ord.deposit || 0).toLocaleString('vi-VN') + 'đ';
+
+  card.innerHTML = `
+    <!-- Header Thẻ Đơn Hàng -->
+    <div class="ot-card-header">
+      <div class="ot-header-left">
+        <span class="ot-order-id">${escapeHtml(ord.orderId)}</span>
+        <span class="ot-customer-name">Khách: <strong>${escapeHtml(ord.customerName)}</strong></span>
+      </div>
+      <div class="ot-header-badge ${statusBadgeClass}">
+        ${statusBadgeText}
+      </div>
+    </div>
+
+    <!-- 3 HỘP ĐẶC BIỆT THEO ĐÚNG YÊU CẦU CỦA KHÁCH -->
+    <div class="ot-highlights-grid">
+      <!-- 1. ĐƠN ĐÃ DUYỆT CHƯA? -->
+      <div class="ot-hl-box ${isApproved ? 'box-approved' : ''}">
+        <div class="ot-hl-label">
+          <span>🌸 1. Tình trạng duyệt đơn</span>
+        </div>
+        <div class="ot-hl-val" style="color: ${isApproved ? '#15803d' : '#b45309'};">
+          ${isApproved ? 'Đã được duyệt thành công ✅' : 'Đang chờ tiệm kiểm duyệt ⏳'}
+        </div>
+        <div class="ot-hl-sub">
+          ${escapeHtml(ord.status)}
+        </div>
+      </div>
+
+      <!-- 2. ĐÃ ĐÓNG GÓI GỬI SHIP CHƯA / MÃ VẬN ĐƠN LÀ GÌ? -->
+      <div class="ot-hl-box box-shipping">
+        <div class="ot-hl-label">
+          <span>📦 2. Đóng gói & Vận chuyển</span>
+        </div>
+        <div class="ot-hl-val" style="color: #0369a1;">
+          ${escapeHtml(ord.shippingStatus)}
+        </div>
+        <div class="ot-tracking-code-row">
+          <span style="font-size:12px; color:#475569; font-weight:600;">Mã vận đơn:</span>
+          ${hasTrackingCode ? `
+            <span class="ot-tracking-code-pill" id="trackCode_${escapeHtml(ord.orderId)}">${escapeHtml(ord.trackingCode)}</span>
+            <button type="button" class="btn-copy-code" title="Sao chép mã vận đơn"
+              onclick="copyTrackingCode('${escapeHtml(ord.trackingCode)}')">Sao chép</button>
+          ` : `
+            <span style="font-size:12px; color:#64748b; font-style:italic;">${escapeHtml(ord.trackingCode)}</span>
+          `}
+        </div>
+      </div>
+
+      <!-- 3. NGÀY HẸN TRẢ ĐỒ LÀ NGÀY NÀO? -->
+      <div class="ot-hl-box box-return">
+        <div class="ot-hl-label">
+          <span>🔄 3. Ngày hẹn trả đồ</span>
+        </div>
+        <div class="ot-hl-val" style="color: #be185d; font-size: 17px;">
+          ${escapeHtml(ord.returnDate)} 🔄
+        </div>
+        <div class="ot-hl-sub">
+          Lịch thuê: <strong>${escapeHtml(ord.rentalDate)}</strong> ➔ <strong>${escapeHtml(ord.returnDate)}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chi tiết đơn hàng -->
+    <div class="ot-card-body">
+      <div class="ot-details-row">
+        <div class="ot-detail-col">
+          <span class="ot-detail-label">👘 Trang phục:</span>
+          <span class="ot-detail-value">${escapeHtml(ord.costumeName)} ${ord.size ? `(Size ${escapeHtml(ord.size)})` : ''}</span>
+        </div>
+        <div class="ot-detail-col">
+          <span class="ot-detail-label">📞 Số điện thoại:</span>
+          <span class="ot-detail-value">${escapeHtml(ord.phone || 'Chưa cung cấp')}</span>
+        </div>
+        <div class="ot-detail-col">
+          <span class="ot-detail-label">💰 Tổng chi phí:</span>
+          <span class="ot-detail-value" style="color:#db2777;">${totalFmt}</span>
+        </div>
+        <div class="ot-detail-col">
+          <span class="ot-detail-label">💳 Đặt cọc:</span>
+          <span class="ot-detail-value" style="color:#059669;">${depositFmt}</span>
+        </div>
+      </div>
+
+      ${ord.notes ? `
+        <div class="ot-notes-wrap">
+          <strong>Ghi chú đơn:</strong> ${escapeHtml(ord.notes)}
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  return card;
+}
+
+function copyTrackingCode(code) {
+  if (!code) return;
+  navigator.clipboard.writeText(code).then(() => {
+    showToast(`Đã sao chép mã vận đơn: ${code} 📋`, 'success');
+  }).catch(() => {
+    showToast(`Mã vận đơn: ${code}`, 'info');
+  });
+}
+window.copyTrackingCode = copyTrackingCode;
+
+// Khởi tạo các event listener cho trang Order Tracking
+document.addEventListener('DOMContentLoaded', () => {
+  // Nút mở nhanh trang tra cứu trên Header
+  const btnHeaderTracking = document.getElementById('btnHeaderTracking');
+  if (btnHeaderTracking) {
+    btnHeaderTracking.addEventListener('click', () => {
+      if (typeof window.switchTab === 'function') {
+        window.switchTab('tracking');
+      }
+    });
+  }
+
+  // Form submit tra cứu
+  const formTracking = document.getElementById('formOrderTracking');
+  const inputTracking = document.getElementById('trackingSearchInput');
+  const btnClearInput = document.getElementById('btnClearTrackingInput');
+
+  if (formTracking) {
+    formTracking.addEventListener('submit', (e) => {
+      e.preventDefault();
+      performOrderTracking();
+    });
+  }
+
+  if (inputTracking) {
+    inputTracking.addEventListener('input', () => {
+      if (btnClearInput) {
+        btnClearInput.classList.toggle('hidden', !inputTracking.value.trim());
+      }
+    });
+  }
+
+  if (btnClearInput && inputTracking) {
+    btnClearInput.addEventListener('click', () => {
+      inputTracking.value = '';
+      btnClearInput.classList.add('hidden');
+      inputTracking.focus();
+    });
+  }
+});
+
+// ========================================================
+// ITEM 3: DELIVERY & DEPOSIT OPTIONS INTERACTION CONTROLLER
+// ========================================================
+function initDeliveryAndDepositOptions() {
+  const radioPickup = document.getElementById('radioDeliveryPickup');
+  const radioShip = document.getElementById('radioDeliveryShip');
+  const labelPickup = document.getElementById('labelDeliveryPickup');
+  const labelShip = document.getElementById('labelDeliveryShip');
+  const addressGroup = document.getElementById('deliveryAddressGroup');
+  const addressInput = document.getElementById('deliveryAddressInput');
+
+  function syncDeliveryUI() {
+    if (radioShip && radioShip.checked) {
+      labelShip?.classList.add('active');
+      labelPickup?.classList.remove('active');
+      addressGroup?.classList.remove('hidden');
+      setTimeout(() => addressInput?.focus(), 150);
+    } else {
+      labelPickup?.classList.add('active');
+      labelShip?.classList.remove('active');
+      addressGroup?.classList.add('hidden');
+    }
+  }
+
+  if (radioPickup) radioPickup.addEventListener('change', syncDeliveryUI);
+  if (radioShip) radioShip.addEventListener('change', syncDeliveryUI);
+  if (labelPickup) labelPickup.addEventListener('click', () => { if (radioPickup) { radioPickup.checked = true; syncDeliveryUI(); } });
+  if (labelShip) labelShip.addEventListener('click', () => { if (radioShip) { radioShip.checked = true; syncDeliveryUI(); } });
+
+  syncDeliveryUI();
+}
+
+// ========================================================
+// ITEM 2: FLOATING QUICK CONTACT WIDGET (FAB)
+// ========================================================
+function initFloatingContactWidget() {
+  const widget = document.getElementById('floatingContactWidget');
+  const btn = document.getElementById('floatingContactBtn');
+  const menu = document.getElementById('floatingContactMenu');
+  const closeBtn = document.getElementById('closeContactMenuBtn');
+
+  if (!btn || !menu) return;
+
+  function toggleMenu(e) {
+    if (e) e.stopPropagation();
+    const isHidden = menu.classList.contains('hidden');
+    if (isHidden) {
+      menu.classList.remove('hidden');
+      btn.classList.add('is-open');
+      if (typeof playChime === 'function') playChime(560);
+    } else {
+      closeContactMenu();
+    }
+  }
+
+  function closeContactMenu() {
+    menu.classList.add('hidden');
+    btn.classList.remove('is-open');
+  }
+
+  btn.addEventListener('click', toggleMenu);
+  if (closeBtn) closeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeContactMenu();
+  });
+
+  // Đóng khi nhấp bên ngoài
+  document.addEventListener('click', (e) => {
+    if (widget && !widget.contains(e.target)) {
+      closeContactMenu();
+    }
+  });
+
+  // Đóng khi nhấn Esc
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !menu.classList.contains('hidden')) {
+      closeContactMenu();
+    }
+  });
+}
+
+
+
+// ========================================================
+// ITEM 6: ADMIN INVENTORY & COSTUME MANAGEMENT PORTAL
+// ========================================================
+function initAdminInventoryPortal() {
+  loadCustomCatalog();
+  const tabOrdersBtn = document.getElementById('adminTabOrdersBtn');
+  const tabInventoryBtn = document.getElementById('adminTabInventoryBtn');
+  const ordersPane = document.getElementById('adminOrdersTabPane');
+  const inventoryPane = document.getElementById('adminInventoryTabPane');
+
+  const invSearchInput = document.getElementById('adminInvSearchInput');
+  const invStatusFilter = document.getElementById('adminInvStatusFilter');
+  const btnAddCostume = document.getElementById('btnAdminAddCostume');
+
+  const editModal = document.getElementById('adminCostumeEditModal');
+  const closeEditBtn = document.getElementById('closeAdminCostumeEditBtn');
+  const cancelEditBtn = document.getElementById('cancelAdminCostumeEditBtn');
+  const editForm = document.getElementById('adminCostumeEditForm');
+
+  // Chuyển đổi giữa 2 tab trong Admin Dashboard
+  if (tabOrdersBtn && tabInventoryBtn) {
+    tabOrdersBtn.addEventListener('click', () => {
+      tabOrdersBtn.classList.add('active');
+      tabInventoryBtn.classList.remove('active');
+      ordersPane?.classList.remove('hidden');
+      inventoryPane?.classList.add('hidden');
+      if (typeof playChime === 'function') playChime(480);
+    });
+
+    tabInventoryBtn.addEventListener('click', () => {
+      tabInventoryBtn.classList.add('active');
+      tabOrdersBtn.classList.remove('active');
+      inventoryPane?.classList.remove('hidden');
+      ordersPane?.classList.add('hidden');
+      renderAdminInventory();
+      if (typeof playChime === 'function') playChime(520);
+    });
+  }
+
+  // Search & Filter trong kho
+  if (invSearchInput) {
+    invSearchInput.addEventListener('input', renderAdminInventory);
+  }
+  if (invStatusFilter) {
+    invStatusFilter.addEventListener('change', renderAdminInventory);
+  }
+
+  // Nút thêm trang phục mới
+  if (btnAddCostume) {
+    btnAddCostume.addEventListener('click', () => {
+      openAdminCostumeEditModal(null);
+    });
+  }
+
+  // Đóng Modal Thêm / Sửa trang phục
+  function closeEditModal() {
+    if (editModal) {
+      editModal.classList.add('hidden');
+      editModal.style.display = 'none';
+    }
+  }
+
+  if (closeEditBtn) closeEditBtn.addEventListener('click', closeEditModal);
+  if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditModal);
+  if (editModal) {
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) closeEditModal();
+    });
+  }
+
+  // Form Lưu Thông Tin Trang Phục
+  if (editForm) {
+    editForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const origKey = document.getElementById('editCostumeOriginalKey')?.value.trim();
+      const title = document.getElementById('editCostumeTitle')?.value.trim();
+      const status = document.getElementById('editCostumeStatus')?.value || 'ready';
+      const priceFes = document.getElementById('editCostumePriceFes')?.value.trim();
+      const priceTest = document.getElementById('editCostumePriceTest')?.value.trim();
+      const sizeVal = document.getElementById('editCostumeSize')?.value.trim();
+      const imgVal = document.getElementById('editCostumeImg')?.value.trim();
+      const accVal = document.getElementById('editCostumeAccessories')?.value.trim();
+      const notIncVal = document.getElementById('editCostumeNotIncluded')?.value.trim();
+
+      if (!title) {
+        alert('Vui lòng nhập tên trang phục!');
+        return;
+      }
+
+      const key = origKey || title;
+      if (!costumeCatalog[key]) {
+        costumeCatalog[key] = {
+          title: title,
+          price: `${priceFes} (Fes/Shoot) • ${priceTest} (Test)`,
+          desc: `Cost size ${sizeVal} kèm phụ kiện chuẩn form anime.`,
+          image: imgVal || 'assets/costumes/costume_himmel.jpg',
+          sizes: [
+            { value: sizeVal, label: `Size ${sizeVal}` }
+          ],
+          accessories: accVal ? accVal.split(',').map(s => s.trim()) : [],
+          notIncluded: notIncVal ? notIncVal.split(',').map(s => s.trim()) : []
+        };
+      } else {
+        costumeCatalog[key].title = title;
+        costumeCatalog[key].price = `${priceFes} (Fes/Shoot) • ${priceTest} (Test)`;
+        if (imgVal) costumeCatalog[key].image = imgVal;
+        if (sizeVal && costumeCatalog[key].sizes && costumeCatalog[key].sizes[0]) {
+          costumeCatalog[key].sizes[0].value = sizeVal;
+          costumeCatalog[key].sizes[0].label = `Size ${sizeVal}`;
+        }
+        if (accVal) costumeCatalog[key].accessories = accVal.split(',').map(s => s.trim());
+        if (notIncVal) costumeCatalog[key].notIncluded = notIncVal.split(',').map(s => s.trim());
+      }
+
+      // Lưu trạng thái kho
+      const statusMap = getInventoryStatuses();
+      statusMap[key] = status;
+      saveInventoryStatuses(statusMap);
+
+      // Lưu catalog tùy chỉnh
+      saveCustomCatalog();
+
+      closeEditModal();
+      renderAdminInventory();
+      if (typeof showToast === 'function') {
+        showToast(`Đã lưu thông tin kho trang phục "${title}" thành công! 🌸`, 'success');
+      }
+      if (typeof playSuccessChime === 'function') playSuccessChime();
+    });
+  }
+}
+
+// Helpers lưu trữ trạng thái kho trang phục
+function getInventoryStatuses() {
+  try {
+    return JSON.parse(localStorage.getItem('mochimoon_inventory_status') || '{}');
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveInventoryStatuses(statusMap) {
+  try {
+    localStorage.setItem('mochimoon_inventory_status', JSON.stringify(statusMap));
+  } catch (e) { }
+}
+
+function saveCustomCatalog() {
+  try {
+    const defaultKeys = ['Himmel', 'Frieren', 'Kaito Kid', 'Flins', 'Kinosaki Mei', 'Kitagawa Marin Ver Shizuku', 'Rem Yukata', 'Rem Maid', 'Rikka', 'Maomao'];
+    const exportData = {};
+    const defaultObjects = new Set(defaultKeys.map(k => costumeCatalog[k]).filter(Boolean));
+
+    Object.keys(costumeCatalog).forEach(k => {
+      const data = costumeCatalog[k];
+      if (!data || defaultObjects.has(data) || defaultKeys.includes(k) || k.includes('(')) return;
+      exportData[k] = data;
+    });
+    localStorage.setItem('mochimoon_custom_catalog', JSON.stringify(exportData));
+  } catch (e) { }
+}
+
+function loadCustomCatalog() {
+  try {
+    const raw = localStorage.getItem('mochimoon_custom_catalog');
+    if (!raw) return;
+    const custom = JSON.parse(raw);
+    Object.assign(costumeCatalog, custom);
+  } catch (e) { }
+}
+
+// Mở modal thêm/sửa trang phục
+function openAdminCostumeEditModal(costumeKey) {
+  const modal = document.getElementById('adminCostumeEditModal');
+  const titleEl = document.getElementById('adminCostumeModalTitle');
+  const origKeyInput = document.getElementById('editCostumeOriginalKey');
+  const titleInput = document.getElementById('editCostumeTitle');
+  const statusInput = document.getElementById('editCostumeStatus');
+  const fesInput = document.getElementById('editCostumePriceFes');
+  const testInput = document.getElementById('editCostumePriceTest');
+  const sizeInput = document.getElementById('editCostumeSize');
+  const imgInput = document.getElementById('editCostumeImg');
+  const accInput = document.getElementById('editCostumeAccessories');
+  const notIncInput = document.getElementById('editCostumeNotIncluded');
+
+  if (!modal) return;
+
+  const statusMap = getInventoryStatuses();
+
+  if (costumeKey && costumeCatalog[costumeKey]) {
+    const c = costumeCatalog[costumeKey];
+    if (titleEl) titleEl.textContent = `Chỉnh Sửa Trang Phục: ${c.title || costumeKey}`;
+    if (origKeyInput) origKeyInput.value = costumeKey;
+    if (titleInput) titleInput.value = c.title || costumeKey;
+    if (statusInput) statusInput.value = statusMap[costumeKey] || 'ready';
+
+    // Parse prices
+    const pStr = c.price || '';
+    const fesMatch = pStr.match(/(\d+[\d\.]*k|\d+[\d\.]*đ)/i);
+    if (fesInput) fesInput.value = fesMatch ? fesMatch[0] : '200.000đ';
+    if (testInput) testInput.value = '80.000đ';
+
+    if (sizeInput) sizeInput.value = (c.sizes && c.sizes[0] && c.sizes[0].value) || 'M';
+    if (imgInput) imgInput.value = c.image || '';
+    if (accInput) accInput.value = (c.accessories || []).join(', ');
+    if (notIncInput) notIncInput.value = (c.notIncluded || []).join(', ');
+  } else {
+    if (titleEl) titleEl.textContent = '✨ Thêm Mới Mẫu Trang Phục Cosplay';
+    if (origKeyInput) origKeyInput.value = '';
+    if (titleInput) titleInput.value = '';
+    if (statusInput) statusInput.value = 'ready';
+    if (fesInput) fesInput.value = '200.000đ';
+    if (testInput) testInput.value = '80.000đ';
+    if (sizeInput) sizeInput.value = 'M';
+    if (imgInput) imgInput.value = 'assets/costumes/costume_himmel.jpg';
+    if (accInput) accInput.value = 'Áo, Quần, Wig tạo kiểu';
+    if (notIncInput) notIncInput.value = 'Không kèm giày';
+  }
+
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+  if (typeof playChime === 'function') playChime(500);
+}
+
+// Render danh sách kho trang phục trên Admin Tab
+function renderAdminInventory() {
+  const container = document.getElementById('adminCostumesGrid');
+  const kpiTotal = document.getElementById('adminInvKpiTotal');
+  const kpiReady = document.getElementById('adminInvKpiReady');
+  const kpiWashing = document.getElementById('adminInvKpiWashing');
+  const kpiPaused = document.getElementById('adminInvKpiPaused');
+
+  const searchVal = (document.getElementById('adminInvSearchInput')?.value || '').trim().toLowerCase();
+  const filterVal = document.getElementById('adminInvStatusFilter')?.value || 'all';
+
+  if (!container) return;
+
+  const distinctCostumes = [
+    { key: 'Himmel', fallbackTitle: 'Himmel (Sousou no Frieren)' },
+    { key: 'Frieren', fallbackTitle: 'Frieren (Sousou no Frieren)' },
+    { key: 'Kaito Kid', fallbackTitle: 'Kaito Kid (Thám Tử Lừng Danh Conan)' },
+    { key: 'Flins', fallbackTitle: 'Flins (Genshin Impact)' },
+    { key: 'Kinosaki Mei', fallbackTitle: 'Kinosaki Mei' },
+    { key: 'Kitagawa Marin Ver Shizuku', fallbackTitle: 'Kitagawa Marin Ver Shizuku' },
+    { key: 'Rem Yukata', fallbackTitle: 'Rem Yukata (Re:Zero)' },
+    { key: 'Rem Maid', fallbackTitle: 'Rem Maid (Re:Zero)' },
+    { key: 'Rikka', fallbackTitle: 'Takanashi Rikka Noel (Chuunibyou)' },
+    { key: 'Maomao', fallbackTitle: 'Maomao (Dược Sư Tự Sự)' }
+  ];
+
+  // Chỉ thêm các custom costume mới do admin thêm (loại bỏ toàn bộ alias trùng object hoặc trùng title)
+  const existingObjects = new Set(distinctCostumes.map(d => costumeCatalog[d.key]).filter(Boolean));
+  const existingTitles = new Set(distinctCostumes.map(d => (costumeCatalog[d.key]?.title || d.fallbackTitle || d.key).toLowerCase()));
+
+  Object.keys(costumeCatalog).forEach(k => {
+    const data = costumeCatalog[k];
+    if (!data) return;
+    if (existingObjects.has(data)) return; // Bỏ qua alias trùng object (như 'Takanashi Rikka', 'Rikka Noel' trỏ vào 'Rikka')
+    const titleLower = (data.title || k).toLowerCase();
+    if (existingTitles.has(titleLower)) return; // Bỏ qua trùng tên
+
+    existingObjects.add(data);
+    existingTitles.add(titleLower);
+    distinctCostumes.push({ key: k, fallbackTitle: data.title || k });
+  });
+
+  const statusMap = getInventoryStatuses();
+
+  let readyCount = 0;
+  let washingCount = 0;
+  let pausedCount = 0;
+
+  distinctCostumes.forEach(item => {
+    const st = statusMap[item.key] || 'ready';
+    if (st === 'washing') washingCount++;
+    else if (st === 'paused') pausedCount++;
+    else readyCount++;
+  });
+
+  if (kpiTotal) kpiTotal.textContent = `${distinctCostumes.length} bộ`;
+  if (kpiReady) kpiReady.textContent = `${readyCount} bộ`;
+  if (kpiWashing) kpiWashing.textContent = `${washingCount} bộ`;
+  if (kpiPaused) kpiPaused.textContent = `${pausedCount} bộ`;
+
+  // Lọc theo từ khóa & trạng thái
+  const filtered = distinctCostumes.filter(item => {
+    const data = costumeCatalog[item.key] || {};
+    const title = data.title || item.fallbackTitle || item.key;
+    const st = statusMap[item.key] || 'ready';
+
+    if (filterVal !== 'all' && st !== filterVal) return false;
+    if (searchVal && !title.toLowerCase().includes(searchVal)) return false;
+    return true;
+  });
+
+  container.innerHTML = '';
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #888ca8;">
+        <span style="font-size: 36px; display: block; margin-bottom: 8px;">👗</span>
+        <p style="font-size: 15px; font-weight: 600;">Không tìm thấy trang phục nào trong kho phù hợp với bộ lọc!</p>
+      </div>
+    `;
+    return;
+  }
+
+  filtered.forEach(item => {
+    const data = costumeCatalog[item.key] || {};
+    const title = data.title || item.fallbackTitle || item.key;
+    const imgSrc = data.image || 'assets/costumes/costume_himmel.jpg';
+    const size = (data.sizes && data.sizes[0] && data.sizes[0].value) || 'M';
+    const priceStr = data.price || '150.000đ (Fes/Shoot) • 80.000đ (Test)';
+    const status = statusMap[item.key] || 'ready';
+
+    // Parse prices for neat pill display
+    const fesMatch = priceStr.match(/(\d+[\d\.]*k|\d+[\d\.]*đ)/i);
+    const fesPrice = fesMatch ? fesMatch[0] : '200.000đ';
+    const testMatch = priceStr.match(/•\s*(\d+[\d\.]*k|\d+[\d\.]*đ)/i) || priceStr.match(/(?:test\s*[:•]?\s*)(\d+[\d\.]*k|\d+[\d\.]*đ)/i);
+    const testPrice = testMatch ? testMatch[1] : '80.000đ';
+
+    const card = document.createElement('div');
+    card.className = 'admin-costume-card';
+    card.innerHTML = `
+      <div class="admin-costume-top">
+        <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(title)}" class="admin-costume-thumb" loading="lazy">
+        <div class="admin-costume-meta">
+          <h4 class="admin-costume-title" title="${escapeHtml(title)}">${escapeHtml(title)}</h4>
+          <span class="admin-costume-size">Size: ${escapeHtml(size)}</span>
+          <div class="admin-costume-prices">
+            <span class="admin-price-pill fes">Fes: <strong>${escapeHtml(fesPrice)}</strong></span>
+            <span class="admin-price-pill test">Test: <strong>${escapeHtml(testPrice)}</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-costume-status-row">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <select class="admin-status-select ${status}" data-key="${escapeHtml(item.key)}">
+            <option value="ready" ${status === 'ready' ? 'selected' : ''}>🟢 Sẵn sàng</option>
+            <option value="washing" ${status === 'washing' ? 'selected' : ''}>🧺 Đang giặt</option>
+            <option value="paused" ${status === 'paused' ? 'selected' : ''}>🔴 Tạm ngưng</option>
+          </select>
+        </div>
+        <button type="button" class="btn-admin-edit-costume" data-key="${escapeHtml(item.key)}">
+          ✏️ Sửa
+        </button>
+      </div>
+    `;
+
+    // Dropdown change status
+    const sel = card.querySelector('.admin-status-select');
+    if (sel) {
+      sel.addEventListener('change', (e) => {
+        const newSt = e.target.value;
+        statusMap[item.key] = newSt;
+        saveInventoryStatuses(statusMap);
+        sel.className = `admin-status-select ${newSt}`;
+        renderAdminInventory();
+        if (typeof showToast === 'function') {
+          showToast(`Đã chuyển trạng thái "${title}" sang: ${sel.options[sel.selectedIndex].text} 🌸`, 'success');
+        }
+        if (typeof playChime === 'function') playChime(500);
+      });
+    }
+
+    // Edit button
+    const editBtn = card.querySelector('.btn-admin-edit-costume');
+    if (editBtn) {
+      editBtn.addEventListener('click', () => {
+        openAdminCostumeEditModal(item.key);
+      });
+    }
+
+    container.appendChild(card);
+  });
 }
