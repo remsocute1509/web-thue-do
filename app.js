@@ -1,33 +1,65 @@
 /* ========================================================
-// CUTE MOCHIMOON PRELOADER CONTROLLER
+// CUTE MOCHIMOON PRELOADER CONTROLLER (KAWAII PRO)
 // ======================================================== */
 (function initCutePreloader() {
   const preloader = document.getElementById('sitePreloader');
   const bar = document.getElementById('preloaderBar');
+  const percentEl = document.getElementById('preloaderPercent');
+  const statusEl = document.getElementById('preloaderStatus');
   if (!preloader || !bar) return;
 
-  let currentPercent = 0;
-  const targetDuration = 1350; // Chạy mượt trong ~1.35s
+  const messages = [
+    { p: 0, text: "Ủi phẳng nếp váy cosplay... 👗" },
+    { p: 25, text: "Chải chuốt wig & phụ kiện xinh... 🎀" },
+    { p: 55, text: "Kiểm tra kiếm đạo cụ & giày... ⚔️" },
+    { p: 82, text: "Chuẩn bị góc chụp lung linh... 📸" },
+    { p: 100, text: "Chào mừng bạn đến với Mochimoon! ✨" }
+  ];
+
+  let currentMsgIdx = 0;
+  const targetDuration = 1600; // 1.6s mượt mà, vừa đủ ngắm chuyển động
   const startTime = Date.now();
 
   const timer = setInterval(() => {
     const elapsed = Date.now() - startTime;
     const progress = Math.min(elapsed / targetDuration, 1);
 
-    // Easing mượt mà dạng ease-out
-    const eased = 1 - Math.pow(1 - progress, 2.5);
-    currentPercent = Math.min(100, Math.floor(eased * 100));
+    // Easing cubic ease-out
+    const eased = 1 - Math.pow(1 - progress, 2.6);
+    const currentPercent = Math.min(100, Math.floor(eased * 100));
+
     bar.style.width = `${currentPercent}%`;
+    if (percentEl) percentEl.textContent = `${currentPercent}%`;
+
+    // Cập nhật câu trạng thái mượt mà theo %
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (currentPercent >= messages[i].p) {
+        if (currentMsgIdx !== i && statusEl) {
+          currentMsgIdx = i;
+          statusEl.style.opacity = '0';
+          statusEl.style.transform = 'translateY(4px)';
+          setTimeout(() => {
+            statusEl.textContent = messages[i].text;
+            statusEl.style.opacity = '1';
+            statusEl.style.transform = 'translateY(0)';
+          }, 140);
+        }
+        break;
+      }
+    }
 
     if (progress >= 1) {
       clearInterval(timer);
       bar.style.width = '100%';
+      if (percentEl) percentEl.textContent = '100%';
+
       setTimeout(() => {
-        preloader.classList.add('fade-out');
+        // Vén rèm sân khấu lên trên theo phong cách chuyên nghiệp
+        preloader.classList.add('curtain-exit');
         setTimeout(() => {
           preloader.classList.add('hidden-preloader');
-        }, 480);
-      }, 160);
+        }, 850);
+      }, 350);
     }
   }, 20);
 })();
@@ -1010,6 +1042,17 @@ function initEventListeners() {
     document.querySelectorAll('.mobile-drawer-nav .mobile-nav-item').forEach(n => {
       n.classList.toggle('active', n.getAttribute('data-tab') === targetTab);
     });
+
+    // 2.1 Cập nhật trạng thái Active trên Thanh điều hướng nhanh dưới đáy điện thoại (Mobile Bottom Nav)
+    document.querySelectorAll('.mobile-bottom-nav .mob-bottom-item').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-bottom-tab') === targetTab);
+    });
+
+    // Cập nhật trạng thái nút Thuê Đồ trên Header điện thoại
+    const mobHeadRentBtn = document.getElementById('mobileHeaderRentBtn');
+    if (mobHeadRentBtn) {
+      mobHeadRentBtn.classList.toggle('active', targetTab === 'health');
+    }
 
     // 3. Chuyển đổi nội dung Tab Pane
     const tabPanes = document.querySelectorAll('.tab-pane');

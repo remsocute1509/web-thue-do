@@ -24,54 +24,124 @@
        CUTE BLUE GINGHAM & BUNNY PRELOADER
        ======================================================== -->
   <div class="site-preloader" id="sitePreloader">
-    <!-- Nền caro Gingham bao phủ toàn bộ phía sau -->
-    <div class="preloader-gingham-bg"></div>
+    <!-- Nền Pastel Aurora Dream với các quầng sáng chuyển động mượt mà -->
+    <div class="preloader-aurora-bg">
+      <div class="aurora-blob aurora-blob-1"></div>
+      <div class="aurora-blob aurora-blob-2"></div>
+      <div class="aurora-blob aurora-blob-3"></div>
+      <div class="aurora-blob aurora-blob-4"></div>
 
-    <!-- Dải banner xanh pastel lượn sóng viền vỏ sò scallop hai bên -->
-    <div class="preloader-sky-banner">
-      <div class="scallop-border-top"></div>
+      <!-- 1. CÁC NGÔI SAO PIXEL SPARKLE Y2K (PINTEREST LINK 1) -->
+      <img src="assets/pixel_sparkle_pin.png" alt="Pixel Sparkle" class="preloader-pixel-sparkle psp-top-right">
+      <img src="assets/pixel_sparkle_pin.png" alt="Pixel Sparkle" class="preloader-pixel-sparkle psp-bottom-left">
+      <img src="assets/pixel_sparkle_pin.png" alt="Pixel Sparkle" class="preloader-pixel-sparkle psp-top-left">
+      <img src="assets/pixel_sparkle_pin.png" alt="Pixel Sparkle" class="preloader-pixel-sparkle psp-bottom-right">
+
+      <!-- NỐT NHẠC PIXEL Y2K (PINTEREST LINK 3) -->
+      <img src="assets/pixel_music_note.png" alt="Pixel Music Note" class="preloader-pixel-note pmn-1">
+      <img src="assets/pixel_music_note.png" alt="Pixel Music Note" class="preloader-pixel-note pmn-2">
+      <img src="assets/pixel_music_note.png" alt="Pixel Music Note" class="preloader-pixel-note pmn-3">
+
+      <!-- 2. BẦU TRỜ TRĂNG SAO & MÂY BỒNG BỀNH -->
+      <div class="preloader-sky-cluster">
+        <div class="preloader-cinnamoroll-wrap" title="Cinnamoroll Sanrio">
+          <img src="assets/pixel_cinnamoroll.png" alt="Cinnamoroll Pixel" class="pixel-cinnamoroll-img">
+        </div>
+        <span class="sky-cloud sky-cloud-left">☁️</span>
+        <div class="sky-moon-wrap">
+          <span class="sky-moon">🌙</span>
+          <span class="sky-moon-sparkle">✨</span>
+        </div>
+        <span class="sky-cloud sky-cloud-right">☁️</span>
+      </div>
+
+      <!-- NYAN CAT PIXEL ART BAY LƯỢN (PINTEREST LINK 1) -->
+      <div class="preloader-nyan-cat-wrap" title="Nyan Cat Pixel Art">
+        <img src="assets/pixel_nyan_cat.png" alt="Nyan Cat Pixel" class="pixel-nyan-cat-img">
+      </div>
+
+      <!-- 3. MƯA CÁNH HOA ANH ĐÀO RƠI NHẸ NHÀNG -->
+      <div class="preloader-sakura-rain">
+        <span class="pre-petal pp-1"></span>
+        <span class="pre-petal pp-2"></span>
+        <span class="pre-petal pp-3"></span>
+        <span class="pre-petal pp-4"></span>
+        <span class="pre-petal pp-5"></span>
+        <span class="pre-petal pp-6"></span>
+      </div>
+
+      <!-- HOA PIXEL NỞ Ở HAI GÓC ĐÁY MÀN HÌNH (PINTEREST LINK 2 & 4) -->
+      <div class="preloader-bot-flower bot-flower-left" title="Pixel Blue Flower Bouquet">
+        <img src="assets/pixel_blue_flower.png" alt="Blue Flower Pixel" class="pixel-bot-flower-img">
+      </div>
+      <div class="preloader-bot-flower bot-flower-right" title="Pixel Winter Snowdrop Flower">
+        <img src="assets/pixel_winter_flower.png" alt="Winter Flower Pixel" class="pixel-bot-flower-img">
+      </div>
+    </div>
+
+    <!-- Thẻ Kính Mờ Pha Lê (Frosted Glass Card) Trung Tâm -->
+    <div class="preloader-glass-card preloader-sky-banner">
+      <!-- BÌNH THUỐC / PHA LÊ MA THUẬT PIXEL (PINTEREST LINK 3) VAI TRÁI THẺ -->
+      <div class="preloader-magic-crystal-wrap" title="Pixel Magic Crystal Potion">
+        <img src="assets/pixel_magic_crystal.png" alt="Magic Crystal Pixel" class="pixel-magic-crystal-img">
+      </div>
+
+      <!-- NHÂN VẬT PIXEL SUNDAY (HONKAI STAR RAIL) BÊN PHẢI -->
+      <div class="preloader-pixel-character-wrap" title="Sunday Pixel Companion">
+        <img src="assets/pixel_sunday_pin.png" alt="Pixel Sunday Character" class="preloader-pixel-char-img">
+      </div>
+
+      <!-- NƠ TAI THỎ PIXEL TRANG TRÍ -->
+      <img src="assets/pixel_ribbon_bow.png" alt="Pixel Ribbon Bow" class="preloader-pixel-bow">
 
       <div class="preloader-content">
-        <div class="preloader-title">loading</div>
+        <div class="preloader-brand-badge">✦ MOCHIMOON STUDIO ✦</div>
+        <div class="preloader-title-row">
+          <div class="preloader-title">Loading</div>
+          <div class="preloader-percent" id="preloaderPercent">0%</div>
+        </div>
         <div class="preloader-track-wrap">
           <div class="preloader-track-frame">
             <div class="preloader-bar-fill" id="preloaderBar">
+              <!-- Hiệu ứng vệt sáng kim tuyến lướt qua -->
+              <div class="preloader-bar-shimmer"></div>
               <!-- Mascot Chú thỏ cute trượt theo thanh loading -->
               <div class="preloader-bunny-mascot" id="preloaderBunny">
-                <svg class="bunny-svg" viewBox="0 0 50 56" width="42" height="47">
-                  <!-- Tai thỏ trái: viền trắng dày, nền xanh theo màu banner, tai trong trắng -->
-                  <path d="M 16,22 C 12,13 13,2 18,2 C 22,2 22,13 20,22 Z" fill="#88aee8" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" />
+                <div class="preloader-bunny-sparkles"><span>✦</span><span>✧</span></div>
+                <svg class="bunny-svg" viewBox="0 0 50 56" width="44" height="49">
+                  <!-- Tai thỏ trái: viền trắng dày, nền tím hồng lavender, tai trong trắng -->
+                  <path d="M 16,22 C 12,13 13,2 18,2 C 22,2 22,13 20,22 Z" fill="#c084fc" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" />
                   <path d="M 16.5,18 C 14.8,12 15.2,5 18,5 C 20.2,5 20.2,12 19.5,18 Z" fill="#ffffff" />
 
-                  <!-- Tai thỏ phải: viền trắng dày, nền xanh theo màu banner, tai trong trắng -->
-                  <path d="M 30,22 C 28,13 28,2 32,2 C 37,2 38,13 34,22 Z" fill="#88aee8" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" />
+                  <!-- Tai thỏ phải: viền trắng dày, nền tím hồng lavender, tai trong trắng -->
+                  <path d="M 30,22 C 28,13 28,2 32,2 C 37,2 38,13 34,22 Z" fill="#c084fc" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" />
                   <path d="M 30.5,18 C 29.8,12 29.8,5 32,5 C 34.8,5 35.2,12 33.5,18 Z" fill="#ffffff" />
 
-                  <!-- Đầu tròn thỏ: Viền trắng dày, nền xanh -->
-                  <circle cx="25" cy="33" r="17" fill="#88aee8" stroke="#ffffff" stroke-width="3" />
+                  <!-- Đầu tròn thỏ: Viền trắng dày, nền tím hồng lavender -->
+                  <circle cx="25" cy="33" r="17" fill="#c084fc" stroke="#ffffff" stroke-width="3" />
 
                   <!-- Khuôn mặt tròn màu trắng bên trong -->
                   <ellipse cx="25" cy="35" rx="11.5" ry="10" fill="#ffffff" />
 
-                  <!-- Hai mắt tròn nhỏ màu xanh than đậm -->
-                  <circle cx="21" cy="34" r="1.6" fill="#2d4a75" />
-                  <circle cx="29" cy="34" r="1.6" fill="#2d4a75" />
+                  <!-- Hai mắt tròn nhỏ màu tím than đậm -->
+                  <circle cx="21" cy="34" r="1.6" fill="#3b0764" />
+                  <circle cx="29" cy="34" r="1.6" fill="#3b0764" />
 
                   <!-- Mũi miệng nhỏ xinh xắn -->
-                  <circle cx="25" cy="37" r="1.1" fill="#fca5a5" />
-                  <path d="M 23.6,38.5 Q 25,39.6 26.4,38.5" stroke="#2d4a75" stroke-width="1.1" stroke-linecap="round" fill="none" />
+                  <circle cx="25" cy="37" r="1.1" fill="#f43f5e" />
+                  <path d="M 23.6,38.5 Q 25,39.6 26.4,38.5" stroke="#3b0764" stroke-width="1.1" stroke-linecap="round" fill="none" />
 
                   <!-- Má hồng pastel -->
-                  <circle cx="17.5" cy="36" r="2" fill="#fca5a5" opacity="0.6" />
-                  <circle cx="32.5" cy="36" r="2" fill="#fca5a5" opacity="0.6" />
+                  <circle cx="17.5" cy="36" r="2.2" fill="#fda4af" opacity="0.85" />
+                  <circle cx="32.5" cy="36" r="2.2" fill="#fda4af" opacity="0.85" />
                 </svg>
               </div>
             </div>
           </div>
         </div>
+        <!-- Câu trạng thái động kể chuyện theo % tải -->
+        <div class="preloader-status" id="preloaderStatus">Ủi phẳng nếp váy cosplay... 👗</div>
       </div>
-
-      <div class="scallop-border-bottom"></div>
     </div>
   </div>
 
@@ -108,6 +178,14 @@
           </span>
           <span class="brand-title">mochimoon</span>
         </div>
+
+        <!-- Nút Thuê Đồ nổi bật trên Header Điện thoại (Không cần bấm 3 gạch) -->
+        <button type="button" class="mobile-header-rent-btn" id="mobileHeaderRentBtn" onclick="window.switchTab('health')"
+          title="Bấm để vào trang Đặt thuê đồ cosplay">
+          <span class="rent-btn-icon">👘</span>
+          <span class="rent-btn-text">Thuê Đồ</span>
+          <span class="rent-btn-badge">Hot</span>
+        </button>
       </div>
 
       <!-- Navigation Menu -->
@@ -361,12 +439,6 @@
 
           <!-- 1. MOCHIMOON INTRO CARD (Lời chào - Đặt lên trên Thời gian & Lịch) -->
           <div class="card mochimoon-intro-card" id="mochimoonIntroCard">
-            <!-- Nền ảnh cửa sổ biển ngắm mây pastel lung linh HD -->
-            <div class="intro-card-bg-wrap">
-              <img src="assets/window_sea_banner_hd.png" alt="Cửa sổ biển Mochimoon" class="intro-card-bg-img">
-              <div class="intro-card-bg-overlay"></div>
-            </div>
-
             <!-- Nền ánh sáng pastel hào quang -->
             <div class="intro-card-aura" aria-hidden="true"></div>
 
@@ -410,6 +482,22 @@
                   hay chụp ảnh kỷ niệm, Mochimoon luôn sẵn sàng đồng hành để bạn <span class="highlight-glow">tỏa sáng
                     rạng rỡ nhất!</span> <span class="intro-ending-icons">🌸🌙</span>
                 </p>
+
+                <!-- CỤM NÚT BẤM KÊU GỌI HÀNH ĐỘNG (CTA) THUÊ ĐỒ TRỰC TIẾP -->
+                <div class="intro-cta-row">
+                  <button type="button" class="btn-intro-cta btn-intro-rent" onclick="window.switchTab('health')"
+                    title="Bấm để vào form đặt lịch thuê đồ ngay">
+                    <span class="cta-pulse-dot"></span>
+                    <span class="cta-icon">👘</span>
+                    <span class="cta-text">ĐẶT LỊCH THUÊ ĐỒ NGAY</span>
+                    <span class="cta-arrow">➔</span>
+                  </button>
+                  <button type="button" class="btn-intro-cta btn-intro-catalog" onclick="window.switchTab('hobbies')"
+                    title="Xem kho trang phục cosplay & bảng giá chi tiết">
+                    <span class="cta-icon">👗</span>
+                    <span class="cta-text">Xem Mẫu Đồ & Bảng Giá</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1095,6 +1183,103 @@
 
               <!-- STEP 1: Booking Form -->
               <form class="booking-form" id="bookingForm">
+                <!-- THÔNG TIN KHÁCH HÀNG (Tên, Số điện thoại, CCCD & Ghi chú) -->
+                <div class="form-row">
+                  <div class="form-group flex-1">
+                    <label class="booking-label" for="customerName">
+                      <span>Họ & Tên khách hàng:</span>
+                    </label>
+                    <input type="text" class="booking-input" id="customerName" placeholder="Nhập tên của bạn..."
+                      required>
+                  </div>
+
+                  <div class="form-group flex-1">
+                    <label class="booking-label" for="customerPhone">
+                      <span>Số điện thoại / Zalo:</span>
+                    </label>
+                    <input type="tel" class="booking-input" id="customerPhone" placeholder="09xx xxx xxx" required>
+                  </div>
+                </div>
+
+                <!-- CHỖ TẢI ẢNH CCCD / GIẤY TỜ TÙY THÂN -->
+                <div class="form-group cccd-upload-group">
+                  <div class="cccd-label-row">
+                    <label class="booking-label">
+                      <span>🪪 Ảnh Căn cước công dân (CCCD):</span>
+                    </label>
+                    <span class="cccd-optional-tag">🌸 Khuyên dùng để tiệm giữ đồ nhanh</span>
+                  </div>
+
+                  <div class="cccd-upload-grid">
+                    <!-- Khung tải Mặt trước CCCD -->
+                    <div class="cccd-card" id="cccdFrontBox" title="Nhấp để tải ảnh Mặt trước CCCD">
+                      <input type="file" id="cccdFrontInput" accept="image/*" class="cccd-hidden-input">
+                      <div class="cccd-empty-state" id="cccdFrontPlaceholder">
+                        <div class="cccd-icon-circle">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+                            <circle cx="9" cy="10" r="2"></circle>
+                            <line x1="15" y1="8" x2="17" y2="8"></line>
+                            <line x1="15" y1="12" x2="17" y2="12"></line>
+                            <line x1="7" y1="16" x2="17" y2="16"></line>
+                          </svg>
+                        </div>
+                        <strong class="cccd-step-name">Mặt trước CCCD</strong>
+                        <span class="cccd-hint-text">Nhấp để chụp hoặc tải ảnh</span>
+                      </div>
+                      <div class="cccd-preview-state hidden" id="cccdFrontPreviewWrap">
+                        <img id="cccdFrontPreviewImg" src="" alt="Mặt trước CCCD" class="cccd-thumb-img">
+                        <button type="button" class="cccd-btn-del" id="cccdFrontDelBtn"
+                          title="Xóa ảnh và chọn lại">✕</button>
+                        <span class="cccd-badge-side front">Mặt trước ✓</span>
+                        <div class="cccd-compress-badge hidden" id="cccdFrontBadge"></div>
+                      </div>
+                    </div>
+
+                    <!-- Khung tải Mặt sau CCCD -->
+                    <div class="cccd-card" id="cccdBackBox" title="Nhấp để tải ảnh Mặt sau CCCD">
+                      <input type="file" id="cccdBackInput" accept="image/*" class="cccd-hidden-input">
+                      <div class="cccd-empty-state" id="cccdBackPlaceholder">
+                        <div class="cccd-icon-circle">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+                            <line x1="7" y1="8" x2="17" y2="8"></line>
+                            <line x1="7" y1="12" x2="17" y2="12"></line>
+                            <line x1="7" y1="16" x2="17" y2="16"></line>
+                          </svg>
+                        </div>
+                        <strong class="cccd-step-name">Mặt sau CCCD</strong>
+                        <span class="cccd-hint-text">Nhấp để chụp hoặc tải ảnh</span>
+                      </div>
+                      <div class="cccd-preview-state hidden" id="cccdBackPreviewWrap">
+                        <img id="cccdBackPreviewImg" src="" alt="Mặt sau CCCD" class="cccd-thumb-img">
+                        <button type="button" class="cccd-btn-del" id="cccdBackDelBtn"
+                          title="Xóa ảnh và chọn lại">✕</button>
+                        <span class="cccd-badge-side back">Mặt sau ✓</span>
+                        <div class="cccd-compress-badge hidden" id="cccdBackBadge"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="cccd-secure-note">
+                    <span class="secure-icon">🔒</span>
+                    <span><strong>Bảo mật thông tin:</strong> Ảnh CCCD được lưu an toàn, chỉ dùng để đối chiếu xác minh
+                      khi nhận và trả đồ cosplay tại tiệm.</span>
+                  </div>
+                </div>
+
+                <!-- GHI CHÚ THÊM -->
+                <div class="form-group">
+                  <label class="booking-label" for="bookingNote">
+                    <span>Ghi chú thêm:</span>
+                  </label>
+                  <input type="text" class="booking-input" id="bookingNote"
+                    placeholder="Ví dụ: Giữ đồ lấy vào sáng sớm, cần chỉnh eo...">
+                </div>
+
+                <!-- THÔNG TIN THUÊ ĐỒ (Trang phục, Size, Ngày thuê & Thời gian) -->
                 <div class="form-row">
                   <div class="form-group flex-1">
                     <label class="booking-label" for="bookingCharacter">
@@ -1201,23 +1386,6 @@
                   </div>
                 </div>
 
-                <div class="form-row">
-                  <div class="form-group flex-1">
-                    <label class="booking-label" for="customerName">
-                      <span>Họ & Tên khách hàng:</span>
-                    </label>
-                    <input type="text" class="booking-input" id="customerName" placeholder="Nhập tên của bạn..."
-                      required>
-                  </div>
-
-                  <div class="form-group flex-1">
-                    <label class="booking-label" for="customerPhone">
-                      <span>Số điện thoại / Zalo:</span>
-                    </label>
-                    <input type="tel" class="booking-input" id="customerPhone" placeholder="09xx xxx xxx" required>
-                  </div>
-                </div>
-
                 <!-- 1. HÌNH THỨC NHẬN TRANG PHỤC (Item 3) -->
                 <div class="form-group booking-method-group">
                   <label class="booking-label">
@@ -1265,84 +1433,6 @@
                     <span class="delivery-hint-text">💡 Tiệm sẽ gọi điện hoặc nhắn Zalo xác nhận trước khi gửi hàng cho
                       bạn nhé! 🌸</span>
                   </div>
-                </div>
-
-
-                <!-- CHỖ TẢI ẢNH CCCD / GIẤY TỜ TÙY THÂN -->
-                <div class="form-group cccd-upload-group">
-                  <div class="cccd-label-row">
-                    <label class="booking-label">
-                      <span>🪪 Ảnh Căn cước công dân (CCCD):</span>
-                    </label>
-                    <span class="cccd-optional-tag">🌸 Khuyên dùng để tiệm giữ đồ nhanh</span>
-                  </div>
-
-                  <div class="cccd-upload-grid">
-                    <!-- Khung tải Mặt trước CCCD -->
-                    <div class="cccd-card" id="cccdFrontBox" title="Nhấp để tải ảnh Mặt trước CCCD">
-                      <input type="file" id="cccdFrontInput" accept="image/*" class="cccd-hidden-input">
-                      <div class="cccd-empty-state" id="cccdFrontPlaceholder">
-                        <div class="cccd-icon-circle">
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="16" rx="3"></rect>
-                            <circle cx="9" cy="10" r="2"></circle>
-                            <line x1="15" y1="8" x2="17" y2="8"></line>
-                            <line x1="15" y1="12" x2="17" y2="12"></line>
-                            <line x1="7" y1="16" x2="17" y2="16"></line>
-                          </svg>
-                        </div>
-                        <strong class="cccd-step-name">Mặt trước CCCD</strong>
-                        <span class="cccd-hint-text">Nhấp để chụp hoặc tải ảnh</span>
-                      </div>
-                      <div class="cccd-preview-state hidden" id="cccdFrontPreviewWrap">
-                        <img id="cccdFrontPreviewImg" src="" alt="Mặt trước CCCD" class="cccd-thumb-img">
-                        <button type="button" class="cccd-btn-del" id="cccdFrontDelBtn"
-                          title="Xóa ảnh và chọn lại">✕</button>
-                        <span class="cccd-badge-side front">Mặt trước ✓</span>
-                        <div class="cccd-compress-badge hidden" id="cccdFrontBadge"></div>
-                      </div>
-                    </div>
-
-                    <!-- Khung tải Mặt sau CCCD -->
-                    <div class="cccd-card" id="cccdBackBox" title="Nhấp để tải ảnh Mặt sau CCCD">
-                      <input type="file" id="cccdBackInput" accept="image/*" class="cccd-hidden-input">
-                      <div class="cccd-empty-state" id="cccdBackPlaceholder">
-                        <div class="cccd-icon-circle">
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="16" rx="3"></rect>
-                            <line x1="7" y1="8" x2="17" y2="8"></line>
-                            <line x1="7" y1="12" x2="17" y2="12"></line>
-                            <line x1="7" y1="16" x2="17" y2="16"></line>
-                          </svg>
-                        </div>
-                        <strong class="cccd-step-name">Mặt sau CCCD</strong>
-                        <span class="cccd-hint-text">Nhấp để chụp hoặc tải ảnh</span>
-                      </div>
-                      <div class="cccd-preview-state hidden" id="cccdBackPreviewWrap">
-                        <img id="cccdBackPreviewImg" src="" alt="Mặt sau CCCD" class="cccd-thumb-img">
-                        <button type="button" class="cccd-btn-del" id="cccdBackDelBtn"
-                          title="Xóa ảnh và chọn lại">✕</button>
-                        <span class="cccd-badge-side back">Mặt sau ✓</span>
-                        <div class="cccd-compress-badge hidden" id="cccdBackBadge"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="cccd-secure-note">
-                    <span class="secure-icon">🔒</span>
-                    <span><strong>Bảo mật thông tin:</strong> Ảnh CCCD được lưu an toàn, chỉ dùng để đối chiếu xác minh
-                      khi nhận và trả đồ cosplay tại tiệm.</span>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="booking-label" for="bookingNote">
-                    <span>Ghi chú thêm:</span>
-                  </label>
-                  <input type="text" class="booking-input" id="bookingNote"
-                    placeholder="Ví dụ: Giữ đồ lấy vào sáng sớm, cần chỉnh eo...">
                 </div>
 
                 <div class="form-actions">
@@ -2997,6 +3087,73 @@
       <span class="contact-btn-tooltip">Chat với tiệm 🌸</span>
     </button>
   </div>
+
+  <!-- ========================================================
+       THANH ĐIỀU HƯỚNG CỐ ĐỊNH DƯỚI ĐÁY ĐIỆN THOẠI (BOTTOM NAV)
+       Giúp khách bấm vào Thuê Đồ ngay lập tức mà KHÔNG CẦN DÙNG MENU 3 GẠCH
+       ======================================================== -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Thanh điều hướng nhanh dưới đáy">
+    <button type="button" class="mob-bottom-item active" data-bottom-tab="tracker" onclick="window.switchTab('tracker')"
+      title="Trang chủ">
+      <div class="mob-bottom-icon-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </div>
+      <span class="mob-bottom-label">Trang chủ</span>
+    </button>
+
+    <button type="button" class="mob-bottom-item" data-bottom-tab="hobbies" onclick="window.switchTab('hobbies')"
+      title="Mẫu đồ & Bảng giá">
+      <div class="mob-bottom-icon-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z">
+          </path>
+        </svg>
+      </div>
+      <span class="mob-bottom-label">Mẫu đồ</span>
+    </button>
+
+    <!-- NÚT THUÊ ĐỒ TRUNG TÂM NỔI BẬT NHẤT (FLOATING ACTION PILL) -->
+    <button type="button" class="mob-bottom-item mob-bottom-rent-highlight" data-bottom-tab="health"
+      onclick="window.switchTab('health')" title="Bấm để Đặt lịch thuê đồ cosplay ngay!">
+      <div class="mob-bottom-rent-pill">
+        <span class="mob-bottom-rent-pulse"></span>
+        <span class="mob-bottom-rent-icon">👘</span>
+        <span class="mob-bottom-rent-text">Thuê Đồ</span>
+      </div>
+    </button>
+
+    <button type="button" class="mob-bottom-item" data-bottom-tab="tracking" onclick="window.switchTab('tracking')"
+      title="Tra cứu đơn hàng">
+      <div class="mob-bottom-icon-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+      <span class="mob-bottom-label">Tra cứu</span>
+    </button>
+
+    <button type="button" class="mob-bottom-item" data-bottom-tab="wardrobe" onclick="window.switchTab('wardrobe')"
+      title="Lưu ý & Quy định thuê đồ">
+      <div class="mob-bottom-icon-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+      </div>
+      <span class="mob-bottom-label">Quy định</span>
+    </button>
+  </nav>
 
   <script src="app.js"></script>
 </body>
